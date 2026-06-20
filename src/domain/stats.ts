@@ -247,11 +247,32 @@ export function defaultBudget(income: number, minCasa = 0): Budget {
   }
 }
 
+/** Despesa mínima en oci+compres per no perdre benestar (≈ 12% de l'ingrés, acotat). */
+export function minimOciCompres(income: number): number {
+  return clamp(Math.round(income * 0.12), 40, 160)
+}
+
+/**
+ * Benestar mensual segons la despesa discrecional (oci + compres): per sota del
+ * mínim de manteniment es perd benestar (fins a −3), just al mínim s'està a 0, i
+ * per sobre se'n guanya amb rendiments decreixents (fins a +5).
+ */
+export function benestarEstilDeVida(
+  oci: number,
+  compres: number,
+  income: number,
+): number {
+  const d = oci + compres
+  const min = minimOciCompres(income)
+  if (d >= min) return clamp(Math.round(Math.sqrt(d - min) / 3.5), 0, 5)
+  return -clamp(Math.round(((min - d) / min) * 3), 0, 3)
+}
+
 /**
  * Aplica un mes a la fase laboral: ingressa, paga l'aportació obligatòria a casa,
  * mou l'estalvi al patrimoni, gasta oci/compres i deixa el sobrant a efectiu (mai
- * negatiu). El benestar reacciona a la despesa discrecional (oci + compres): com
- * més et permets, més puja (amb rendiments decreixents); no gastar res penalitza.
+ * negatiu). El benestar reacciona a la despesa discrecional (oci + compres): cal
+ * gastar un mínim per no perdre'n i, per sobre, se'n guanya (rendiments decreixents).
  */
 export function applyBudgetMonth(
   person: Person,
@@ -277,11 +298,8 @@ export function applyBudgetMonth(
   patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
   patrimoni.efectiu = Math.round(disponible)
 
-  // El benestar puja segons la despesa discrecional (oci + compres), amb
-  // rendiments decreixents i topall; no permetre's res té un cost.
-  const discrecional = oci + compres
-  const deltaBenestar =
-    discrecional <= 0 ? -2 : clamp(Math.round(Math.sqrt(discrecional) / 4), 0, 5)
+  // El benestar depèn de la despesa en oci+compres respecte al mínim de manteniment.
+  const deltaBenestar = benestarEstilDeVida(oci, compres, income)
 
   const stats = {
     ...person.stats,

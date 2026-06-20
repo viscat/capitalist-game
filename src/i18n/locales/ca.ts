@@ -159,6 +159,8 @@ export const ca: Record<string, string> = {
   'budget.casa.desc': 'El que aportes a la família.',
   'budget.casa.obligatori': 'Obligatori mentre vius a casa · mín. {min}',
   'budget.lliure': 'Sense assignar (a efectiu)',
+  'budget.benestar': 'Benestar (oci + compres)',
+  'budget.benestar.min': 'Gasta almenys {min} en oci/compres per no perdre benestar.',
   'budget.nextMonth': 'Següent mes →',
 
   // Estacions

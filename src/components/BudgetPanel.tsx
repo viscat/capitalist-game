@@ -1,8 +1,10 @@
 import { PAS_PRESSUPOST } from '../domain/constants'
 import {
   aportacioMinima,
+  benestarEstilDeVida,
   defaultBudget,
   ingressosMensuals16,
+  minimOciCompres,
 } from '../domain/stats'
 import type { Budget } from '../domain/types'
 import { useGame } from '../state/GameContext'
@@ -25,6 +27,10 @@ export function BudgetPanel() {
   const budget: Budget = { ...base, casa: Math.max(base.casa, minCasa) }
   const total = CATEGORIES.reduce((sum, k) => sum + budget[k], 0)
   const lliure = income - total
+
+  // Benestar mensual segons l'oci+compres i el mínim per no perdre'n.
+  const benestar = benestarEstilDeVida(budget.oci, budget.compres, income)
+  const minOciCompres = minimOciCompres(income)
 
   const minOf = (k: keyof Budget) => (k === 'casa' ? minCasa : 0)
 
@@ -81,9 +87,31 @@ export function BudgetPanel() {
         ))}
       </div>
 
-      <div className="mt-3 flex justify-between border-t border-slate-700 pt-3 text-sm">
-        <span className="text-slate-400">{t('budget.lliure')}</span>
-        <span className="font-medium text-emerald-300">{formatEuros(lliure)}</span>
+      <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-sm">
+        <div className="flex justify-between">
+          <span className="text-slate-400">{t('budget.benestar')}</span>
+          <span
+            className={`font-semibold ${
+              benestar > 0
+                ? 'text-emerald-300'
+                : benestar < 0
+                  ? 'text-amber-400'
+                  : 'text-slate-300'
+            }`}
+          >
+            {benestar > 0 ? '+' : ''}
+            {benestar}/mes
+          </span>
+        </div>
+        {benestar <= 0 && (
+          <p className="text-xs text-amber-400/80">
+            {t('budget.benestar.min', { min: formatEuros(minOciCompres) })}
+          </p>
+        )}
+        <div className="flex justify-between">
+          <span className="text-slate-400">{t('budget.lliure')}</span>
+          <span className="font-medium text-emerald-300">{formatEuros(lliure)}</span>
+        </div>
       </div>
 
       <button

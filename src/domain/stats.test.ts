@@ -5,7 +5,9 @@ import {
   applyBudgetMonth,
   applyEffect,
   augmentSou,
+  benestarEstilDeVida,
   clampBenestar,
+  minimOciCompres,
   estalviAnualCriatura,
   familyBaselineBenestar,
   pagaMensual,
@@ -130,12 +132,28 @@ describe('applyBudgetMonth — benestar segons la despesa', () => {
     const poc = applyBudgetMonth(base, budget(20, 0), 1000).stats.benestar
     const molt = applyBudgetMonth(base, budget(300, 100), 1000).stats.benestar
     expect(molt).toBeGreaterThan(poc)
-    expect(poc).toBeGreaterThan(50)
+    expect(molt).toBeGreaterThan(50)
   })
 
   it('no permetre’s res baixa el benestar', () => {
     expect(applyBudgetMonth(base, budget(0, 0), 1000).stats.benestar).toBeLessThan(
       50,
+    )
+  })
+})
+
+describe('benestarEstilDeVida (mínim de manteniment)', () => {
+  it('per sota del mínim es perd benestar, al mínim és 0 i per sobre se’n guanya', () => {
+    const min = minimOciCompres(1000)
+    expect(benestarEstilDeVida(0, 0, 1000)).toBeLessThan(0)
+    expect(benestarEstilDeVida(min, 0, 1000)).toBe(0)
+    expect(benestarEstilDeVida(min + 300, 0, 1000)).toBeGreaterThan(0)
+  })
+
+  it('com més per sota del mínim, més benestar es perd', () => {
+    const min = minimOciCompres(1000)
+    expect(benestarEstilDeVida(5, 0, 1000)).toBeLessThan(
+      benestarEstilDeVida(min - 5, 0, 1000),
     )
   })
 })
