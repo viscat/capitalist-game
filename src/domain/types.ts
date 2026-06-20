@@ -55,6 +55,32 @@ export interface PlaInversio {
   fonsPensions: number
 }
 
+/** On viu la persona adulta. */
+export type TipusHabitatge =
+  | 'amb_pares'
+  | 'habitacio'
+  | 'pis_lloguer'
+  | 'propietat'
+
+/** Hipoteca viva d'un habitatge en propietat. */
+export interface Hipoteca {
+  /** Deute pendent (capital). */
+  deute: number
+  /** Quota anual a pagar. */
+  quotaAnual: number
+  /** Anys que falten per acabar de pagar. */
+  anysRestants: number
+}
+
+/** Situació d'habitatge de la persona adulta (a partir dels 18). */
+export interface Habitatge {
+  tipus: TipusHabitatge
+  /** Lloguer anual (habitació o pis de lloguer). */
+  lloguerAnual?: number
+  /** Hipoteca viva (si és en propietat i no s'ha pagat al comptat). */
+  hipoteca?: Hipoteca
+}
+
 export interface Stats {
   /** Benestar global 0..100 (condensa felicitat / angoixa / tranquil·litat). */
   benestar: number
@@ -221,6 +247,8 @@ export interface GameState {
   pressupost?: Budget
   /** Pla d'estalvi i inversió anual actiu (fase de carrera). */
   plaInversio?: PlaInversio
+  /** Situació d'habitatge (a partir dels 18). Per defecte, viure amb els pares. */
+  habitatge?: Habitatge
   /** Marca si la persona té un títol universitari (premi de sou a la carrera). */
   teDiploma?: boolean
   /** Sou mensual actual (treball). 0 amb itinerari 'treball' = a l'atur. */

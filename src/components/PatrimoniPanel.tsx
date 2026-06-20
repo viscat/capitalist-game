@@ -6,6 +6,7 @@ import {
 } from '../domain/stats'
 import type {
   Familia,
+  Habitatge,
   Identitat,
   Itinerari,
   LifeStage,
@@ -30,6 +31,7 @@ export function PatrimoniPanel({
   itinerari,
   salari,
   identitat,
+  habitatge,
 }: {
   person: Person
   familia: Familia
@@ -37,11 +39,15 @@ export function PatrimoniPanel({
   itinerari?: Itinerari
   salari?: number
   identitat?: Identitat
+  habitatge?: Habitatge
 }) {
   const { t } = useT()
   const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
     person.patrimoni
   const esAdult = stage === 'universitat' || stage === 'carrera'
+  const valorCases = cases.reduce((a, b) => a + b, 0)
+  const deuteHipoteca = habitatge?.hipoteca?.deute ?? 0
+  const net = patrimoniTotal(person) - deuteHipoteca
 
   return (
     <div className="space-y-4">
@@ -62,16 +68,22 @@ export function PatrimoniPanel({
             <Row label={t('patrimoni.inversions')} value={formatEuros(inversions)} />
           )}
           {cases.length > 0 && (
-            <Row label={t('patrimoni.cases')} value={String(cases.length)} />
+            <Row label={t('patrimoni.cases')} value={formatEuros(valorCases)} />
+          )}
+          {deuteHipoteca > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">{t('habitatge.deute')}</span>
+              <span className="font-medium text-amber-400">
+                −{formatEuros(deuteHipoteca)}
+              </span>
+            </div>
           )}
           <div className="my-2 border-t border-slate-700" />
           <div className="flex justify-between text-sm">
             <span className="font-semibold text-slate-200">
               {t('patrimoni.total')}
             </span>
-            <span className="font-bold text-emerald-300">
-              {formatEuros(patrimoniTotal(person))}
-            </span>
+            <span className="font-bold text-emerald-300">{formatEuros(net)}</span>
           </div>
         </div>
       </div>

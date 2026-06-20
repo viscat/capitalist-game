@@ -7,6 +7,7 @@ import {
   ingressosAnualsCarrera,
   minimOciAnual,
 } from '../domain/stats'
+import { costHabitatgeAnual } from '../domain/housing'
 import type { PlaInversio } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -29,9 +30,10 @@ export function InvestmentPanel() {
 
   const income = ingressosAnualsCarrera(state)
   const costVida = costVidaAnual(income)
+  const costHab = costHabitatgeAnual(state.habitatge)
   const efectiu = state.person.patrimoni.efectiu
-  // El que es pot repartir aquest any: efectiu acumulat + sou − cost de vida.
-  const disponible = Math.max(0, efectiu + income - costVida)
+  // El que es pot repartir aquest any: efectiu acumulat + sou − cost de vida − habitatge.
+  const disponible = Math.max(0, efectiu + income - costVida - costHab)
 
   const pla = state.plaInversio ?? defaultPlaInversio(income)
   const total = CATEGORIES.reduce((sum, k) => sum + pla[k], 0)
@@ -55,7 +57,8 @@ export function InvestmentPanel() {
         </span>
       </div>
       <p className="mb-3 text-xs text-slate-500">
-        {t('pla.costVida', { cost: formatEuros(costVida) })} ·{' '}
+        {t('pla.costVida', { cost: formatEuros(costVida) })}
+        {costHab > 0 && ` · ${t('pla.costHabitatge', { cost: formatEuros(costHab) })}`} ·{' '}
         {t('pla.disponible', { amount: formatEuros(disponible) })}
       </p>
 

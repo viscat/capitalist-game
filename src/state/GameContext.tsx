@@ -9,6 +9,8 @@ import {
   newGameAt16,
   newGameAtCarrera,
 } from '../domain/engine'
+import { comprarCasa, llogar, tornarAmbPares } from '../domain/housing'
+import type { OpcioLloguer } from '../domain/housing'
 import { avuiISO } from '../domain/time'
 import type {
   ActionOption,
@@ -21,7 +23,7 @@ import type {
 
 // Versió de l'esquema desat. La fase adulta hi va afegir camps al patrimoni
 // (fons indexat, pla de pensions): pugem la versió per no carregar partides velles.
-const STORAGE_KEY = 'capitalist-game/save/v2'
+const STORAGE_KEY = 'capitalist-game/save/v3'
 
 function loadSave(): GameState | null {
   try {
@@ -50,6 +52,12 @@ interface GameContextValue {
   setBudget: (budget: Budget) => void
   /** Desa el pla d'inversió anual (fase de carrera). */
   setPla: (pla: PlaInversio) => void
+  /** Lloga una habitació o un pis. */
+  llogar: (tipus: OpcioLloguer['tipus']) => void
+  /** Compra un habitatge amb hipoteca (a `anys` anys). */
+  comprarCasa: (propietatId: string, anys: number) => void
+  /** Torna a viure amb els pares (deixa el lloguer). */
+  tornarAmbPares: () => void
   reset: () => void
   actions: ActionOption[]
 }
@@ -95,6 +103,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
       setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
+      llogar: (tipus) => setState((s) => (s ? llogar(s, tipus) : s)),
+      comprarCasa: (propietatId, anys) =>
+        setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
+      tornarAmbPares: () => setState((s) => (s ? tornarAmbPares(s) : s)),
       reset: () => {
         try {
           localStorage.removeItem(STORAGE_KEY)
