@@ -1,0 +1,79 @@
+import type { EventEffect } from '../domain/types'
+import { useT } from '../i18n'
+import { formatEuros } from '../lib/format'
+
+interface Badge {
+  label: string
+  text: string
+  positive: boolean
+}
+
+const MONEY_FIELDS: (keyof EventEffect)[] = ['efectiu', 'estalvi', 'inversions']
+
+export function EffectList({ effect }: { effect: EventEffect }) {
+  const { t } = useT()
+  const badges: Badge[] = []
+
+  if (effect.benestar) {
+    const v = effect.benestar
+    badges.push({
+      label: t('stat.benestar'),
+      text: `${v > 0 ? '+' : ''}${v}`,
+      positive: v > 0,
+    })
+  }
+  for (const field of MONEY_FIELDS) {
+    const v = effect[field]
+    if (typeof v === 'number' && v !== 0) {
+      badges.push({
+        label: t(`patrimoni.${field}`),
+        text: `${v > 0 ? '+' : ''}${formatEuros(v)}`,
+        positive: v > 0,
+      })
+    }
+  }
+  if (effect.despesaGreu) {
+    badges.push({
+      label: t('effect.despesaGreu'),
+      text: `−${formatEuros(effect.despesaGreu)}`,
+      positive: false,
+    })
+  }
+  if (effect.salariNou !== undefined) {
+    badges.push(
+      effect.salariNou === 0
+        ? { label: t('effect.atur'), text: '', positive: false }
+        : {
+            label: t('effect.salariNou'),
+            text: `${formatEuros(effect.salariNou)}/mes`,
+            positive: true,
+          },
+    )
+  } else if (effect.salariDelta) {
+    const v = effect.salariDelta
+    badges.push({
+      label: t('effect.salari'),
+      text: `${v > 0 ? '+' : ''}${formatEuros(v)}/mes`,
+      positive: v > 0,
+    })
+  }
+
+  if (badges.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {badges.map((b) => (
+        <span
+          key={b.label}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            b.positive
+              ? 'bg-emerald-500/15 text-emerald-300'
+              : 'bg-red-500/15 text-red-300'
+          }`}
+        >
+          {b.label} {b.text}
+        </span>
+      ))}
+    </div>
+  )
+}
