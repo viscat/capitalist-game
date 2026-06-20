@@ -64,13 +64,19 @@ obren una pantalla de decisió.
 | `adolescencia` | 12–16 | 1 trimestre | una **acció** de targeta cada torn |
 | `estudis_post` | 16–18 (batxillerat / grau mitjà) | 1 trimestre | una **acció** de targeta |
 | `laboral` | 16–18 (treball / nini) | 1 mes | ajusta el **pressupost** mensual |
+| `universitat` | 18–22 | 1 any | només «Següent any» (suport familiar − matrícula) |
+| `carrera` | 18/22–35 | 1 any | ajusta el **pla d'inversió** anual |
 
 Transicions (fites):
 - Als **12** → fita `institut` (una sola opció: continuar) → passa a `adolescencia`.
 - Als **16** → fita `postobligatori` (4 opcions) → `estudis_post` (batxillerat/grau_mig)
   o `laboral` (treball/nini), segons l'`Itinerari` triat.
-- Als **18** → `acabat = true` → pantalla `GameOver` (la vida adulta arribarà més
-  endavant).
+- Als **18** → fita `majoria` (2 opcions) → `universitat` o `carrera` (vida laboral
+  adulta amb inversions). Qui entra directament a `carrera` ho fa **sense títol**.
+- Als **22** → fita `fi_uni` (una sola opció) → `carrera` **amb títol** (`teDiploma`),
+  que dóna un premi de sou.
+- Als **35** → `acabat = true` → pantalla `GameOver` (la resta de la vida adulta
+  arribarà més endavant).
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.
@@ -144,6 +150,27 @@ Si toques aquests números, els tests de `stats.test.ts` i `engine.test.ts` codi
 les **relacions** esperades (p. ex. “més recursos ⇒ més paga”, “les classes baixes ho
 tenen més difícil”), no valors exactes. Mantén-les vàlides o actualitza-les amb
 intenció.
+
+### Inversions (fase de carrera, el missatge financer)
+
+A `carrera`, cada any el jugador reparteix els seus diners amb un **pla d'inversió**
+(`PlaInversio`: oci, estalvi, fons indexat, pla de pensions) i el patrimoni invertit
+**compon** any rere any (`applyCareerYear`, `creixementInversions` a `stats.ts`):
+
+- **estalvi** — líquid i segur, rendiment ≈ 0 (la inflació se'l menja).
+- **fons indexat** — rendiment esperat alt però **volàtil**: cada any es sorteja amb el
+  RNG (`rendimentIndexAnual`, mitjana ≈ +6%, pot ser negatiu) i, a més, hi ha xocs de
+  mercat puntuals (`EventEffect.mercatPct`, p. ex. un crac −28%). Missatge: a llarg
+  termini compon, però cal aguantar els sotracs sense vendre.
+- **pla de pensions** — rendiment estable i baix, amb **desgravació fiscal** (part de
+  l'aportació torna a efectiu) però **bloquejat** (il·líquid; compta al patrimoni net).
+- Ordre del torn: creixen les inversions → ingressa el sou → cost de vida obligatori →
+  aportacions del pla → desgravació → el sobrant va a efectiu (mai negatiu).
+
+L'origen segueix pesant: més patrimoni i el **títol universitari** (`teDiploma`) donen
+un sou inicial més alt (`salariAdultInicial`), i més sou ⇒ més capacitat d'inversió ⇒
+més interès compost. Si es perd la feina (sou 0), el pool passa a `ATUR_ADULT_EVENTS`
+(recuperació), perquè un acomiadament no condemni la partida.
 
 ## Convencions d'i18n
 

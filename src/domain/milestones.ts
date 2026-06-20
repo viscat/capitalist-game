@@ -6,6 +6,8 @@ export interface MilestoneOption {
   descKey: string
   lifeStage: LifeStage
   itinerari?: Itinerari
+  /** En entrar a la carrera: marca si la persona té títol universitari (premi de sou). */
+  teDiploma?: boolean
 }
 
 export interface MilestoneDef {
@@ -77,6 +79,48 @@ export const MILESTONES: Record<MilestoneId, MilestoneDef> = {
         descKey: 'itinerari.nini.desc',
         lifeStage: 'laboral',
         itinerari: 'nini',
+      },
+    ],
+  },
+  majoria: {
+    id: 'majoria',
+    kickerKey: 'milestone.majoria.kicker',
+    titleKey: 'milestone.majoria.title',
+    summaryTitleKey: 'milestone.majoria.summaryTitle',
+    summaryPrefix: 'milestone.majoria.summary',
+    loreTitleKey: 'milestone.majoria.loreTitle',
+    loreKeys: ['milestone.majoria.lore1', 'milestone.majoria.lore2'],
+    options: [
+      {
+        id: 'universitat',
+        labelKey: 'cami.universitat.label',
+        descKey: 'cami.universitat.desc',
+        lifeStage: 'universitat',
+      },
+      {
+        id: 'carrera',
+        labelKey: 'cami.carrera.label',
+        descKey: 'cami.carrera.desc',
+        lifeStage: 'carrera',
+        teDiploma: false,
+      },
+    ],
+  },
+  fi_uni: {
+    id: 'fi_uni',
+    kickerKey: 'milestone.fi_uni.kicker',
+    titleKey: 'milestone.fi_uni.title',
+    summaryTitleKey: 'milestone.fi_uni.summaryTitle',
+    summaryPrefix: 'milestone.fi_uni.summary',
+    loreTitleKey: 'milestone.fi_uni.loreTitle',
+    loreKeys: ['milestone.fi_uni.lore1', 'milestone.fi_uni.lore2'],
+    options: [
+      {
+        id: 'comencar_carrera',
+        labelKey: 'cami.carrera_titulat.label',
+        descKey: 'cami.carrera_titulat.desc',
+        lifeStage: 'carrera',
+        teDiploma: true,
       },
     ],
   },

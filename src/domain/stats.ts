@@ -1,4 +1,21 @@
-import { BENESTAR_MAX, BENESTAR_MIN, SALARI_BASE_16 } from './constants'
+import {
+  BENESTAR_MAX,
+  BENESTAR_MIN,
+  COST_VIDA_BASE,
+  COST_VIDA_FACTOR,
+  DESGRAVACIO_PENSIONS,
+  INDEX_RENDIMENT_MIN,
+  INDEX_RENDIMENT_RANG,
+  LIMIT_DESGRAVACIO_PENSIONS,
+  MATRICULA_ANUAL,
+  PAS_PLA,
+  PREMI_DIPLOMA,
+  RENDIMENT_ESTALVI,
+  RENDIMENT_INVERSIONS,
+  RENDIMENT_PENSIONS,
+  SALARI_ADULT_BASE,
+  SALARI_BASE_16,
+} from './constants'
 import type {
   Budget,
   EventEffect,
@@ -6,7 +23,9 @@ import type {
   FamilyClass,
   GameState,
   Itinerari,
+  Patrimoni,
   Person,
+  PlaInversio,
 } from './types'
 
 export function clamp(value: number, min: number, max: number): number {
@@ -97,6 +116,22 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
       0,
       Math.round(patrimoni.inversions + effect.inversions),
     )
+  if (effect.fonsIndexat)
+    patrimoni.fonsIndexat = Math.max(
+      0,
+      Math.round(patrimoni.fonsIndexat + effect.fonsIndexat),
+    )
+  if (effect.fonsPensions)
+    patrimoni.fonsPensions = Math.max(
+      0,
+      Math.round(patrimoni.fonsPensions + effect.fonsPensions),
+    )
+  // Xoc de mercat: variació percentual del fons indexat (crisi o eufòria).
+  if (effect.mercatPct)
+    patrimoni.fonsIndexat = Math.max(
+      0,
+      Math.round(patrimoni.fonsIndexat * (1 + effect.mercatPct)),
+    )
 
   const stats = { ...person.stats }
   if (effect.benestar) stats.benestar = clampBenestar(stats.benestar + effect.benestar)
@@ -106,8 +141,16 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
 
 /** Patrimoni net total de la persona. */
 export function patrimoniTotal(person: Person): number {
-  const { efectiu, estalvi, inversions, cases } = person.patrimoni
-  return efectiu + estalvi + inversions + cases.reduce((a, b) => a + b, 0)
+  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
+    person.patrimoni
+  return (
+    efectiu +
+    estalvi +
+    inversions +
+    fonsIndexat +
+    fonsPensions +
+    cases.reduce((a, b) => a + b, 0)
+  )
 }
 
 // --- Fase 16→18 ---
@@ -126,12 +169,32 @@ export function itinerariBenestarOffset(itinerari?: Itinerari): number {
   }
 }
 
-/** Benestar de referència tenint en compte família, itinerari i atur. */
+/** Benestar de referència tenint en compte família, itinerari, fase i atur. */
 export function baselineBenestar(state: GameState): number {
+  // Vida d'estudiant universitari: encara depens de casa, però amb aire i propòsit.
+  if (state.lifeStage === 'universitat') {
+    return clampBenestar(familyBaselineBenestar(state.familia) + 4)
+  }
+  // Vida adulta: la referència ja no depèn de la família sinó del teu propi camí.
+  if (state.lifeStage === 'carrera') return adultBaselineBenestar(state)
+
   let offset = itinerariBenestarOffset(state.itinerari)
   // A l'atur (treball amb sou 0): inseguretat i pressió.
   if (state.itinerari === 'treball' && state.salari === 0) offset -= 8
   return clampBenestar(familyBaselineBenestar(state.familia) + offset)
+}
+
+/**
+ * Benestar de referència adult (fase de carrera): depèn del propi ingrés i del
+ * patrimoni acumulat, no de la família. A l'atur, cau per la inseguretat.
+ */
+export function adultBaselineBenestar(state: GameState): number {
+  const incomeM = state.salari ?? 0
+  const econ = clamp(incomeM / 3500, 0, 1)
+  const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
+  let base = 38 + econ * 30 + wealth * 16
+  if (incomeM === 0) base -= 12
+  return clampBenestar(Math.round(base))
 }
 
 // Primeres feines més precàries per a les classes baixes (menys contactes, feines
@@ -304,6 +367,159 @@ export function applyBudgetMonth(
   const stats = {
     ...person.stats,
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),
+  }
+  return { ...person, stats, patrimoni }
+}
+
+// --- Universitat (18→22) ---
+
+/** Suport familiar anual durant la universitat (com més recursos, més ajut). */
+export function suportUniversitatAnual(familia: Familia): number {
+  const perIngressos = familia.ingressosMensuals * 12 * 0.06
+  const perPatrimoni = Math.min(familia.patrimoni, 1_000_000) * 0.002
+  return Math.round((perIngressos + perPatrimoni) / 50) * 50
+}
+
+// Beca per renda: cobreix més matrícula com més baixa és la renda familiar (les
+// rendes baixes no es queden fora de la universitat, però l'origen segueix pesant).
+const FACTOR_BECA: Record<FamilyClass, number> = {
+  pobra: 1,
+  treballadora: 0.7,
+  mitjana: 0.3,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
+/** Beca universitària anual segons la renda (cobreix part o tota la matrícula). */
+export function becaUniversitat(familia: Familia): number {
+  return Math.round(MATRICULA_ANUAL * FACTOR_BECA[familia.classe])
+}
+
+/** Balanç econòmic d'un any d'universitat: suport familiar + beca − matrícula. */
+export function balancUniversitatAnual(familia: Familia): number {
+  return suportUniversitatAnual(familia) + becaUniversitat(familia) - MATRICULA_ANUAL
+}
+
+// --- Carrera adulta (inversions, 18/22 → 35) ---
+
+/** Sou net mensual d'una primera feina adulta: base (+ títol) + contactes − precarietat. */
+export function salariAdultInicial(familia: Familia, teDiploma: boolean): number {
+  const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
+  const premi = teDiploma ? PREMI_DIPLOMA : 0
+  const sou =
+    SALARI_ADULT_BASE + premi + plusContactes - PRECARIETAT_SALARI[familia.classe]
+  return Math.max(600, Math.round(sou / 25) * 25)
+}
+
+/** Ingrés brut anual a la fase de carrera (sou mensual × 12). */
+export function ingressosAnualsCarrera(state: GameState): number {
+  return (state.salari ?? 0) * 12
+}
+
+/** Cost de vida anual: base + fracció de l'ingrés (l'estil de vida creix amb el sou). */
+export function costVidaAnual(annualIncome: number): number {
+  return Math.round(COST_VIDA_BASE + annualIncome * COST_VIDA_FACTOR)
+}
+
+/** Rendiment anual del fons indexat a partir d'un valor aleatori [0,1): volàtil. */
+export function rendimentIndexAnual(rngValue: number): number {
+  return INDEX_RENDIMENT_MIN + rngValue * INDEX_RENDIMENT_RANG
+}
+
+/** Desgravació fiscal que torna a efectiu segons l'aportació al pla de pensions. */
+export function desgravacioPensions(aportacio: number): number {
+  return Math.round(
+    Math.min(aportacio, LIMIT_DESGRAVACIO_PENSIONS) * DESGRAVACIO_PENSIONS,
+  )
+}
+
+/**
+ * Aplica un any de rendiments compostos al patrimoni invertit. El fons indexat
+ * varia segons `indexReturn` (pot baixar!); pensions i inversions creixen estables;
+ * l'estalvi a penes (la inflació se'l menja). Aquí és on es veu l'interès compost.
+ */
+export function creixementInversions(
+  patrimoni: Patrimoni,
+  indexReturn: number,
+): Patrimoni {
+  return {
+    ...patrimoni,
+    estalvi: Math.round(patrimoni.estalvi * (1 + RENDIMENT_ESTALVI)),
+    inversions: Math.round(patrimoni.inversions * (1 + RENDIMENT_INVERSIONS)),
+    fonsIndexat: Math.max(0, Math.round(patrimoni.fonsIndexat * (1 + indexReturn))),
+    fonsPensions: Math.round(patrimoni.fonsPensions * (1 + RENDIMENT_PENSIONS)),
+  }
+}
+
+/** Mínim anual d'oci per no perdre benestar (≈ 12% de l'ingrés, acotat). */
+export function minimOciAnual(annualIncome: number): number {
+  return clamp(Math.round(annualIncome * 0.12), 1500, 9000)
+}
+
+/**
+ * Benestar anual segons la despesa discrecional (oci): per sota del mínim de
+ * manteniment se'n perd (fins a −4), al mínim s'està a 0 i per sobre se'n guanya
+ * amb rendiments decreixents (fins a +6).
+ */
+export function benestarOciAnual(oci: number, annualIncome: number): number {
+  const min = minimOciAnual(annualIncome)
+  if (oci >= min) return clamp(Math.round(Math.sqrt(oci - min) / 18), 0, 6)
+  return -clamp(Math.round(((min - oci) / min) * 4), 0, 4)
+}
+
+/** Pla d'inversió anual per defecte (prioritza fons indexat i una mica de pensions). */
+export function defaultPlaInversio(annualIncome: number): PlaInversio {
+  const round = (n: number) => Math.max(0, Math.round(n / PAS_PLA) * PAS_PLA)
+  const rest = Math.max(0, annualIncome - costVidaAnual(annualIncome))
+  return {
+    oci: round(rest * 0.35),
+    estalvi: round(rest * 0.15),
+    fonsIndexat: round(rest * 0.35),
+    fonsPensions: round(rest * 0.15),
+  }
+}
+
+/**
+ * Aplica un any de la fase de carrera. Per ordre: 1) els diners ja invertits
+ * creixen (interès compost); 2) s'ingressa el sou; 3) es paga el cost de vida
+ * obligatori; 4) es reparteix segons el pla (oci, estalvi, fons indexat, pensions);
+ * 5) la desgravació del pla de pensions torna a efectiu; 6) el sobrant queda a
+ * efectiu (mai negatiu). El benestar reacciona a l'oci respecte al mínim de manteniment.
+ */
+export function applyCareerYear(
+  person: Person,
+  pla: PlaInversio,
+  annualIncome: number,
+  indexReturn: number,
+): Person {
+  const patrimoni = creixementInversions(person.patrimoni, indexReturn)
+  let disponible = patrimoni.efectiu + annualIncome
+
+  const gasta = (n: number) => {
+    const real = Math.max(0, Math.min(n, disponible))
+    disponible -= real
+    return real
+  }
+
+  // Cost de vida: obligatori, es paga primer.
+  gasta(costVidaAnual(annualIncome))
+  const oci = gasta(pla.oci)
+  const aEstalvi = gasta(pla.estalvi)
+  const aIndex = gasta(pla.fonsIndexat)
+  const aPensions = gasta(pla.fonsPensions)
+
+  patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
+  patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
+  patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
+
+  // La desgravació fiscal de l'aportació a pensions torna a efectiu.
+  disponible += desgravacioPensions(aPensions)
+  patrimoni.efectiu = Math.round(disponible)
+
+  const stats = {
+    ...person.stats,
+    benestar: clampBenestar(person.stats.benestar + benestarOciAnual(oci, annualIncome)),
   }
   return { ...person, stats, patrimoni }
 }

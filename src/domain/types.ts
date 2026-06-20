@@ -11,18 +11,25 @@ export type FamilyClass =
 
 // Fases de la vida. Infància (anual) i adolescència/ESO (trimestral); als 16
 // es ramifica en estudis postobligatoris (trimestral) o feina/nini (mensual, amb
-// pressupost). El motor està pensat per encaixar fases futures sense reescriure.
+// pressupost). Als 18, vida adulta: universitat (anual) o carrera (anual, amb
+// inversions). El motor està pensat per encaixar fases futures sense reescriure.
 export type LifeStage =
   | 'infancia'
   | 'adolescencia'
   | 'estudis_post'
   | 'laboral'
+  | 'universitat'
+  | 'carrera'
 
 /** Itinerari triat al fork dels 16 anys. */
 export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
 
 /** Fites de la vida que obren una pantalla de decisió. */
-export type MilestoneId = 'institut' | 'postobligatori'
+export type MilestoneId =
+  | 'institut'
+  | 'postobligatori'
+  | 'majoria'
+  | 'fi_uni'
 
 /** Pressupost mensual de la fase laboral (imports en €). El sobrant va a efectiu. */
 export interface Budget {
@@ -30,6 +37,22 @@ export interface Budget {
   compres: number
   casa: number
   estalvi: number
+}
+
+/**
+ * Pla d'estalvi i inversió ANUAL de la fase de carrera (imports en €/any). De
+ * l'ingrés net anual, primer es paga el cost de vida (obligatori) i la resta es
+ * reparteix entre aquestes partides; el sobrant queda a efectiu.
+ */
+export interface PlaInversio {
+  /** Despesa discrecional (oci/vida): és el que dóna o treu benestar. */
+  oci: number
+  /** A compte d'estalvi: líquid i segur, però amb rendiment ~nul. */
+  estalvi: number
+  /** Fons indexat: més rendiment esperat però volàtil (puja i baixa). */
+  fonsIndexat: number
+  /** Pla de pensions: rendiment estable i desgravació fiscal, però bloquejat. */
+  fonsPensions: number
 }
 
 export interface Stats {
@@ -40,7 +63,12 @@ export interface Stats {
 export interface Patrimoni {
   efectiu: number
   estalvi: number
+  /** Inversions genèriques (heretat; rendiment moderat). */
   inversions: number
+  /** Fons indexat: alt rendiment esperat, volàtil, líquid. */
+  fonsIndexat: number
+  /** Pla de pensions: rendiment estable, desgravació, bloquejat fins a la jubilació. */
+  fonsPensions: number
   /** Valor de cada casa en propietat. */
   cases: number[]
 }
@@ -91,6 +119,10 @@ export interface EventEffect {
   efectiu?: number
   estalvi?: number
   inversions?: number
+  fonsIndexat?: number
+  fonsPensions?: number
+  /** Xoc de mercat: variació percentual aplicada al fons indexat (p. ex. -0.3 = -30%). */
+  mercatPct?: number
   /** Canvi persistent del sou mensual (fase laboral). */
   salariDelta?: number
   /** Fixa el sou mensual a aquest valor (0 = perdre la feina, o sou d'una nova feina). */
@@ -187,6 +219,10 @@ export interface GameState {
   itinerari?: Itinerari
   /** Pressupost mensual actiu (fase laboral). */
   pressupost?: Budget
+  /** Pla d'estalvi i inversió anual actiu (fase de carrera). */
+  plaInversio?: PlaInversio
+  /** Marca si la persona té un títol universitari (premi de sou a la carrera). */
+  teDiploma?: boolean
   /** Sou mensual actual (treball). 0 amb itinerari 'treball' = a l'atur. */
   salari?: number
   /** Sou de referència d'aquesta partida (per a reincorporacions). */

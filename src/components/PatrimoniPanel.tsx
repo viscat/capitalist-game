@@ -1,4 +1,9 @@
-import { estalviAnualCriatura, pagaMensual, patrimoniTotal } from '../domain/stats'
+import {
+  balancUniversitatAnual,
+  estalviAnualCriatura,
+  pagaMensual,
+  patrimoniTotal,
+} from '../domain/stats'
 import type {
   Familia,
   Identitat,
@@ -34,7 +39,9 @@ export function PatrimoniPanel({
   identitat?: Identitat
 }) {
   const { t } = useT()
-  const { efectiu, estalvi, inversions, cases } = person.patrimoni
+  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
+    person.patrimoni
+  const esAdult = stage === 'universitat' || stage === 'carrera'
 
   return (
     <div className="space-y-4">
@@ -45,8 +52,18 @@ export function PatrimoniPanel({
         <div className="space-y-1.5">
           <Row label={t('patrimoni.efectiu')} value={formatEuros(efectiu)} />
           <Row label={t('patrimoni.estalvi')} value={formatEuros(estalvi)} />
-          <Row label={t('patrimoni.inversions')} value={formatEuros(inversions)} />
-          <Row label={t('patrimoni.cases')} value={String(cases.length)} />
+          {(esAdult || fonsIndexat > 0) && (
+            <Row label={t('patrimoni.fonsIndexat')} value={formatEuros(fonsIndexat)} />
+          )}
+          {(esAdult || fonsPensions > 0) && (
+            <Row label={t('patrimoni.fonsPensions')} value={formatEuros(fonsPensions)} />
+          )}
+          {inversions > 0 && (
+            <Row label={t('patrimoni.inversions')} value={formatEuros(inversions)} />
+          )}
+          {cases.length > 0 && (
+            <Row label={t('patrimoni.cases')} value={String(cases.length)} />
+          )}
           <div className="my-2 border-t border-slate-700" />
           <div className="flex justify-between text-sm">
             <span className="font-semibold text-slate-200">
@@ -78,6 +95,20 @@ export function PatrimoniPanel({
                     : t('context.atur')
                   : `${formatEuros(pagaMensual(familia))}/mes`
               }
+            />
+          ) : stage === 'carrera' ? (
+            <Row
+              label={t('context.ingressosPropis')}
+              value={
+                salari && salari > 0
+                  ? `${formatEuros(salari)}/mes`
+                  : t('context.atur')
+              }
+            />
+          ) : stage === 'universitat' ? (
+            <Row
+              label={t('context.suportUni')}
+              value={`${formatEuros(balancUniversitatAnual(familia))}/any`}
             />
           ) : stage === 'adolescencia' || stage === 'estudis_post' ? (
             <Row

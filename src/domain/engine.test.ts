@@ -6,6 +6,7 @@ import {
   applyMilestoneChoice,
   newGame,
   newGameAt16,
+  newGameAtCarrera,
 } from './engine'
 import {
   aportacioMinima,
@@ -17,6 +18,7 @@ import {
 import { edatAnys } from './time'
 import {
   EDAT_FI_ADOLESCENCIA,
+  EDAT_FI_CARRERA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
   MESOS_PER_ANY,
@@ -45,12 +47,22 @@ function firstEnabled(s: GameState): string | undefined {
   return actionOptions(s).find((o) => !o.disabled)?.action.id
 }
 
-/** Avança un pas resolent decisions i fites (a la fita dels 16 tria `itinerari`). */
+/**
+ * Avança un pas resolent decisions i fites. A la fita dels 16 tria `itinerari`;
+ * als 18, qui ve de batxillerat va a la universitat i la resta a la carrera; als
+ * 22 (fi d'universitat) comença la carrera.
+ */
 function step(s: GameState, itinerari = 'batxillerat'): GameState {
   if (s.pendingEvent) return applyChoice(s, s.pendingEvent.choices![0].id)
   if (s.pendingMilestone === 'institut') return applyMilestoneChoice(s, 'continuar')
   if (s.pendingMilestone === 'postobligatori') {
     return applyMilestoneChoice(s, itinerari)
+  }
+  if (s.pendingMilestone === 'majoria') {
+    return applyMilestoneChoice(s, itinerari === 'batxillerat' ? 'universitat' : 'carrera')
+  }
+  if (s.pendingMilestone === 'fi_uni') {
+    return applyMilestoneChoice(s, 'comencar_carrera')
   }
   if (s.lifeStage === 'adolescencia' || s.lifeStage === 'estudis_post') {
     return advanceTurn(s, firstEnabled(s))
@@ -64,7 +76,7 @@ function playToEnd(
   itinerari = 'batxillerat',
 ): GameState {
   let s = newGame(presetId, seed)
-  for (let i = 0; i < 600 && !s.acabat; i++) s = step(s, itinerari)
+  for (let i = 0; i < 1200 && !s.acabat; i++) s = step(s, itinerari)
   return s
 }
 
@@ -208,24 +220,86 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
-describe('final als 18', () => {
-  it('la branca d’estudis acaba als 18', () => {
+describe('final als 35', () => {
+  it('la branca universitària passa per la uni i acaba als 35', () => {
     const s = playToEnd('mitjana', 11, 'batxillerat')
     expect(s.acabat).toBe(true)
-    expect(s.person.edatMesos).toBe(EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY)
+    expect(s.teDiploma).toBe(true)
+    expect(s.person.edatMesos).toBe(EDAT_FI_CARRERA * MESOS_PER_ANY)
   })
 
-  it('la branca laboral acaba als 18 amb benestar i efectiu acotats', () => {
+  it('la branca laboral acaba als 35 amb benestar i comptes acotats', () => {
     const s = playToEnd('treballadora', 5, 'treball')
     expect(s.acabat).toBe(true)
-    expect(s.person.edatMesos).toBe(EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY)
+    expect(s.teDiploma).toBe(false) // ha entrat a la carrera sense passar per la uni
+    expect(s.person.edatMesos).toBe(EDAT_FI_CARRERA * MESOS_PER_ANY)
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
     expect(s.person.stats.benestar).toBeLessThanOrEqual(100)
     expect(s.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+    expect(s.person.patrimoni.fonsIndexat).toBeGreaterThanOrEqual(0)
+  })
+
+  it('als 18 obre la fita de majoria d’edat (no acaba)', () => {
+    const fork = playUntil(
+      newGameAt16('mitjana', 3),
+      (s) => s.pendingMilestone === 'postobligatori',
+    )
+    const lab = playUntil(
+      applyMilestoneChoice(fork, 'treball'),
+      (s) => s.pendingMilestone === 'majoria',
+    )
+    expect(lab.pendingMilestone).toBe('majoria')
+    expect(lab.acabat).toBe(false)
+    expect(lab.person.edatMesos).toBe(EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY)
   })
 
   it('és determinista per a una mateixa llavor i itinerari', () => {
     expect(playToEnd('alta', 42, 'treball')).toEqual(playToEnd('alta', 42, 'treball'))
+  })
+})
+
+describe('universitat i carrera', () => {
+  it('triar universitat als 18 hi entra sense títol fins als 22', () => {
+    const fork = playUntil(
+      applyMilestoneChoice(newGameAt16('mitjana', 7), 'batxillerat'),
+      (s) => s.pendingMilestone === 'majoria',
+    )
+    const uni = applyMilestoneChoice(fork, 'universitat')
+    expect(uni.lifeStage).toBe('universitat')
+    expect(uni.teDiploma).toBeFalsy()
+    // Als 22 arriba la fita de fi d'universitat i, en triar-la, comença la carrera amb títol.
+    const fiUni = playUntil(uni, (s) => s.pendingMilestone === 'fi_uni')
+    expect(fiUni.pendingMilestone).toBe('fi_uni')
+    const carrera = applyMilestoneChoice(fiUni, 'comencar_carrera')
+    expect(carrera.lifeStage).toBe('carrera')
+    expect(carrera.teDiploma).toBe(true)
+    expect(carrera.salari).toBeGreaterThan(0)
+    expect(carrera.plaInversio).toBeDefined()
+  })
+
+  it('un any de carrera avança 1 any, inverteix i deixa els comptes no negatius', () => {
+    const s = newGameAtCarrera('mitjana', 7)
+    const after = advanceTurn(s)
+    expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
+    expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+    // Amb el pla per defecte s'aporta a fons indexat i/o pla de pensions.
+    const inv = after.person.patrimoni
+    expect(inv.fonsIndexat + inv.fonsPensions).toBeGreaterThan(0)
+  })
+
+  it('el pla de pensions creix de forma estable any rere any', () => {
+    let s = newGameAtCarrera('alta', 3)
+    s = { ...s, plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 2000 } }
+    const fons: number[] = []
+    for (let i = 0; i < 4 && !s.acabat; i++) {
+      s = advanceTurn(s)
+      if (s.pendingEvent) s = applyChoice(s, s.pendingEvent.choices![0].id)
+      fons.push(s.person.patrimoni.fonsPensions)
+    }
+    // Sèrie monòtona creixent (aportació + rendiment estable, sense volatilitat).
+    for (let i = 1; i < fons.length; i++) {
+      expect(fons[i]).toBeGreaterThan(fons[i - 1])
+    }
   })
 })
 

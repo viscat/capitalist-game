@@ -3,6 +3,11 @@ import { ca } from './locales/ca'
 import { ADOLESCENCE_ACTIONS } from '../domain/actions/adolescencia'
 import { ADOLESCENCE_EVENTS } from '../domain/events/adolescencia'
 import {
+  ATUR_ADULT_EVENTS,
+  CARRERA_EVENTS,
+  UNIVERSITAT_EVENTS,
+} from '../domain/events/adult'
+import {
   ATUR_EVENTS,
   COMMON_LIFE_EVENTS,
   NINI_EVENTS,
@@ -33,6 +38,9 @@ const ALL_EVENTS: GameEvent[] = [
   ...TREBALL_EVENTS,
   ...ATUR_EVENTS,
   ...NINI_EVENTS,
+  ...UNIVERSITAT_EVENTS,
+  ...CARRERA_EVENTS,
+  ...ATUR_ADULT_EVENTS,
   ...COMMON_LIFE_EVENTS,
 ]
 
@@ -49,6 +57,8 @@ const STAGES: LifeStage[] = [
   'adolescencia',
   'estudis_post',
   'laboral',
+  'universitat',
+  'carrera',
 ]
 const ITINERARIS: Itinerari[] = ['batxillerat', 'grau_mig', 'treball', 'nini']
 const CLASSES: FamilyClass[] = Object.keys(FAMILY_PRESETS) as FamilyClass[]
@@ -131,8 +141,13 @@ describe('cobertura i18n (català)', () => {
         `budget.${k}`,
         `budget.${k}.desc`,
       ]),
-      ...['uni', 'emancipar'].map((o) => `gameover.fork.${o}`),
-      ...['efectiu', 'estalvi', 'inversions'].map((f) => `patrimoni.${f}`),
+      ...['oci', 'estalvi', 'fonsIndexat', 'fonsPensions'].flatMap((k) => [
+        `pla.${k}`,
+        `pla.${k}.desc`,
+      ]),
+      ...['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'].map(
+        (f) => `patrimoni.${f}`,
+      ),
     ]
     expect(keys.filter((k) => !has(k))).toEqual([])
   })

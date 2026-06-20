@@ -4,6 +4,7 @@ import { edatAnys, estacioFromEdat } from '../domain/time'
 import { nomComplet } from '../domain/identitat'
 import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
+import { InvestmentPanel } from './InvestmentPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
@@ -22,8 +23,20 @@ export function GameScreen() {
   const esEstacional = lifeStage === 'adolescencia' || lifeStage === 'estudis_post'
   const esLaboral = lifeStage === 'laboral'
   const esInfancia = lifeStage === 'infancia'
+  const esUniversitat = lifeStage === 'universitat'
+  const esCarrera = lifeStage === 'carrera'
+  const esAdult = esUniversitat || esCarrera
+  // El botó simple de «Següent any» val per a infància i universitat.
+  const esAnual = esInfancia || esUniversitat
   const aLatur = lifeStage === 'laboral' && itinerari === 'treball' && !salari
   const nom = state.identitat?.nom
+
+  // A les fases adultes prevalen l'etiqueta de fase per damunt de l'itinerari dels 16.
+  const subtitol = aLatur
+    ? t('context.atur')
+    : esAdult || !itinerari
+      ? t(`game.stage.${lifeStage}`)
+      : t(`itinerari.${itinerari}.short`)
 
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6">
@@ -56,11 +69,7 @@ export function GameScreen() {
             {anys === 0 ? t('game.ageZero') : t('game.age', { anys })}
           </div>
           <div className="text-sm text-slate-500">
-            {aLatur
-              ? t('context.atur')
-              : itinerari
-                ? t(`itinerari.${itinerari}.short`)
-                : t(`game.stage.${lifeStage}`)}
+            {subtitol}
             {esEstacional &&
               ` · ${t(`season.${estacioFromEdat(person.edatMesos)}`)}`}{' '}
             · {t('game.turn', { torn: state.torn })}
@@ -91,7 +100,8 @@ export function GameScreen() {
             <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
           )}
           {!pendingEvent && esLaboral && <BudgetPanel />}
-          {!pendingEvent && esInfancia && (
+          {!pendingEvent && esCarrera && <InvestmentPanel />}
+          {!pendingEvent && esAnual && (
             <button
               onClick={() => nextTurn()}
               className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"

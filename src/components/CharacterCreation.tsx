@@ -31,12 +31,12 @@ export function CharacterCreation({
   preset,
   onBack,
 }: {
-  mode: 'normal' | 'at16'
+  mode: 'normal' | 'at16' | 'atCarrera'
   preset: FamilyClass
   onBack: () => void
 }) {
   const { t } = useT()
-  const { startGame, startGameAt16 } = useGame()
+  const { startGame, startGameAt16, startGameAtCarrera } = useGame()
   const [id, setId] = useState<Identitat>(() => randomIdentitat())
 
   // Els cognoms de la persona deriven sempre dels pares.
@@ -49,6 +49,7 @@ export function CharacterCreation({
   const comencar = () => {
     const identitat: Identitat = { ...id, cognoms }
     if (mode === 'at16') startGameAt16(preset, identitat)
+    else if (mode === 'atCarrera') startGameAtCarrera(preset, identitat)
     else startGame(preset, identitat)
   }
 

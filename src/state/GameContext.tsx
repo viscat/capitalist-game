@@ -7,6 +7,7 @@ import {
   applyMilestoneChoice,
   newGame,
   newGameAt16,
+  newGameAtCarrera,
 } from '../domain/engine'
 import { avuiISO } from '../domain/time'
 import type {
@@ -15,9 +16,12 @@ import type {
   FamilyClass,
   GameState,
   Identitat,
+  PlaInversio,
 } from '../domain/types'
 
-const STORAGE_KEY = 'capitalist-game/save/v1'
+// Versió de l'esquema desat. La fase adulta hi va afegir camps al patrimoni
+// (fons indexat, pla de pensions): pugem la versió per no carregar partides velles.
+const STORAGE_KEY = 'capitalist-game/save/v2'
 
 function loadSave(): GameState | null {
   try {
@@ -34,6 +38,8 @@ interface GameContextValue {
   startGame: (preset: FamilyClass, identitat?: Identitat) => void
   /** Inici ràpid al fork dels 16 (proves manuals). */
   startGameAt16: (preset: FamilyClass, identitat?: Identitat) => void
+  /** Inici ràpid a la fase de carrera als 22 (proves d'inversió). */
+  startGameAtCarrera: (preset: FamilyClass, identitat?: Identitat) => void
   continueGame: () => void
   /** Avança un torn. A les fases d'estudi cal passar l'`actionId` triat. */
   nextTurn: (actionId?: string) => void
@@ -42,6 +48,8 @@ interface GameContextValue {
   chooseMilestone: (optionId: string) => void
   /** Desa el pressupost mensual (fase laboral). */
   setBudget: (budget: Budget) => void
+  /** Desa el pla d'inversió anual (fase de carrera). */
+  setPla: (pla: PlaInversio) => void
   reset: () => void
   actions: ActionOption[]
 }
@@ -74,6 +82,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setState(
           newGameAt16(preset, undefined, { dataNaixement: avuiISO(), identitat }),
         ),
+      startGameAtCarrera: (preset, identitat) =>
+        setState(
+          newGameAtCarrera(preset, undefined, { dataNaixement: avuiISO(), identitat }),
+        ),
       continueGame: () => setState(loadSave()),
       nextTurn: (actionId) =>
         setState((s) => (s ? advanceTurn(s, actionId) : s)),
@@ -82,6 +94,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setState((s) => (s ? applyMilestoneChoice(s, optionId) : s)),
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
+      setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
       reset: () => {
         try {
           localStorage.removeItem(STORAGE_KEY)
