@@ -23,7 +23,7 @@ import type {
 
 // Versió de l'esquema desat. La fase adulta hi va afegir camps al patrimoni
 // (fons indexat, pla de pensions): pugem la versió per no carregar partides velles.
-const STORAGE_KEY = 'capitalist-game/save/v3'
+const STORAGE_KEY = 'capitalist-game/save/v4'
 
 function loadSave(): GameState | null {
   try {

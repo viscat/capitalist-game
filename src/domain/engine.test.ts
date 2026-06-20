@@ -155,7 +155,9 @@ describe('sou dinàmic i atur', () => {
     const abans = ingressosMensuals16(s)
     const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { salariDelta: 150 } }])
     expect(after.salari).toBe(s.salari! + 150)
-    expect(ingressosMensuals16(after)).toBe(abans + 150)
+    // El sou és brut: pujar-lo augmenta el net, però menys de 150 (impostos).
+    expect(ingressosMensuals16(after)).toBeGreaterThan(abans)
+    expect(ingressosMensuals16(after)).toBeLessThan(abans + 150)
   })
 
   it('perdre la feina posa el sou a 0 i atura els ingressos', () => {
@@ -197,7 +199,8 @@ describe('sou dinàmic i atur', () => {
 describe('aportació obligatòria a casa', () => {
   it('el pressupost inicial respecta el mínim obligatori segons la família', () => {
     const s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
-    const min = aportacioMinima(s.familia, s.salari!)
+    // L'aportació es calcula sobre l'ingrés net (el que es cobra), no el brut.
+    const min = aportacioMinima(s.familia, ingressosMensuals16(s))
     expect(min).toBeGreaterThan(0)
     expect(s.pressupost!.casa).toBeGreaterThanOrEqual(min)
   })
