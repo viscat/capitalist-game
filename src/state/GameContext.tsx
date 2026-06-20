@@ -31,11 +31,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [hasSave, setHasSave] = useState<boolean>(() => loadSave() !== null)
 
   // Autosave: la lògica del joc és pura, així que persistim l'estat sencer.
+  // (`hasSave` només es consulta a la pantalla inicial, quan no hi ha partida
+  // activa, així que no cal actualitzar-lo aquí.)
   useEffect(() => {
     if (!state) return
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-      setHasSave(true)
     } catch {
       /* emmagatzematge no disponible: continuem sense desar */
     }
