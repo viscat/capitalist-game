@@ -1,0 +1,45 @@
+import type { LogEntry } from '../domain/types'
+import { useT } from '../i18n'
+import { EffectList } from './EffectList'
+
+export function TurnLog({ historial }: { historial: LogEntry[] }) {
+  const { t } = useT()
+  const items = [...historial].reverse()
+
+  return (
+    <div className="rounded-xl bg-slate-800/40 p-4">
+      <h3 className="mb-3 text-sm font-semibold text-slate-300">
+        {t('log.title')}
+      </h3>
+      {items.length === 0 ? (
+        <p className="text-sm text-slate-500">{t('log.empty')}</p>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((entry, i) => (
+            <li
+              key={`${entry.torn}-${i}`}
+              className="border-l-2 border-slate-700 pl-3"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-medium text-slate-200">
+                  {t(entry.titleKey)}
+                </span>
+                <span className="shrink-0 text-xs text-slate-500">
+                  {t('game.age', { anys: entry.edatAnys })}
+                </span>
+              </div>
+              {entry.choiceLabelKey && (
+                <p className="mt-0.5 text-xs italic text-slate-500">
+                  {t('log.choice', { opcio: t(entry.choiceLabelKey) })}
+                </p>
+              )}
+              <div className="mt-1">
+                <EffectList effect={entry.effect} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
