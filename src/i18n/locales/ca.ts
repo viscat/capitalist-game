@@ -188,11 +188,6 @@ export const ca: Record<string, string> = {
   'action.locked.benestar': 'No tens prou ànims',
   'action.locked.estiu': 'Només a l’estiu',
 
-  // Registre / log de transició a l'institut
-  'transition.institut.title': 'Comences l’institut',
-  'transition.institut.desc':
-    'Fas 12 anys i entres a l’ESO. A partir d’ara reps una paga i decideixes, trimestre a trimestre, què en fas.',
-
   // Pantalla de transició infància → adolescència
   'transition.kicker': 'Fi de la infància',
   'transition.title': 'Fas 12 anys',
@@ -382,10 +377,6 @@ export const ca: Record<string, string> = {
   'event.conflicte_cap.title': 'Problemes amb el cap',
   'event.conflicte_cap.desc':
     'Tensions amb qui mana. La feina s’ha fet incòmoda aquests dies.',
-
-  'event.feina_dura.title': 'Un mes esgotador',
-  'event.feina_dura.desc':
-    'Molta càrrega i poc descans. Arribes a casa sense forces.',
 
   'event.companys_feina.title': 'Bona gent a la feina',
   'event.companys_feina.desc':

@@ -6,8 +6,10 @@ sobre com l'origen familiar condiciona el punt de sortida en un món capitalista
 
 ### 🎮 Juga-hi: https://viscat.github.io/capitalist-game/
 
-> Estat actual: **prototip jugable** — fase d'infància (0–12, torns anuals) i
-> fase d'adolescència / ESO (12–16, torns trimestrals amb paga i decisions).
+> Estat actual: **beta 1** — una vida jugable de **0 a 18 anys**: infància (torns
+> anuals), adolescència / ESO (trimestral, amb paga i decisions) i la bifurcació
+> dels 16 cap a **estudiar o treballar** (estudis trimestrals o vida laboral
+> mensual amb pressupost). La vida adulta arribarà més endavant.
 
 ## Com funciona aquesta versió
 
@@ -23,8 +25,13 @@ sobre com l'origen familiar condiciona el punt de sortida en un món capitalista
    **trimestrals**, comences a rebre una **paga** i cada trimestre tries una
    **acció** (sortir amb amics, ajudar a casa per diners, feina d'estiu, un
    caprici, o un trimestre tranquil). Gestiones activament estalvi vs despesa.
-5. Als **16 anys** acabes l'ESO i arribes al fork **seguir estudiant o treballar**
-   (les branques arribaran en una pròxima versió).
+5. Als **16 anys** acabes l'ESO i arribes al fork **seguir estudiant o treballar**.
+   Tries entre **batxillerat**, **grau mitjà**, **posar-te a treballar** o **no fer
+   res (nini)**. Si estudies, segueixes amb torns trimestrals; si treballes, passes
+   a torns mensuals i gestiones un **pressupost** (estalvi, oci, compres i aportació
+   obligatòria a casa), amb sou dinàmic, atur i despeses greus que posen a prova el
+   matalàs familiar.
+6. Als **18 anys** arribes a la majoria d'edat: fi de la beta 1.
 
 ### Idea de disseny
 
@@ -57,18 +64,26 @@ npm run build    # comprovació de tipus + build de producció
 ```
 src/
   domain/        # model i motor del joc (pur, sense React)
-    engine.ts    # newGame, advanceTurn, applyChoice
-    stats.ts     # benestar de referència, estalvi, efectes
+    engine.ts    # newGame, advanceTurn, applyChoice, applyMilestoneChoice
+    stats.ts     # benestar de referència, paga, sou, pressupost, matalàs familiar
+    constants.ts # edats llindar, durada de torns, sou base...
+    rng.ts       # RNG determinista i serialitzable (partides reproduïbles)
+    actions/     # accions de targeta (fases d'estudi)
+    events/      # catàlegs i selecció ponderada d'esdeveniments
     family/      # presets de família
-    events/      # catàleg i selecció ponderada d'esdeveniments
+    milestones.ts# fites amb pantalla de decisió (12, 16)
   i18n/          # diccionari + provider/hook de traducció
   state/         # GameContext (React) + autosave a localStorage
   components/    # pantalles i UI
+  test/          # setup global de Vitest
 ```
+
+Per a una visió més profunda de l'arquitectura, el model de joc i com afegir
+features, mira **[CLAUDE.md](CLAUDE.md)**.
 
 ## Full de ruta (futures iteracions)
 
-Adolescència mensual (12–16), decisions d'estudis (16/18), feina de becari,
-emancipació, vida adulta amb pressupostos mensuals/anuals, i esdeveniments adults
-(feina, parella, malaltia, inversions). El motor de torns i `LifeStage` ja estan
-pensats per encaixar-ho sense reescriure.
+Vida adulta a partir dels 18: universitat i emancipació, feina qualificada i
+carrera, parella i fills, habitatge (lloguer/hipoteca), inversions i deute, i
+esdeveniments adults (salut, atur, imprevistos). El motor de torns i `LifeStage`
+ja estan pensats per encaixar-ho sense reescriure (mira [CLAUDE.md](CLAUDE.md)).
