@@ -64,6 +64,14 @@ export function HabitatgePanel() {
         <div className="space-y-1.5 text-sm">
           <Row label={t('habitatge.preu')} value={formatEuros(oferta.preu)} />
           <Row label={t('habitatge.entrada')} value={formatEuros(oferta.entrada)} />
+          {oferta.ajutFamiliar > 0 && (
+            <div className="flex justify-between">
+              <span className="text-slate-400">{t('habitatge.ajutFamiliar')}</span>
+              <span className="font-medium text-emerald-300">
+                +{formatEuros(oferta.ajutFamiliar)}
+              </span>
+            </div>
+          )}
           <Row
             label={t('habitatge.quota')}
             value={`${formatEuros(oferta.hipoteca.quotaAnual)}/any`}

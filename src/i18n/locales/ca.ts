@@ -256,6 +256,7 @@ export const ca: Record<string, string> = {
   'habitatge.liquid': 'Tens {amount} per a l’entrada (efectiu + estalvi)',
   'habitatge.preu': 'Preu',
   'habitatge.entrada': 'Entrada (20%)',
+  'habitatge.ajutFamiliar': 'Ajut familiar per a l’entrada',
   'habitatge.termini': 'Termini de la hipoteca',
   'habitatge.anys': '{anys} anys',
   'habitatge.noEntrada': 'No tens prou diners per a l’entrada',

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { advanceTurn, newGameAtCarrera } from './engine'
 import { patrimoniTotal } from './stats'
 import {
+  ajutEntradaMax,
   amortitzaHipoteca,
   calculaHipoteca,
   comprarCasa,
@@ -11,12 +12,23 @@ import {
   ofertaCompra,
   tornarAmbPares,
 } from './housing'
-import type { GameState } from './types'
+import type { FamilyClass, GameState } from './types'
 
 function ricCarrera(): GameState {
   const s = newGameAtCarrera('mitjana', 1)
   // Prou líquid per a l'entrada d'un habitatge.
   return { ...s, person: { ...s.person, patrimoni: { ...s.person.patrimoni, estalvi: 40_000 } } }
+}
+
+function carreraAmbLiquid(classe: FamilyClass, liquid: number): GameState {
+  const s = newGameAtCarrera(classe, 1)
+  return {
+    ...s,
+    person: {
+      ...s.person,
+      patrimoni: { ...s.person.patrimoni, efectiu: 0, estalvi: liquid },
+    },
+  }
 }
 
 describe('hipoteca', () => {
@@ -84,5 +96,34 @@ describe('ofertaCompra', () => {
     expect(oferta.entrada).toBe(19_000)
     expect(oferta.teEntrada).toBe(true)
     expect(typeof oferta.bancAprova).toBe('boolean')
+  })
+})
+
+describe('ajut familiar per a l’entrada', () => {
+  it('la pobra no aporta res i la treballadora molt poc; creix amb la classe', () => {
+    const pobra = ajutEntradaMax(newGameAtCarrera('pobra', 1).familia)
+    const treballadora = ajutEntradaMax(newGameAtCarrera('treballadora', 1).familia)
+    const mitjana = ajutEntradaMax(newGameAtCarrera('mitjana', 1).familia)
+    const alta = ajutEntradaMax(newGameAtCarrera('alta', 1).familia)
+    expect(pobra).toBe(0)
+    expect(treballadora).toBeGreaterThan(0)
+    expect(treballadora).toBeLessThan(mitjana)
+    expect(mitjana).toBeLessThan(alta)
+  })
+
+  it('l’ajut només cobreix el que et falta per a l’entrada', () => {
+    // Líquid (12.000 €) per sota de l'entrada de l'estudi (19.000 €): falten 7.000.
+    const s = carreraAmbLiquid('alta', 12_000)
+    const oferta = ofertaCompra(s, 95_000, 30)
+    expect(oferta.entrada).toBe(19_000)
+    expect(oferta.ajutFamiliar).toBe(7_000)
+    expect(oferta.teEntrada).toBe(true)
+  })
+
+  it('amb la mateixa caixa, la família alta deixa comprar i la pobra no', () => {
+    const ric = comprarCasa(carreraAmbLiquid('alta', 12_000), 'estudi', 30)
+    const pobre = comprarCasa(carreraAmbLiquid('pobra', 12_000), 'estudi', 30)
+    expect(ric.habitatge?.tipus).toBe('propietat')
+    expect(pobre.habitatge?.tipus).not.toBe('propietat')
   })
 })
