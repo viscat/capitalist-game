@@ -10,7 +10,11 @@ import {
   benestarEstilDeVida,
   clampBenestar,
   creixementInversions,
+  desglosNominaAnual,
+  desglosNominaMensual,
   desgravacioPensions,
+  irpfAnual,
+  netAnual,
   minimOciCompres,
   estalviAnualCriatura,
   familyBaselineBenestar,
@@ -305,5 +309,37 @@ describe('applyCareerYear', () => {
     const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
     const after = applyCareerYear(pobre, pla, 12000, 0.05)
     expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('nòmina: del brut al net', () => {
+  it('el net és més baix que el brut i quadra (brut = net + SS + IRPF)', () => {
+    const n = desglosNominaAnual(24_000)
+    expect(n.seguretatSocial).toBeGreaterThan(0)
+    expect(n.irpf).toBeGreaterThan(0)
+    expect(n.net).toBeLessThan(n.brut)
+    expect(n.seguretatSocial + n.irpf + n.net).toBe(n.brut)
+  })
+
+  it('és progressiu: un sou alt paga un tipus efectiu d’IRPF més alt', () => {
+    const baix = desglosNominaAnual(18_000)
+    const alt = desglosNominaAnual(70_000)
+    const tipusBaix = baix.irpf / baix.brut
+    const tipusAlt = alt.irpf / alt.brut
+    expect(tipusAlt).toBeGreaterThan(tipusBaix)
+  })
+
+  it('un sou molt baix gairebé no paga IRPF (mínim personal exempt)', () => {
+    // Per sota del mínim personal + cotitzacions no queda base liquidable.
+    expect(irpfAnual(0)).toBe(0)
+    expect(desglosNominaAnual(5_000).irpf).toBe(0)
+  })
+
+  it('el desglossament mensual és coherent amb l’anual', () => {
+    const mes = desglosNominaMensual(2_000)
+    expect(mes.net).toBeLessThan(mes.brut)
+    expect(mes.net).toBeGreaterThan(0)
+    // El net mensual és aproximadament el net anual entre 12.
+    expect(Math.abs(mes.net - netAnual(24_000) / 12)).toBeLessThan(2)
   })
 })

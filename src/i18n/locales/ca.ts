@@ -85,6 +85,10 @@ export const ca: Record<string, string> = {
   'context.paga': 'La teva paga',
   'context.ingressosPropis': 'El teu ingrés',
   'context.suportUni': 'Et queda cada any',
+  'nomina.brut': 'Sou brut',
+  'nomina.ss': 'Seguretat Social',
+  'nomina.irpf': 'IRPF',
+  'nomina.net': 'Sou net',
 
   'event.thisYear': 'El que ha passat:',
   'event.choose': 'Què fas?',
@@ -206,7 +210,7 @@ export const ca: Record<string, string> = {
 
   // Pressupost mensual (fase laboral)
   'budget.title': 'El teu pressupost mensual',
-  'budget.income': 'Ingrés',
+  'budget.income': 'Ingrés net',
   'budget.estalvi': 'Estalvi',
   'budget.estalvi.desc': 'El que apartes cada mes. El teu futur.',
   'budget.oci': 'Oci',
@@ -223,7 +227,7 @@ export const ca: Record<string, string> = {
 
   // Pla d'inversió anual (fase de carrera)
   'pla.title': 'On poses els teus diners?',
-  'pla.income': 'Sou',
+  'pla.income': 'Sou net',
   'pla.costVida': 'Cost de vida: {cost}/any (obligatori)',
   'pla.disponible': 'Per repartir: {amount}',
   'pla.oci': 'Oci i vida',

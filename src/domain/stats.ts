@@ -210,7 +210,8 @@ export function benestarHabitatge(habitatge?: Habitatge): number {
 }
 
 export function adultBaselineBenestar(state: GameState): number {
-  const incomeM = state.salari ?? 0
+  // La seguretat econòmica depèn del que es cobra de veritat (net), no del brut.
+  const incomeM = netMensual(state.salari ?? 0)
   const econ = clamp(incomeM / 3500, 0, 1)
   const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
   let base = 38 + econ * 30 + wealth * 16
@@ -236,10 +237,85 @@ export function salariInicial(familia: Familia): number {
   return Math.max(300, Math.round(sou / 25) * 25)
 }
 
-/** Ingrés mensual a la fase laboral: sou actual (treball) o suport familiar (nini). */
+// --- Nòmina: del sou brut al net (model simplificat tipus Espanya) ---
+// El sou (`salari`) es guarda sempre en BRUT. D'aquí se'n descompten la cotització
+// del treballador a la Seguretat Social i l'IRPF; la resta és el net que es cobra.
+
+/** Tipus de cotització del treballador a la Seguretat Social (≈ 6,35%). */
+export const TIPUS_SS = 0.0635
+/** Base màxima anual de cotització a la Seguretat Social. */
+const BASE_MAX_SS_ANUAL = 58_000
+/** Mínim personal anual exempt d'IRPF (no tributa). */
+const MINIM_PERSONAL_IRPF = 5_550
+// Trams marginals d'IRPF sobre la base liquidable anual.
+const TRAMS_IRPF: { fins: number; tipus: number }[] = [
+  { fins: 12_450, tipus: 0.19 },
+  { fins: 20_200, tipus: 0.24 },
+  { fins: 35_200, tipus: 0.3 },
+  { fins: 60_000, tipus: 0.37 },
+  { fins: 300_000, tipus: 0.45 },
+  { fins: Infinity, tipus: 0.47 },
+]
+
+/** IRPF anual (progressiu per trams) sobre una base liquidable. */
+export function irpfAnual(baseLiquidable: number): number {
+  let base = Math.max(0, baseLiquidable)
+  let impost = 0
+  let anterior = 0
+  for (const tram of TRAMS_IRPF) {
+    if (base <= 0) break
+    const tramImport = Math.min(base, tram.fins - anterior)
+    impost += tramImport * tram.tipus
+    base -= tramImport
+    anterior = tram.fins
+  }
+  return Math.round(impost)
+}
+
+/** Desglossament d'una nòmina: brut, cotitzacions, impostos i net. */
+export interface Nomina {
+  brut: number
+  seguretatSocial: number
+  irpf: number
+  net: number
+}
+
+/** Desglossa un sou brut anual en Seguretat Social, IRPF i net. */
+export function desglosNominaAnual(brutAnual: number): Nomina {
+  const brut = Math.max(0, Math.round(brutAnual))
+  const seguretatSocial = Math.round(Math.min(brut, BASE_MAX_SS_ANUAL) * TIPUS_SS)
+  const irpf = irpfAnual(brut - seguretatSocial - MINIM_PERSONAL_IRPF)
+  return { brut, seguretatSocial, irpf, net: brut - seguretatSocial - irpf }
+}
+
+/** Desglossa un sou brut mensual (12 pagues) en Seguretat Social, IRPF i net. */
+export function desglosNominaMensual(brutMensual: number): Nomina {
+  const a = desglosNominaAnual(brutMensual * 12)
+  return {
+    brut: Math.round(a.brut / 12),
+    seguretatSocial: Math.round(a.seguretatSocial / 12),
+    irpf: Math.round(a.irpf / 12),
+    net: Math.round(a.net / 12),
+  }
+}
+
+/** Sou net mensual a partir del brut mensual. */
+export function netMensual(brutMensual: number): number {
+  return desglosNominaMensual(brutMensual).net
+}
+
+/** Ingrés net anual a partir del brut anual. */
+export function netAnual(brutAnual: number): number {
+  return desglosNominaAnual(brutAnual).net
+}
+
+/**
+ * Ingrés mensual NET disponible a la fase laboral: sou net (treball) o suport
+ * familiar (nini, sense impostos). El sou es guarda en brut: aquí en surt el net.
+ */
 export function ingressosMensuals16(state: GameState): number {
   return state.itinerari === 'treball'
-    ? state.salari ?? 0
+    ? netMensual(state.salari ?? 0)
     : pagaMensual(state.familia)
 }
 
@@ -424,7 +500,7 @@ export function balancUniversitatAnual(familia: Familia): number {
 
 // --- Carrera adulta (inversions, 18/22 → 35) ---
 
-/** Sou net mensual d'una primera feina adulta: base (+ títol) + contactes − precarietat. */
+/** Sou brut mensual d'una primera feina adulta: base (+ títol) + contactes − precarietat. */
 export function salariAdultInicial(familia: Familia, teDiploma: boolean): number {
   const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
   const premi = teDiploma ? PREMI_DIPLOMA : 0
@@ -433,9 +509,9 @@ export function salariAdultInicial(familia: Familia, teDiploma: boolean): number
   return Math.max(600, Math.round(sou / 25) * 25)
 }
 
-/** Ingrés brut anual a la fase de carrera (sou mensual × 12). */
+/** Ingrés NET anual disponible a la fase de carrera (sou brut × 12, menys impostos). */
 export function ingressosAnualsCarrera(state: GameState): number {
-  return (state.salari ?? 0) * 12
+  return netAnual((state.salari ?? 0) * 12)
 }
 
 /** Cost de vida anual: base + fracció de l'ingrés (l'estil de vida creix amb el sou). */

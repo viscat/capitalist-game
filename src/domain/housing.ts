@@ -5,6 +5,7 @@ import {
   LLOGUER_PIS_ANUAL,
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
+import { netAnual } from './stats'
 import type {
   Familia,
   FamilyClass,
@@ -59,9 +60,9 @@ export function calculaHipoteca(preu: number, anys: number): Hipoteca {
   return { deute, quotaAnual, anysRestants: anys }
 }
 
-/** Ingrés brut anual de la persona (sou × 12). */
+/** Ingrés NET anual de la persona (el que el banc mira per concedir la hipoteca). */
 function ingressosAnuals(state: GameState): number {
-  return (state.salari ?? 0) * 12
+  return netAnual((state.salari ?? 0) * 12)
 }
 
 /** El banc concedeix la hipoteca si la quota no supera el màxim ràtio d'endeutament. */

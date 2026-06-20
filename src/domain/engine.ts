@@ -38,6 +38,7 @@ import {
   familyBaselineBenestar,
   ingressosAnualsCarrera,
   ingressosMensuals16,
+  netAnual,
   pagaMensual,
   rendimentIndexAnual,
   resolveDespesaGreu,
@@ -145,7 +146,7 @@ export function newGameAtCarrera(
     teDiploma,
     salari,
     salariBase: salari,
-    plaInversio: defaultPlaInversio(salari * 12),
+    plaInversio: defaultPlaInversio(netAnual(salari * 12)),
     habitatge: { tipus: 'amb_pares' },
     historial: [],
     acabat: false,
@@ -557,7 +558,7 @@ export function applyMilestoneChoice(
     const salari = salariAdultInicial(next.familia, teDiploma)
     next.teDiploma = teDiploma
     next.salari = next.salariBase = salari
-    next.plaInversio = defaultPlaInversio(salari * 12)
+    next.plaInversio = defaultPlaInversio(netAnual(salari * 12))
   }
   // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
   // es decideix llogar o comprar.

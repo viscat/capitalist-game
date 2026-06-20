@@ -1,5 +1,6 @@
 import {
   balancUniversitatAnual,
+  desglosNominaMensual,
   estalviAnualCriatura,
   pagaMensual,
   patrimoniTotal,
@@ -21,6 +22,31 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-slate-400">{label}</span>
       <span className="font-medium text-slate-100">{value}</span>
     </div>
+  )
+}
+
+/** Desglossament de la nòmina mensual: brut → Seguretat Social, IRPF → net. */
+function NominaRows({ brutMensual }: { brutMensual: number }) {
+  const { t } = useT()
+  const n = desglosNominaMensual(brutMensual)
+  return (
+    <>
+      <Row label={t('nomina.brut')} value={`${formatEuros(n.brut)}/mes`} />
+      <div className="flex justify-between text-sm">
+        <span className="pl-3 text-slate-500">{t('nomina.ss')}</span>
+        <span className="font-medium text-amber-400">
+          −{formatEuros(n.seguretatSocial)}
+        </span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="pl-3 text-slate-500">{t('nomina.irpf')}</span>
+        <span className="font-medium text-amber-400">−{formatEuros(n.irpf)}</span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="font-semibold text-slate-200">{t('nomina.net')}</span>
+        <span className="font-bold text-emerald-300">{formatEuros(n.net)}/mes</span>
+      </div>
+    </>
   )
 }
 
@@ -98,25 +124,24 @@ export function PatrimoniPanel({
             value={`${formatEuros(familia.ingressosMensuals)}/mes`}
           />
           {stage === 'laboral' ? (
-            <Row
-              label={t('context.ingressosPropis')}
-              value={
-                itinerari === 'treball'
-                  ? salari && salari > 0
-                    ? `${formatEuros(salari)}/mes`
-                    : t('context.atur')
-                  : `${formatEuros(pagaMensual(familia))}/mes`
-              }
-            />
+            itinerari === 'treball' ? (
+              salari && salari > 0 ? (
+                <NominaRows brutMensual={salari} />
+              ) : (
+                <Row label={t('context.ingressosPropis')} value={t('context.atur')} />
+              )
+            ) : (
+              <Row
+                label={t('context.paga')}
+                value={`${formatEuros(pagaMensual(familia))}/mes`}
+              />
+            )
           ) : stage === 'carrera' ? (
-            <Row
-              label={t('context.ingressosPropis')}
-              value={
-                salari && salari > 0
-                  ? `${formatEuros(salari)}/mes`
-                  : t('context.atur')
-              }
-            />
+            salari && salari > 0 ? (
+              <NominaRows brutMensual={salari} />
+            ) : (
+              <Row label={t('context.ingressosPropis')} value={t('context.atur')} />
+            )
           ) : stage === 'universitat' ? (
             <Row
               label={t('context.suportUni')}

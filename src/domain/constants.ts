@@ -23,14 +23,14 @@ export const EDAT_FI_UNIVERSITAT = 22
 /** Edat (en anys) a la qual acaba aquesta iteració de la vida adulta. */
 export const EDAT_FI_CARRERA = 35
 
-/** Sou net mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
-export const SALARI_BASE_16 = 650
+/** Sou BRUT mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
+export const SALARI_BASE_16 = 800
 
-/** Sou net mensual base d'una feina adulta (18+), sense títol universitari. */
-export const SALARI_ADULT_BASE = 1300
+/** Sou BRUT mensual base d'una feina adulta (18+), sense títol universitari. */
+export const SALARI_ADULT_BASE = 1650
 
-/** Plus de sou mensual per tenir un títol universitari. */
-export const PREMI_DIPLOMA = 650
+/** Plus de sou BRUT mensual per tenir un títol universitari. */
+export const PREMI_DIPLOMA = 800
 
 /** Pas d'ajust del pressupost mensual (€). */
 export const PAS_PRESSUPOST = 25
