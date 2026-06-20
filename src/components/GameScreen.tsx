@@ -4,6 +4,7 @@ import { edatAnys, estacioFromEdat } from '../domain/time'
 import { nomComplet } from '../domain/identitat'
 import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
+import { HabitatgePanel } from './HabitatgePanel'
 import { InvestmentPanel } from './InvestmentPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
@@ -87,6 +88,7 @@ export function GameScreen() {
             itinerari={itinerari}
             salari={salari}
             identitat={state.identitat}
+            habitatge={state.habitatge}
           />
         </aside>
 
@@ -100,6 +102,7 @@ export function GameScreen() {
             <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
           )}
           {!pendingEvent && esLaboral && <BudgetPanel />}
+          {!pendingEvent && esAdult && <HabitatgePanel />}
           {!pendingEvent && esCarrera && <InvestmentPanel />}
           {!pendingEvent && esAnual && (
             <button

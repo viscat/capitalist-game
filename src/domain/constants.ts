@@ -69,3 +69,21 @@ export const COST_VIDA_FACTOR = 0.2
 
 /** Cost anual de matrícula i material universitari. */
 export const MATRICULA_ANUAL = 2000
+
+// --- Habitatge (a partir dels 18) ---
+
+/** Lloguer anual d'una habitació en un pis compartit. */
+export const LLOGUER_HABITACIO_ANUAL = 4200
+/** Lloguer anual d'un pis sencer. */
+export const LLOGUER_PIS_ANUAL = 10800
+
+/** Entrada mínima per comprar un habitatge (fracció del preu). */
+export const ENTRADA_HIPOTECA = 0.2
+/** Interès anual de la hipoteca. */
+export const INTERES_HIPOTECA = 0.03
+/** Terminis d'hipoteca oferts (anys). */
+export const TERMINIS_HIPOTECA = [20, 30]
+/** El banc concedeix la hipoteca si la quota anual no supera aquesta fracció de l'ingrés. */
+export const RATI_ENDEUTAMENT_MAX = 0.4
+/** Revaloració anual mitjana de l'habitatge en propietat. */
+export const REVALORACIO_HABITATGE = 0.02

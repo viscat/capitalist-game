@@ -21,7 +21,8 @@ export function GameOver() {
   const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
     state.person.patrimoni
   const invertit = inversions + fonsIndexat + fonsPensions
-  const total = patrimoniTotal(state.person)
+  const deuteHipoteca = state.habitatge?.hipoteca?.deute ?? 0
+  const total = patrimoniTotal(state.person) - deuteHipoteca
   // Quina part del patrimoni ha vingut d'haver invertit (no de tenir-ho parat).
   const pctInvertit = total > 0 ? Math.round((invertit / total) * 100) : 0
 

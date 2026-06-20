@@ -7,7 +7,9 @@ import {
   EDAT_FI_UNIVERSITAT,
   MESOS_PER_ANY,
   MESOS_PER_ESTACIO,
+  REVALORACIO_HABITATGE,
 } from './constants'
+import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
 import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
@@ -144,6 +146,7 @@ export function newGameAtCarrera(
     salari,
     salariBase: salari,
     plaInversio: defaultPlaInversio(salari * 12),
+    habitatge: { tipus: 'amb_pares' },
     historial: [],
     acabat: false,
   }
@@ -290,6 +293,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     edatMesos,
     stats: { ...state.person.stats, benestar },
   }
+  let habitatge = state.habitatge
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -311,14 +315,16 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
     person = applyBudgetMonth(person, budget, income, minCasa)
   } else if (stage === 'universitat') {
-    // Any d'universitat: suport familiar + beca − matrícula (mai genera deute).
+    // Any d'universitat: suport familiar + beca − matrícula − habitatge (mai deute).
     person = {
       ...person,
       patrimoni: {
         ...person.patrimoni,
         efectiu: Math.max(
           0,
-          person.patrimoni.efectiu + balancUniversitatAnual(state.familia),
+          person.patrimoni.efectiu +
+            balancUniversitatAnual(state.familia) -
+            costHabitatgeAnual(habitatge),
         ),
       },
     }
@@ -328,7 +334,13 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     rngState = draw.state
     const income = ingressosAnualsCarrera(state)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
-    person = applyCareerYear(person, pla, income, rendimentIndexAnual(draw.value))
+    person = applyCareerYear(
+      person,
+      pla,
+      income,
+      rendimentIndexAnual(draw.value),
+      costHabitatgeAnual(habitatge),
+    )
   } else {
     const estipendi =
       stage === 'estudis_post' && state.itinerari === 'grau_mig'
@@ -343,6 +355,24 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
           pagaMensual(state.familia) * MESOS_PER_ESTACIO +
           estipendi,
       },
+    }
+  }
+
+  // Habitatge (fases adultes): l'immoble es revalora i la hipoteca s'amortitza.
+  if (stage === 'universitat' || stage === 'carrera') {
+    if (person.patrimoni.cases.length > 0) {
+      person = {
+        ...person,
+        patrimoni: {
+          ...person.patrimoni,
+          cases: person.patrimoni.cases.map((v) =>
+            Math.round(v * (1 + REVALORACIO_HABITATGE)),
+          ),
+        },
+      }
+    }
+    if (habitatge?.tipus === 'propietat' && habitatge.hipoteca) {
+      habitatge = { ...habitatge, hipoteca: amortitzaHipoteca(habitatge.hipoteca) }
     }
   }
 
@@ -377,6 +407,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     ...state,
     torn,
     person,
+    habitatge,
     rngState: nextRng,
     ultimEventId: event.id,
     historial: [...state.historial, ...entries],
@@ -527,6 +558,14 @@ export function applyMilestoneChoice(
     next.teDiploma = teDiploma
     next.salari = next.salariBase = salari
     next.plaInversio = defaultPlaInversio(salari * 12)
+  }
+  // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
+  // es decideix llogar o comprar.
+  if (
+    (option.lifeStage === 'universitat' || option.lifeStage === 'carrera') &&
+    !next.habitatge
+  ) {
+    next.habitatge = { tipus: 'amb_pares' }
   }
   const entry: LogEntry = {
     torn: state.torn,

@@ -22,6 +22,7 @@ import type {
   Familia,
   FamilyClass,
   GameState,
+  Habitatge,
   Itinerari,
   Patrimoni,
   Person,
@@ -173,10 +174,14 @@ export function itinerariBenestarOffset(itinerari?: Itinerari): number {
 export function baselineBenestar(state: GameState): number {
   // Vida d'estudiant universitari: encara depens de casa, però amb aire i propòsit.
   if (state.lifeStage === 'universitat') {
-    return clampBenestar(familyBaselineBenestar(state.familia) + 4)
+    return clampBenestar(
+      familyBaselineBenestar(state.familia) + 4 + benestarHabitatge(state.habitatge),
+    )
   }
   // Vida adulta: la referència ja no depèn de la família sinó del teu propi camí.
-  if (state.lifeStage === 'carrera') return adultBaselineBenestar(state)
+  if (state.lifeStage === 'carrera') {
+    return clampBenestar(adultBaselineBenestar(state) + benestarHabitatge(state.habitatge))
+  }
 
   let offset = itinerariBenestarOffset(state.itinerari)
   // A l'atur (treball amb sou 0): inseguretat i pressió.
@@ -188,6 +193,22 @@ export function baselineBenestar(state: GameState): number {
  * Benestar de referència adult (fase de carrera): depèn del propi ingrés i del
  * patrimoni acumulat, no de la família. A l'atur, cau per la inseguretat.
  */
+/** Efecte de la situació d'habitatge sobre el benestar de referència (independència). */
+export function benestarHabitatge(habitatge?: Habitatge): number {
+  switch (habitatge?.tipus) {
+    case 'habitacio':
+      return 1
+    case 'pis_lloguer':
+      return 4
+    case 'propietat':
+      return 6
+    case 'amb_pares':
+      return -3
+    default:
+      return 0
+  }
+}
+
 export function adultBaselineBenestar(state: GameState): number {
   const incomeM = state.salari ?? 0
   const econ = clamp(incomeM / 3500, 0, 1)
@@ -492,6 +513,7 @@ export function applyCareerYear(
   pla: PlaInversio,
   annualIncome: number,
   indexReturn: number,
+  costHabitatge = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
   let disponible = patrimoni.efectiu + annualIncome
@@ -502,8 +524,9 @@ export function applyCareerYear(
     return real
   }
 
-  // Cost de vida: obligatori, es paga primer.
+  // Despeses obligatòries: cost de vida i habitatge (lloguer o hipoteca).
   gasta(costVidaAnual(annualIncome))
+  gasta(costHabitatge)
   const oci = gasta(pla.oci)
   const aEstalvi = gasta(pla.estalvi)
   const aIndex = gasta(pla.fonsIndexat)

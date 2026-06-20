@@ -1,0 +1,160 @@
+import {
+  ENTRADA_HIPOTECA,
+  INTERES_HIPOTECA,
+  LLOGUER_HABITACIO_ANUAL,
+  LLOGUER_PIS_ANUAL,
+  RATI_ENDEUTAMENT_MAX,
+} from './constants'
+import type { GameState, Habitatge, Hipoteca, TipusHabitatge } from './types'
+
+/** Opció de lloguer (habitació o pis sencer). */
+export interface OpcioLloguer {
+  tipus: 'habitacio' | 'pis_lloguer'
+  lloguerAnual: number
+}
+
+export const OPCIONS_LLOGUER: OpcioLloguer[] = [
+  { tipus: 'habitacio', lloguerAnual: LLOGUER_HABITACIO_ANUAL },
+  { tipus: 'pis_lloguer', lloguerAnual: LLOGUER_PIS_ANUAL },
+]
+
+/** Habitatge en venda. */
+export interface Propietat {
+  id: string
+  preu: number
+}
+
+// Catàleg de propietats a comprar, de menys a més cares.
+export const PROPIETATS: Propietat[] = [
+  { id: 'estudi', preu: 95_000 },
+  { id: 'pis_petit', preu: 160_000 },
+  { id: 'pis', preu: 240_000 },
+  { id: 'casa', preu: 360_000 },
+]
+
+export function getPropietat(id: string): Propietat | undefined {
+  return PROPIETATS.find((p) => p.id === id)
+}
+
+/** Entrada (pagament inicial) necessària per a un preu. */
+export function entradaHipoteca(preu: number): number {
+  return Math.round(preu * ENTRADA_HIPOTECA)
+}
+
+/** Calcula la hipoteca (deute i quota anual) per a un preu i termini. */
+export function calculaHipoteca(preu: number, anys: number): Hipoteca {
+  const deute = preu - entradaHipoteca(preu)
+  const r = INTERES_HIPOTECA
+  const quotaAnual =
+    r > 0
+      ? Math.round((deute * r) / (1 - Math.pow(1 + r, -anys)))
+      : Math.round(deute / anys)
+  return { deute, quotaAnual, anysRestants: anys }
+}
+
+/** Ingrés brut anual de la persona (sou × 12). */
+function ingressosAnuals(state: GameState): number {
+  return (state.salari ?? 0) * 12
+}
+
+/** El banc concedeix la hipoteca si la quota no supera el màxim ràtio d'endeutament. */
+export function bancConcedeix(quotaAnual: number, annualIncome: number): boolean {
+  return annualIncome > 0 && quotaAnual <= RATI_ENDEUTAMENT_MAX * annualIncome
+}
+
+/** Diners líquids (efectiu + estalvi) que es poden fer servir per a l'entrada. */
+export function liquidDisponible(state: GameState): number {
+  return state.person.patrimoni.efectiu + state.person.patrimoni.estalvi
+}
+
+/** Resum d'una possible compra, per a la UI. */
+export interface OfertaCompra {
+  preu: number
+  entrada: number
+  hipoteca: Hipoteca
+  teEntrada: boolean
+  bancAprova: boolean
+}
+
+export function ofertaCompra(
+  state: GameState,
+  preu: number,
+  anys: number,
+): OfertaCompra {
+  const entrada = entradaHipoteca(preu)
+  const hipoteca = calculaHipoteca(preu, anys)
+  return {
+    preu,
+    entrada,
+    hipoteca,
+    teEntrada: liquidDisponible(state) >= entrada,
+    bancAprova: bancConcedeix(hipoteca.quotaAnual, ingressosAnuals(state)),
+  }
+}
+
+/** Cost anual en efectiu de l'habitatge actual (lloguer o quota d'hipoteca). */
+export function costHabitatgeAnual(habitatge?: Habitatge): number {
+  if (!habitatge) return 0
+  if (habitatge.tipus === 'propietat') return habitatge.hipoteca?.quotaAnual ?? 0
+  return habitatge.lloguerAnual ?? 0
+}
+
+/** Amortitza un any d'hipoteca; retorna la hipoteca nova o `undefined` si queda saldada. */
+export function amortitzaHipoteca(hip: Hipoteca): Hipoteca | undefined {
+  const interes = Math.round(hip.deute * INTERES_HIPOTECA)
+  const capital = Math.max(0, hip.quotaAnual - interes)
+  const deute = Math.max(0, Math.round(hip.deute - capital))
+  const anysRestants = hip.anysRestants - 1
+  if (deute <= 0 || anysRestants <= 0) return undefined
+  return { deute, quotaAnual: hip.quotaAnual, anysRestants }
+}
+
+/** Canvia a un lloguer (habitació o pis). */
+export function llogar(state: GameState, tipus: OpcioLloguer['tipus']): GameState {
+  const opcio = OPCIONS_LLOGUER.find((o) => o.tipus === tipus)
+  if (!opcio) return state
+  return { ...state, habitatge: { tipus, lloguerAnual: opcio.lloguerAnual } }
+}
+
+/** Torna a viure amb els pares (deixa el lloguer). */
+export function tornarAmbPares(state: GameState): GameState {
+  if (state.habitatge?.tipus === 'propietat') return state // no s'abandona una propietat
+  return { ...state, habitatge: { tipus: 'amb_pares' } }
+}
+
+/**
+ * Compra un habitatge: paga l'entrada (efectiu → estalvi), suma el valor a les
+ * cases en propietat i obre la hipoteca. No fa res si no es pot pagar l'entrada o
+ * el banc no concedeix la hipoteca.
+ */
+export function comprarCasa(
+  state: GameState,
+  propietatId: string,
+  anys: number,
+): GameState {
+  const propietat = getPropietat(propietatId)
+  if (!propietat || state.habitatge?.tipus === 'propietat') return state
+
+  const oferta = ofertaCompra(state, propietat.preu, anys)
+  if (!oferta.teEntrada || !oferta.bancAprova) return state
+
+  // Paga l'entrada: primer de l'efectiu, després de l'estalvi.
+  let restant = oferta.entrada
+  const efectiu = Math.max(0, state.person.patrimoni.efectiu - restant)
+  restant -= state.person.patrimoni.efectiu - efectiu
+  const estalvi = Math.max(0, state.person.patrimoni.estalvi - restant)
+
+  return {
+    ...state,
+    person: {
+      ...state.person,
+      patrimoni: {
+        ...state.person.patrimoni,
+        efectiu,
+        estalvi,
+        cases: [...state.person.patrimoni.cases, propietat.preu],
+      },
+    },
+    habitatge: { tipus: 'propietat' as TipusHabitatge, hipoteca: oferta.hipoteca },
+  }
+}

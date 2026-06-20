@@ -14,6 +14,7 @@ import {
   TREBALL_EVENTS,
 } from '../domain/events/laboral'
 import { CHILDHOOD_EVENTS } from '../domain/events/pool'
+import { PROPIETATS } from '../domain/housing'
 import { FAMILY_PRESETS } from '../domain/family/presets'
 import { MILESTONES } from '../domain/milestones'
 import { ESTACIONS } from '../domain/time'
@@ -148,6 +149,10 @@ describe('cobertura i18n (català)', () => {
       ...['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'].map(
         (f) => `patrimoni.${f}`,
       ),
+      ...['amb_pares', 'habitacio', 'pis_lloguer', 'propietat'].map(
+        (h) => `tipusHabitatge.${h}`,
+      ),
+      ...PROPIETATS.map((p) => `propietat.${p.id}`),
     ]
     expect(keys.filter((k) => !has(k))).toEqual([])
   })
