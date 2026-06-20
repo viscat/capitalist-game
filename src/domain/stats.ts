@@ -223,10 +223,10 @@ export function defaultBudget(income: number, minCasa = 0): Budget {
 }
 
 /**
- * Aplica un mes a la fase laboral: ingressa, mou l'estalvi al patrimoni, gasta
- * oci/compres/casa i deixa el sobrant a efectiu (mai negatiu). El benestar reacciona
- * a l'estil de vida (poc oci penalitza; un mínim de vida social i alguna compra
- * apugen una mica), de manera que estalviar-ho tot té un cost de benestar.
+ * Aplica un mes a la fase laboral: ingressa, paga l'aportació obligatòria a casa,
+ * mou l'estalvi al patrimoni, gasta oci/compres i deixa el sobrant a efectiu (mai
+ * negatiu). El benestar reacciona a la despesa discrecional (oci + compres): com
+ * més et permets, més puja (amb rendiments decreixents); no gastar res penalitza.
  */
 export function applyBudgetMonth(
   person: Person,
@@ -247,16 +247,16 @@ export function applyBudgetMonth(
   gasta(Math.max(budget.casa, minCasa))
   const aEstalvi = gasta(budget.estalvi)
   const oci = gasta(budget.oci)
-  gasta(budget.compres)
+  const compres = gasta(budget.compres)
 
   patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
   patrimoni.efectiu = Math.round(disponible)
 
-  // Efecte de l'estil de vida sobre el benestar (petit, mensual).
-  const ociRatio = income > 0 ? oci / income : 0
-  let deltaBenestar = 0
-  if (ociRatio < 0.05) deltaBenestar -= 2
-  else if (ociRatio >= 0.15) deltaBenestar += 2
+  // El benestar puja segons la despesa discrecional (oci + compres), amb
+  // rendiments decreixents i topall; no permetre's res té un cost.
+  const discrecional = oci + compres
+  const deltaBenestar =
+    discrecional <= 0 ? -2 : clamp(Math.round(Math.sqrt(discrecional) / 4), 0, 5)
 
   const stats = {
     ...person.stats,
