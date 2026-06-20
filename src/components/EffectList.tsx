@@ -32,6 +32,31 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       })
     }
   }
+  if (effect.despesaGreu) {
+    badges.push({
+      label: t('effect.despesaGreu'),
+      text: `−${formatEuros(effect.despesaGreu)}`,
+      positive: false,
+    })
+  }
+  if (effect.salariNou !== undefined) {
+    badges.push(
+      effect.salariNou === 0
+        ? { label: t('effect.atur'), text: '', positive: false }
+        : {
+            label: t('effect.salariNou'),
+            text: `${formatEuros(effect.salariNou)}/mes`,
+            positive: true,
+          },
+    )
+  } else if (effect.salariDelta) {
+    const v = effect.salariDelta
+    badges.push({
+      label: t('effect.salari'),
+      text: `${v > 0 ? '+' : ''}${formatEuros(v)}/mes`,
+      positive: v > 0,
+    })
+  }
 
   if (badges.length === 0) return null
 

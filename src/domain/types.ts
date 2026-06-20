@@ -78,6 +78,12 @@ export interface EventEffect {
   efectiu?: number
   estalvi?: number
   inversions?: number
+  /** Canvi persistent del sou mensual (fase laboral). */
+  salariDelta?: number
+  /** Fixa el sou mensual a aquest valor (0 = perdre la feina, o sou d'una nova feina). */
+  salariNou?: number
+  /** Despesa gran subjecta al matalàs familiar (separada d'`efectiu`). */
+  despesaGreu?: number
 }
 
 export interface EventChoice {
@@ -85,6 +91,8 @@ export interface EventChoice {
   /** Clau i18n de l'etiqueta de l'opció. */
   labelKey: string
   effect: EventEffect
+  /** Efecte calculat segons l'estat (preval sobre `effect`). */
+  resolve?: (state: GameState) => EventEffect
 }
 
 export interface GameEvent {
@@ -98,6 +106,8 @@ export interface GameEvent {
   weight: (familia: Familia) => number
   /** Efecte immediat (si no hi ha opcions). */
   effect?: EventEffect
+  /** Efecte immediat calculat segons l'estat (preval sobre `effect`). */
+  resolve?: (state: GameState) => EventEffect
   /** Si hi ha opcions, el jugador ha de triar abans de continuar. */
   choices?: EventChoice[]
 }
@@ -134,6 +144,10 @@ export interface LogEntry {
   choiceLabelKey?: string
   /** Efecte realment aplicat. */
   effect: EventEffect
+  /** Diners que la família ha cobert d'una despesa greu. */
+  donacio?: number
+  /** Part d'una despesa greu que ningú ha pogut cobrir. */
+  descobert?: number
 }
 
 export interface GameState {
@@ -154,6 +168,10 @@ export interface GameState {
   itinerari?: Itinerari
   /** Pressupost mensual actiu (fase laboral). */
   pressupost?: Budget
+  /** Sou mensual actual (treball). 0 amb itinerari 'treball' = a l'atur. */
+  salari?: number
+  /** Sou de referència d'aquesta partida (per a reincorporacions). */
+  salariBase?: number
   historial: LogEntry[]
   acabat: boolean
 }

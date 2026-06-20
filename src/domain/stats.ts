@@ -1,4 +1,4 @@
-import { BENESTAR_MAX, BENESTAR_MIN, SALARI_TREBALL_16 } from './constants'
+import { BENESTAR_MAX, BENESTAR_MIN, SALARI_BASE_16 } from './constants'
 import type { Budget, EventEffect, Familia, GameState, Itinerari, Person } from './types'
 
 export function clamp(value: number, min: number, max: number): number {
@@ -105,19 +105,75 @@ export function itinerariBenestarOffset(itinerari?: Itinerari): number {
   }
 }
 
-/** Benestar de referència tenint en compte família i itinerari. */
+/** Benestar de referència tenint en compte família, itinerari i atur. */
 export function baselineBenestar(state: GameState): number {
-  return clampBenestar(
-    familyBaselineBenestar(state.familia) +
-      itinerariBenestarOffset(state.itinerari),
-  )
+  let offset = itinerariBenestarOffset(state.itinerari)
+  // A l'atur (treball amb sou 0): inseguretat i pressió.
+  if (state.itinerari === 'treball' && state.salari === 0) offset -= 8
+  return clampBenestar(familyBaselineBenestar(state.familia) + offset)
 }
 
-/** Ingrés mensual a la fase laboral: sou (treball) o suport familiar (nini). */
+/** Sou inicial d'una primera feina: base + un plus modest per contactes familiars. */
+export function salariInicial(familia: Familia): number {
+  const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 350)
+  return Math.round((SALARI_BASE_16 + plusContactes) / 25) * 25
+}
+
+/** Ingrés mensual a la fase laboral: sou actual (treball) o suport familiar (nini). */
 export function ingressosMensuals16(state: GameState): number {
   return state.itinerari === 'treball'
-    ? SALARI_TREBALL_16
+    ? state.salari ?? 0
     : pagaMensual(state.familia)
+}
+
+/** Capacitat de la família per cobrir una emergència puntual (matalàs econòmic). */
+export function ajutFamiliarMax(familia: Familia): number {
+  return Math.round(familia.patrimoni * 0.1)
+}
+
+export interface DespesaGreuResult {
+  person: Person
+  donacio: number
+  descobert: number
+}
+
+/**
+ * Resol una despesa greu amb el matalàs familiar: el jugador paga el que pot
+ * (efectiu → estalvi), la família cobreix el dèficit fins a `ajutFamiliarMax`, i
+ * el descobert restant resta benestar (estrès). Mai genera deute.
+ */
+export function resolveDespesaGreu(
+  person: Person,
+  familia: Familia,
+  cost: number,
+): DespesaGreuResult {
+  const patrimoni = { ...person.patrimoni }
+  let restant = cost
+
+  const pagaDe = (font: 'efectiu' | 'estalvi') => {
+    const real = Math.min(restant, patrimoni[font])
+    patrimoni[font] = Math.round(patrimoni[font] - real)
+    restant -= real
+  }
+  pagaDe('efectiu')
+  pagaDe('estalvi')
+
+  const donacio = Math.min(restant, ajutFamiliarMax(familia))
+  restant -= donacio
+  const descobert = restant
+
+  // El descobert genera estrès: penalització de benestar escalada.
+  const penalitzacio = descobert > 0 ? Math.min(30, Math.ceil(descobert / 80)) : 0
+  const stats = {
+    ...person.stats,
+    benestar: clampBenestar(person.stats.benestar - penalitzacio),
+  }
+
+  return {
+    person: { ...person, stats, patrimoni },
+    donacio,
+    descobert,
+  }
 }
 
 /** Pressupost mensual per defecte a partir de l'ingrés disponible. */

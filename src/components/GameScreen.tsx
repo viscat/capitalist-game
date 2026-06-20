@@ -13,12 +13,14 @@ export function GameScreen() {
   const { state, nextTurn, choose, reset, actions } = useGame()
   if (!state) return null
 
-  const { person, familia, historial, pendingEvent, lifeStage, itinerari } = state
+  const { person, familia, historial, pendingEvent, lifeStage, itinerari, salari } =
+    state
   const anys = edatAnys(person.edatMesos)
   const lastEntry = historial[historial.length - 1]
   const esEstacional = lifeStage === 'adolescencia' || lifeStage === 'estudis_post'
   const esLaboral = lifeStage === 'laboral'
   const esInfancia = lifeStage === 'infancia'
+  const aLatur = lifeStage === 'laboral' && itinerari === 'treball' && !salari
 
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6">
@@ -39,7 +41,11 @@ export function GameScreen() {
             {anys === 0 ? t('game.ageZero') : t('game.age', { anys })}
           </div>
           <div className="text-sm text-slate-500">
-            {itinerari ? t(`itinerari.${itinerari}.short`) : t(`game.stage.${lifeStage}`)}
+            {aLatur
+              ? t('context.atur')
+              : itinerari
+                ? t(`itinerari.${itinerari}.short`)
+                : t(`game.stage.${lifeStage}`)}
             {esEstacional &&
               ` · ${t(`season.${estacioFromEdat(person.edatMesos)}`)}`}{' '}
             · {t('game.turn', { torn: state.torn })}
@@ -50,7 +56,13 @@ export function GameScreen() {
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr_18rem]">
         <aside className="space-y-4">
           <StatBar benestar={person.stats.benestar} />
-          <PatrimoniPanel person={person} familia={familia} stage={lifeStage} itinerari={itinerari} />
+          <PatrimoniPanel
+            person={person}
+            familia={familia}
+            stage={lifeStage}
+            itinerari={itinerari}
+            salari={salari}
+          />
         </aside>
 
         <main className="space-y-4">

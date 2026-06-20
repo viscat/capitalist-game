@@ -383,4 +383,91 @@ export const ca: Record<string, string> = {
     'Sorgeix una feina temporal ({amount} €). Podria ser una empenta. L’agafes?',
   'event.oferta_reengantxar.choice.acceptar': 'Agafar-la',
   'event.oferta_reengantxar.choice.passar': 'Deixar-ho córrer',
+
+  // Sou i feina
+  'event.demanar_augment.title': 'Vols demanar un augment',
+  'event.demanar_augment.desc':
+    'Creus que mereixes cobrar més. Et fa respecte, però... ho demanes?',
+  'event.demanar_augment.choice.demanar': 'Demanar l’augment',
+  'event.demanar_augment.choice.callar': 'Deixar-ho estar',
+
+  'event.ascens.title': 'T’ofereixen un ascens',
+  'event.ascens.desc':
+    'Més responsabilitat i més sou, però també més hores i pressió. L’acceptes?',
+  'event.ascens.choice.acceptar': 'Acceptar l’ascens',
+  'event.ascens.choice.rebutjar': 'Quedar-te com estàs',
+
+  'event.retallada.title': 'Et retallen el sou',
+  'event.retallada.desc':
+    'L’empresa va justa i abaixa sous. La teva nòmina se’n ressent.',
+
+  'event.perdre_feina.title': 'Et quedes sense feina',
+  'event.perdre_feina.desc':
+    'Acomiadaments a l’empresa i et toca a tu. De cop, sense ingressos.',
+
+  // A l'atur
+  'event.oferta_feina.title': 'Una oferta de feina',
+  'event.oferta_feina.desc':
+    'Després de buscar, surt una feina. Sembla decent. L’acceptes?',
+  'event.oferta_feina.choice.acceptar': 'Acceptar la feina',
+  'event.oferta_feina.choice.esperar': 'Esperar-ne una de millor',
+
+  'event.oferta_precaria.title': 'Una feina precària',
+  'event.oferta_precaria.desc':
+    'Surt una feina mal pagada i de poca cosa. Pitjor això que res?',
+  'event.oferta_precaria.choice.acceptar': 'Acceptar-la igualment',
+  'event.oferta_precaria.choice.rebutjar': 'Rebutjar-la',
+
+  'event.feineta.title': 'Una feineta puntual',
+  'event.feineta.desc': 'Et surt un “bolo” d’un dia ({amount} €). Sempre va bé.',
+
+  'event.desanim.title': 'Desànim',
+  'event.desanim.desc':
+    'Tanta porta tancada desgasta. Costa mantenir les ganes de buscar.',
+
+  // Nini
+  'event.curset_pares.title': 'Els pares et paguen un curset',
+  'event.curset_pares.desc':
+    'A casa t’ofereixen pagar-te una formació per veure si t’hi enganxes. Hi vas?',
+  'event.curset_pares.choice.apuntar': 'Apuntar-m’hi',
+  'event.curset_pares.choice.passar': 'Passar-ne',
+
+  // --- Xocs i decisions de vida (16+) ---
+  'event.emergencia_salut.title': 'Una emergència de salut',
+  'event.emergencia_salut.desc':
+    'Un problema seriós que no pot esperar. El tractament costa {cost} €.',
+
+  'event.accident.title': 'Has tingut un accident',
+  'event.accident.desc':
+    'Et pots tractar de seguida en una clínica privada ({cost} €) o esperar la pública. Què fas?',
+  'event.accident.choice.privat': 'Anar al privat i recuperar-me ràpid',
+  'event.accident.choice.public': 'Esperar la sanitat pública',
+
+  'event.avaria.title': 'Una avaria seriosa',
+  'event.avaria.desc':
+    'Se t’ha espatllat una cosa important i la reparació puja {cost} €.',
+
+  'event.multa.title': 'Una multa',
+  'event.multa.desc': 'T’ha caigut una sanció de {cost} €. Quin disgust.',
+
+  'event.amic_demana.title': 'Un amic et demana diners',
+  'event.amic_demana.desc':
+    'Un bon amic passa un mal moment i et demana {amount} €. L’ajudes?',
+  'event.amic_demana.choice.deixar': 'Deixar-li els diners',
+  'event.amic_demana.choice.no': 'Dir-li que no pots',
+
+  'event.compra_temptadora.title': 'Una compra temptadora',
+  'event.compra_temptadora.desc':
+    'Hi ha una cosa que vols molt ({cost} €). Te la compres o et contens?',
+  'event.compra_temptadora.choice.comprar': 'Comprar-la',
+  'event.compra_temptadora.choice.contenir': 'Contenir-me',
+
+  // Etiquetes d'efecte i notes
+  'effect.salari': 'Sou',
+  'effect.salariNou': 'Nova feina',
+  'effect.atur': 'Et quedes sense feina',
+  'effect.despesaGreu': 'Despesa greu',
+  'note.donacio': 'La família cobreix {amount}',
+  'note.descobert': 'No has pogut cobrir {amount} → benestar',
+  'context.atur': 'A l’atur',
 }

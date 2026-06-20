@@ -17,8 +17,8 @@ export const EDAT_FI_ADOLESCENCIA = 16
 /** Edat (en anys) a la qual acaba la fase postobligatòria (16→18). */
 export const EDAT_FI_POSTOBLIGATORI = 18
 
-/** Sou net mensual aproximat d'una feina a temps parcial als 16-18. */
-export const SALARI_TREBALL_16 = 800
+/** Sou net mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
+export const SALARI_BASE_16 = 650
 
 /** Pas d'ajust del pressupost mensual (€). */
 export const PAS_PRESSUPOST = 25

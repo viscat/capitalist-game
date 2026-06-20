@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  ajutFamiliarMax,
   applyEffect,
   clampBenestar,
   estalviAnualCriatura,
   familyBaselineBenestar,
   pagaMensual,
+  resolveDespesaGreu,
+  salariInicial,
 } from './stats'
 import { FAMILY_PRESETS } from './family/presets'
 import type { Person } from './types'
@@ -75,5 +78,50 @@ describe('estalviAnualCriatura', () => {
     const rica = estalviAnualCriatura(FAMILY_PRESETS.rica.familia)
     expect(pobra).toBeLessThan(rica)
     expect(pobra).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('salariInicial', () => {
+  it('és més alt com més acomodada és la família (contactes)', () => {
+    const pobra = salariInicial(FAMILY_PRESETS.pobra.familia)
+    const rica = salariInicial(FAMILY_PRESETS.rica.familia)
+    expect(pobra).toBeLessThan(rica)
+    expect(pobra).toBeGreaterThan(0)
+  })
+})
+
+describe('ajutFamiliarMax', () => {
+  it('creix amb la riquesa de la família', () => {
+    const pobra = ajutFamiliarMax(FAMILY_PRESETS.pobra.familia)
+    const rica = ajutFamiliarMax(FAMILY_PRESETS.rica.familia)
+    expect(pobra).toBeLessThan(rica)
+  })
+})
+
+describe('resolveDespesaGreu (matalàs familiar)', () => {
+  const ambEstalvi = (estalvi: number): Person => ({
+    ...person,
+    stats: { benestar: 70 },
+    patrimoni: { efectiu: 0, estalvi, inversions: 0, cases: [] },
+  })
+
+  it('una família rica cobreix tot i el benestar a penes baixa', () => {
+    const res = resolveDespesaGreu(ambEstalvi(0), FAMILY_PRESETS.rica.familia, 2500)
+    expect(res.descobert).toBe(0)
+    expect(res.donacio).toBe(2500)
+    expect(res.person.stats.benestar).toBe(70)
+  })
+
+  it('una família pobra deixa descobert i baixa el benestar', () => {
+    const res = resolveDespesaGreu(ambEstalvi(0), FAMILY_PRESETS.pobra.familia, 2500)
+    expect(res.descobert).toBeGreaterThan(0)
+    expect(res.person.stats.benestar).toBeLessThan(70)
+  })
+
+  it('el jugador paga primer del seu estalvi', () => {
+    const res = resolveDespesaGreu(ambEstalvi(1000), FAMILY_PRESETS.pobra.familia, 600)
+    expect(res.person.patrimoni.estalvi).toBe(400)
+    expect(res.descobert).toBe(0)
+    expect(res.donacio).toBe(0)
   })
 })

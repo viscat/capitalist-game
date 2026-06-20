@@ -9,7 +9,12 @@ import {
 import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
-import { NINI_EVENTS, TREBALL_EVENTS } from './events/laboral'
+import {
+  ATUR_EVENTS,
+  COMMON_LIFE_EVENTS,
+  NINI_EVENTS,
+  TREBALL_EVENTS,
+} from './events/laboral'
 import { CHILDHOOD_EVENTS } from './events/pool'
 import { FAMILY_PRESETS } from './family/presets'
 import { MILESTONES } from './milestones'
@@ -24,6 +29,8 @@ import {
   familyBaselineBenestar,
   ingressosMensuals16,
   pagaMensual,
+  resolveDespesaGreu,
+  salariInicial,
 } from './stats'
 import { edatAnys } from './time'
 import type {
@@ -99,16 +106,33 @@ function isActionStage(stage: LifeStage): boolean {
   return stage === 'adolescencia' || stage === 'estudis_post'
 }
 
-/** Pool d'esdeveniments corresponent a la fase (i itinerari) actual. */
+/** Pool d'esdeveniments corresponent a la fase (i situació) actual. */
 function eventPool(state: GameState): GameEvent[] {
   switch (state.lifeStage) {
     case 'infancia':
       return CHILDHOOD_EVENTS
-    case 'laboral':
-      return state.itinerari === 'nini' ? NINI_EVENTS : TREBALL_EVENTS
+    case 'estudis_post':
+      return [...ADOLESCENCE_EVENTS, ...COMMON_LIFE_EVENTS]
+    case 'laboral': {
+      const base =
+        state.itinerari === 'nini'
+          ? NINI_EVENTS
+          : (state.salari ?? 0) > 0
+            ? TREBALL_EVENTS
+            : ATUR_EVENTS
+      return [...base, ...COMMON_LIFE_EVENTS]
+    }
     default:
       return ADOLESCENCE_EVENTS
   }
+}
+
+/** Resol l'efecte d'un esdeveniment/opció (dinàmic si té `resolve`). */
+function resolveEffect(
+  source: { effect?: EventEffect; resolve?: (s: GameState) => EventEffect },
+  state: GameState,
+): EventEffect {
+  return source.resolve ? source.resolve(state) : (source.effect ?? {})
 }
 
 /**
@@ -243,7 +267,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
   if (event.choices && event.choices.length > 0) {
     return { ...base, pendingEvent: event }
   }
-  return resolveEvent(base, event, event.effect ?? {}, anys)
+  return resolveEvent(base, event, resolveEffect(event, base), anys)
 }
 
 /** Resol l'esdeveniment pendent aplicant l'opció escollida pel jugador. */
@@ -255,7 +279,7 @@ export function applyChoice(state: GameState, choiceId: string): GameState {
   return resolveEvent(
     state,
     event,
-    choice.effect,
+    resolveEffect(choice, state),
     edatAnys(state.person.edatMesos),
     choice.labelKey,
   )
@@ -268,7 +292,27 @@ function resolveEvent(
   anys: number,
   choiceLabelKey?: string,
 ): GameState {
-  const person = applyEffect(state.person, effect)
+  // Despesa greu: el matalàs familiar cobreix el que el jugador no pot pagar.
+  let person = state.person
+  let donacio: number | undefined
+  let descobert: number | undefined
+  if (effect.despesaGreu && effect.despesaGreu > 0) {
+    const res = resolveDespesaGreu(person, state.familia, effect.despesaGreu)
+    person = res.person
+    donacio = res.donacio || undefined
+    descobert = res.descobert || undefined
+  }
+  // Resta d'efectes sobre stats i patrimoni.
+  person = applyEffect(person, effect)
+
+  // Canvis de sou persistents.
+  let salari = state.salari
+  if (effect.salariNou !== undefined) {
+    salari = Math.max(0, Math.round(effect.salariNou))
+  } else if (effect.salariDelta) {
+    salari = Math.max(0, Math.round((salari ?? 0) + effect.salariDelta))
+  }
+
   const entry: LogEntry = {
     torn: state.torn,
     edatAnys: anys,
@@ -280,6 +324,8 @@ function resolveEvent(
     kind: 'event',
     choiceLabelKey,
     effect,
+    donacio,
+    descobert,
   }
 
   // Fites i final segons l'edat assolida.
@@ -300,6 +346,7 @@ function resolveEvent(
   return {
     ...state,
     person,
+    salari,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],
@@ -325,6 +372,9 @@ export function applyMilestoneChoice(
     lifeStage: option.lifeStage,
     itinerari: option.itinerari,
     pendingMilestone: undefined,
+  }
+  if (option.itinerari === 'treball') {
+    next.salari = next.salariBase = salariInicial(state.familia)
   }
   if (option.lifeStage === 'laboral') {
     next.pressupost = defaultBudget(ingressosMensuals16(next))

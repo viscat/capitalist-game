@@ -1,5 +1,6 @@
 import type { EventCategory, GameEvent, LogEntry } from '../domain/types'
 import { useT } from '../i18n'
+import { formatEuros } from '../lib/format'
 import { EffectList } from './EffectList'
 
 function CategoryBadge({ category }: { category: EventCategory }) {
@@ -71,6 +72,16 @@ export function EventCard({
         <div className="mt-4">
           <EffectList effect={lastEntry.effect} />
         </div>
+        {lastEntry.donacio ? (
+          <p className="mt-3 text-sm font-medium text-sky-300">
+            👪 {t('note.donacio', { amount: formatEuros(lastEntry.donacio) })}
+          </p>
+        ) : null}
+        {lastEntry.descobert ? (
+          <p className="mt-1 text-sm font-medium text-amber-400">
+            ⚠️ {t('note.descobert', { amount: formatEuros(lastEntry.descobert) })}
+          </p>
+        ) : null}
       </div>
     )
   }

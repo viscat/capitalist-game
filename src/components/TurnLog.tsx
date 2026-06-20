@@ -1,5 +1,6 @@
 import type { LogEntry } from '../domain/types'
 import { useT } from '../i18n'
+import { formatEuros } from '../lib/format'
 import { EffectList } from './EffectList'
 
 export function TurnLog({ historial }: { historial: LogEntry[] }) {
@@ -41,6 +42,16 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
               <div className="mt-1">
                 <EffectList effect={entry.effect} />
               </div>
+              {entry.donacio ? (
+                <p className="mt-0.5 text-xs text-sky-300">
+                  👪 {t('note.donacio', { amount: formatEuros(entry.donacio) })}
+                </p>
+              ) : null}
+              {entry.descobert ? (
+                <p className="mt-0.5 text-xs text-amber-400">
+                  ⚠️ {t('note.descobert', { amount: formatEuros(entry.descobert) })}
+                </p>
+              ) : null}
             </li>
           ))}
         </ul>

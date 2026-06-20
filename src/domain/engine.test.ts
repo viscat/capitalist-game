@@ -7,7 +7,7 @@ import {
   newGame,
   newGameAt16,
 } from './engine'
-import { familyBaselineBenestar, ingressosMensuals16 } from './stats'
+import { familyBaselineBenestar, ingressosMensuals16, salariInicial } from './stats'
 import { edatAnys } from './time'
 import {
   EDAT_FI_ADOLESCENCIA,
@@ -15,7 +15,25 @@ import {
   EDAT_FI_POSTOBLIGATORI,
   MESOS_PER_ANY,
 } from './constants'
-import type { GameState } from './types'
+import type { GameEvent, GameState } from './types'
+
+/** Estat laboral (treball) acabat de començar, per provar el sou i les despeses. */
+function laboralTreball(seed = 7): GameState {
+  return applyMilestoneChoice(newGameAt16('mitjana', seed), 'treball')
+}
+
+/** Adjunta un esdeveniment amb una sola opció i en resol l'efecte. */
+function resolWith(s: GameState, effect: GameEvent['choices']): GameState {
+  const ev: GameEvent = {
+    id: 'test_ev',
+    category: 'economia',
+    titleKey: 't',
+    descKey: 'd',
+    weight: () => 1,
+    choices: effect,
+  }
+  return applyChoice({ ...s, pendingEvent: ev }, ev.choices![0].id)
+}
 
 function firstEnabled(s: GameState): string | undefined {
   return actionOptions(s).find((o) => !o.disabled)?.action.id
@@ -103,12 +121,41 @@ describe('fork dels 16', () => {
     expect(actionOptions(s).length).toBeGreaterThan(0)
   })
 
-  it('triar treball porta a la fase laboral amb pressupost', () => {
+  it('triar treball porta a la fase laboral amb pressupost i sou inicial', () => {
     const s = applyMilestoneChoice(fork(), 'treball')
     expect(s.lifeStage).toBe('laboral')
     expect(s.itinerari).toBe('treball')
     expect(s.pressupost).toBeDefined()
+    expect(s.salari).toBe(salariInicial(s.familia))
     expect(actionOptions(s)).toHaveLength(0) // laboral no usa targetes
+  })
+})
+
+describe('sou dinàmic i atur', () => {
+  it('una pujada de sou augmenta l’ingrés mensual', () => {
+    const s = laboralTreball()
+    const abans = ingressosMensuals16(s)
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { salariDelta: 150 } }])
+    expect(after.salari).toBe(s.salari! + 150)
+    expect(ingressosMensuals16(after)).toBe(abans + 150)
+  })
+
+  it('perdre la feina posa el sou a 0 i atura els ingressos', () => {
+    const s = laboralTreball()
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { salariNou: 0 } }])
+    expect(after.salari).toBe(0)
+    expect(ingressosMensuals16(after)).toBe(0)
+  })
+
+  it('una despesa greu que no pots pagar baixa el benestar (família pobra)', () => {
+    let s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
+    s = { ...s, person: { ...s.person, stats: { benestar: 70 } } }
+    const after = resolWith(s, [
+      { id: 'a', labelKey: 'x', effect: { despesaGreu: 3000 } },
+    ])
+    expect(after.person.stats.benestar).toBeLessThan(70)
+    expect(after.historial.at(-1)!.descobert).toBeGreaterThan(0)
+    expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })
 })
 
