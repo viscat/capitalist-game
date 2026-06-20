@@ -66,12 +66,16 @@ describe('pagaMensual', () => {
 describe('familyBaselineBenestar', () => {
   it('creix de famílies pobres a famílies amb més recursos', () => {
     const pobra = familyBaselineBenestar(FAMILY_PRESETS.pobra.familia)
+    const treballadora = familyBaselineBenestar(FAMILY_PRESETS.treballadora.familia)
     const mitjana = familyBaselineBenestar(FAMILY_PRESETS.mitjana.familia)
     const alta = familyBaselineBenestar(FAMILY_PRESETS.alta.familia)
-    expect(pobra).toBeLessThan(mitjana)
+    expect(pobra).toBeLessThan(treballadora)
+    expect(treballadora).toBeLessThan(mitjana)
     expect(mitjana).toBeLessThanOrEqual(alta)
     expect(pobra).toBeGreaterThanOrEqual(0)
     expect(alta).toBeLessThanOrEqual(100)
+    // Les classes baixes ho tenen clarament més difícil.
+    expect(pobra).toBeLessThanOrEqual(45)
   })
 })
 

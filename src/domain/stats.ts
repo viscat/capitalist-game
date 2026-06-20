@@ -39,18 +39,31 @@ export function wealthComfort(familia: Familia): number {
   return clamp(familia.patrimoni / 800_000, 0, 1)
 }
 
+// Penalització de benestar per precarietat de classe: viure amb pocs recursos
+// desgasta (inestabilitat, estrès, menys oportunitats) més enllà del que capturen
+// els indicadors generals. Fa que les classes baixes ho tinguin clarament més difícil.
+const PRECARIETAT_BENESTAR: Record<FamilyClass, number> = {
+  pobra: 14,
+  treballadora: 8,
+  mitjana: 0,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
 /**
  * Benestar de referència cap al qual gravita la criatura segons el seu entorn.
  * Missatge de disseny: el temps i la cura pesen molt; els diners ajuden fins a
- * un punt (rendiments decreixents). Una família rica amb progenitors absents pot
- * no superar una família treballadora molt present.
+ * un punt (rendiments decreixents), però la precarietat de les classes baixes
+ * pesa de valent.
  */
 export function familyBaselineBenestar(familia: Familia): number {
   const baseline =
     28 +
     careScore(familia) * 24 +
     econSecurity(familia) * 30 +
-    wealthComfort(familia) * 8
+    wealthComfort(familia) * 8 -
+    PRECARIETAT_BENESTAR[familia.classe]
   return clampBenestar(Math.round(baseline))
 }
 
@@ -121,10 +134,22 @@ export function baselineBenestar(state: GameState): number {
   return clampBenestar(familyBaselineBenestar(state.familia) + offset)
 }
 
-/** Sou inicial d'una primera feina: base + un plus modest per contactes familiars. */
+// Primeres feines més precàries per a les classes baixes (menys contactes, feines
+// pitjor pagades), a banda del plus per patrimoni.
+const PRECARIETAT_SALARI: Record<FamilyClass, number> = {
+  pobra: 120,
+  treballadora: 60,
+  mitjana: 0,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
+/** Sou inicial d'una primera feina: base + plus per contactes − precarietat de classe. */
 export function salariInicial(familia: Familia): number {
   const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 350)
-  return Math.round((SALARI_BASE_16 + plusContactes) / 25) * 25
+  const sou = SALARI_BASE_16 + plusContactes - PRECARIETAT_SALARI[familia.classe]
+  return Math.max(300, Math.round(sou / 25) * 25)
 }
 
 /** Ingrés mensual a la fase laboral: sou actual (treball) o suport familiar (nini). */

@@ -23,7 +23,7 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     category: 'familia',
     titleKey: 'event.discussions_pares.title',
     descKey: 'event.discussions_pares.desc',
-    weight: (f) => 1 + (1 - econSecurity(f)) * 3,
+    weight: (f) => 1 + (1 - econSecurity(f)) * 4,
     effect: { benestar: -8 },
   },
   {
@@ -55,8 +55,8 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     category: 'economia',
     titleKey: 'event.mes_just.title',
     descKey: 'event.mes_just.desc',
-    weight: (f) => 0.5 + (1 - econSecurity(f)) * 3.5,
-    effect: { benestar: -5 },
+    weight: (f) => 0.5 + (1 - econSecurity(f)) * 5,
+    effect: { benestar: -6 },
   },
   {
     id: 'bon_any_economic',
