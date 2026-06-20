@@ -17,7 +17,7 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     category: 'familia',
     labelKey: 'action.mes_tranquil.label',
     descKey: 'action.mes_tranquil.desc',
-    effect: { benestar: 3 },
+    effect: { benestar: -1 },
   },
   {
     id: 'ajudar_casa',

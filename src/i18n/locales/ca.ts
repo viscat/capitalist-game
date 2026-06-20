@@ -172,7 +172,8 @@ export const ca: Record<string, string> = {
   'action.sortir_amics.label': 'Sortir amb els amics',
   'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
   'action.mes_tranquil.label': 'Trimestre tranquil',
-  'action.mes_tranquil.desc': 'Temps per a tu, sense gastar. Recarregues piles.',
+  'action.mes_tranquil.desc':
+    'Deixes passar el trimestre sense complicar-te. Una mica d’avorriment.',
   'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
   'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
   'action.caprici.label': 'Donar-te un caprici',

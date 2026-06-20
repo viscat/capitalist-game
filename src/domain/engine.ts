@@ -177,7 +177,7 @@ export function actionOptions(state: GameState): ActionOption[] {
     pagaMensual(state.familia) * MESOS_PER_ESTACIO
   const benestar = state.person.stats.benestar
 
-  return ADOLESCENCE_ACTIONS.map((action) => {
+  const options = ADOLESCENCE_ACTIONS.map((action): ActionOption => {
     if (action.available && !action.available(state)) {
       return { action, disabled: true, reasonKey: action.lockedReasonKey }
     }
@@ -191,6 +191,14 @@ export function actionOptions(state: GameState): ActionOption[] {
     }
     return { action, disabled: false }
   })
+
+  // Garantia: sempre hi ha d'haver una opció jugable (el trimestre tranquil),
+  // perquè el torn mai es bloquegi del tot.
+  if (options.every((o) => o.disabled)) {
+    const fallback = options.find((o) => o.action.id === 'mes_tranquil')
+    if (fallback) fallback.disabled = false
+  }
+  return options
 }
 
 /**
