@@ -2,9 +2,7 @@ name: Deploy a GitHub Pages
 
 on:
   push:
-    # Desplega des de main i, de moment, també des de la branca de
-    # desenvolupament perquè es pugui validar el joc abans de fer merge.
-    branches: [main, claude/capitalist-game-design-x2eac0]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
