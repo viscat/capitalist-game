@@ -96,6 +96,8 @@ export interface GameAction {
   effect: EventEffect
   /** Disponible només si es compleix la condició de context (p. ex. estiu). */
   available?: (state: GameState) => boolean
+  /** Motiu (clau i18n) que s'ensenya quan `available` falla. */
+  lockedReasonKey?: string
 }
 
 /** Entrada de l'historial: què ha passat en un torn i quin efecte ha tingut. */
@@ -127,6 +129,16 @@ export interface GameState {
   ultimEventId?: string
   /** Esdeveniment pendent d'una decisió del jugador (bloqueja el següent torn). */
   pendingEvent?: GameEvent
+  /** Cert quan s'acaba la infància i cal mostrar la pantalla de transició. */
+  transicioPendent?: boolean
   historial: LogEntry[]
   acabat: boolean
+}
+
+/** Una acció amb el seu estat de disponibilitat per a la UI. */
+export interface ActionOption {
+  action: GameAction
+  disabled: boolean
+  /** Clau i18n del motiu pel qual està deshabilitada. */
+  reasonKey?: string
 }

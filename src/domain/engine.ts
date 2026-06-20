@@ -20,9 +20,9 @@ import {
 } from './stats'
 import { edatAnys } from './time'
 import type {
+  ActionOption,
   EventEffect,
   FamilyClass,
-  GameAction,
   GameEvent,
   GameState,
   LifeStage,
@@ -58,25 +58,34 @@ function turnMonths(stage: LifeStage): number {
   return stage === 'infancia' ? MESOS_PER_ANY : MESOS_PER_ESTACIO
 }
 
-/** Fase corresponent a una edat (en mesos) ja avançada. */
-function stageForAge(edatMesos: number): LifeStage {
-  return edatMesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY ? 'adolescencia' : 'infancia'
-}
-
-/** Accions disponibles per al jugador en aquest torn (buides fora de l'adolescència). */
-export function availableActions(state: GameState): GameAction[] {
+/**
+ * Totes les accions adolescents amb el seu estat. No s'amaguen: les que no es
+ * poden fer es retornen `disabled` amb el motiu (temporada, diners o benestar)
+ * perquè la UI les mostri atenuades. Buit fora de l'adolescència.
+ */
+export function actionOptions(state: GameState): ActionOption[] {
   if (state.lifeStage !== 'adolescencia' || state.acabat || state.pendingEvent) {
     return []
   }
-  // Caixa prevista després d'ingressar la paga del trimestre: no deixem triar
-  // accions que no es poden pagar (no hi ha deute a l'adolescència).
+  // Caixa prevista després d'ingressar la paga del trimestre (no hi ha deute).
   const caixaPrevista =
     state.person.patrimoni.efectiu +
     pagaMensual(state.familia) * MESOS_PER_ESTACIO
-  return ADOLESCENCE_ACTIONS.filter((a) => {
-    if (a.available && !a.available(state)) return false
-    const cost = a.effect.efectiu ?? 0
-    return cost >= 0 || caixaPrevista + cost >= 0
+  const benestar = state.person.stats.benestar
+
+  return ADOLESCENCE_ACTIONS.map((action) => {
+    if (action.available && !action.available(state)) {
+      return { action, disabled: true, reasonKey: action.lockedReasonKey }
+    }
+    const cost = action.effect.efectiu ?? 0
+    if (cost < 0 && caixaPrevista + cost < 0) {
+      return { action, disabled: true, reasonKey: 'action.locked.diners' }
+    }
+    const deltaBenestar = action.effect.benestar ?? 0
+    if (deltaBenestar < 0 && benestar + deltaBenestar < 0) {
+      return { action, disabled: true, reasonKey: 'action.locked.benestar' }
+    }
+    return { action, disabled: false }
   })
 }
 
@@ -121,21 +130,6 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
 
   const entries: LogEntry[] = []
 
-  // Avís en entrar a l'institut.
-  const newStage = stageForAge(edatMesos)
-  if (stage === 'infancia' && newStage === 'adolescencia') {
-    entries.push({
-      torn,
-      edatAnys: anys,
-      eventId: 'transicio_institut',
-      titleKey: 'transition.institut.title',
-      descKey: 'transition.institut.desc',
-      category: 'escola',
-      kind: 'event',
-      effect: {},
-    })
-  }
-
   // Acció voluntària (només adolescència).
   if (stage === 'adolescencia' && actionId) {
     const action = findAction(actionId)
@@ -166,7 +160,6 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     ...state,
     torn,
     person,
-    lifeStage: newStage,
     rngState,
     ultimEventId: event.id,
     historial: [...state.historial, ...entries],
@@ -208,11 +201,41 @@ function resolveEvent(
     effect,
   }
   const acabat = person.edatMesos >= EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY
+  // En tancar l'últim torn d'infància (12 anys) marquem la transició perquè la UI
+  // mostri la pantalla intermèdia abans de començar l'institut.
+  const transicioPendent =
+    state.lifeStage === 'infancia' &&
+    person.edatMesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
   return {
     ...state,
     person,
     pendingEvent: undefined,
+    transicioPendent,
     historial: [...state.historial, entry],
     acabat,
+  }
+}
+
+/**
+ * Confirma la transició de la infància a l'adolescència: canvia de fase, neteja
+ * el flag i deixa constància al registre. La crida la pantalla de transició.
+ */
+export function continuePhase(state: GameState): GameState {
+  if (!state.transicioPendent) return state
+  const entry: LogEntry = {
+    torn: state.torn,
+    edatAnys: edatAnys(state.person.edatMesos),
+    eventId: 'transicio_institut',
+    titleKey: 'transition.institut.title',
+    descKey: 'transition.institut.desc',
+    category: 'escola',
+    kind: 'event',
+    effect: {},
+  }
+  return {
+    ...state,
+    lifeStage: 'adolescencia',
+    transicioPendent: false,
+    historial: [...state.historial, entry],
   }
 }

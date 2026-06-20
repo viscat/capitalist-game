@@ -95,10 +95,38 @@ export const ca: Record<string, string> = {
   'action.feina_estiu.label': 'Feina d’estiu',
   'action.feina_estiu.desc': 'Treballar durant l’estiu: cansa, però omples la guardiola.',
 
-  // Transició a l'institut
+  // Motius pels quals una acció està bloquejada
+  'action.locked.diners': 'No tens prou diners',
+  'action.locked.benestar': 'No tens prou ànims',
+  'action.locked.estiu': 'Només a l’estiu',
+
+  // Registre / log de transició a l'institut
   'transition.institut.title': 'Comences l’institut',
   'transition.institut.desc':
     'Fas 12 anys i entres a l’ESO. A partir d’ara reps una paga i decideixes, trimestre a trimestre, què en fas.',
+
+  // Pantalla de transició infància → adolescència
+  'transition.kicker': 'Fi de la infància',
+  'transition.title': 'Fas 12 anys',
+  'transition.summaryTitle': 'Com ha anat la teva infància',
+  'transition.benestar': 'Benestar als 12',
+  'transition.estalvi': 'Estalvi acumulat',
+  'transition.summary.molt_baix':
+    'Han estat uns anys durs: pocs moments bons i molta motxilla emocional per carregar.',
+  'transition.summary.baix':
+    'Una infància amb més ombres que llums, amb dies difícils que han deixat empremta.',
+  'transition.summary.mig':
+    'Una infància normal, amb els seus alts i baixos, com la de tanta gent.',
+  'transition.summary.alt':
+    'Has crescut envoltat d’estima i estabilitat: una bona base per al que ve.',
+  'transition.summary.molt_alt':
+    'Una infància plena i feliç, un coixí que portaràs sempre amb tu.',
+  'transition.loreTitle': 'I ara... l’institut',
+  'transition.lore1':
+    'S’acaba la infància i comença l’ESO. El món se t’obre: amics nous, primers amors, primeres responsabilitats... i les primeres decisions de debò.',
+  'transition.lore2':
+    'A partir d’ara reps una paga i ets tu qui decideix, trimestre a trimestre, si la gastes, l’estalvies o busques la manera de guanyar-ne més. Cada decisió compta.',
+  'transition.continue': 'Començar l’institut →',
 
   'log.title': 'Història',
   'log.empty': 'Encara no ha passat res.',

@@ -1,4 +1,4 @@
-import type { GameAction } from '../domain/types'
+import type { ActionOption } from '../domain/types'
 import { useT } from '../i18n'
 import { EffectList } from './EffectList'
 
@@ -6,7 +6,7 @@ export function ActionPanel({
   actions,
   onAct,
 }: {
-  actions: GameAction[]
+  actions: ActionOption[]
   onAct: (id: string) => void
 }) {
   const { t } = useT()
@@ -16,15 +16,29 @@ export function ActionPanel({
         {t('action.title')}
       </h3>
       <div className="grid gap-2 sm:grid-cols-2">
-        {actions.map((a) => (
+        {actions.map(({ action, disabled, reasonKey }) => (
           <button
-            key={a.id}
-            onClick={() => onAct(a.id)}
-            className="flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80"
+            key={action.id}
+            onClick={() => onAct(action.id)}
+            disabled={disabled}
+            aria-disabled={disabled}
+            className={
+              disabled
+                ? 'flex cursor-not-allowed flex-col gap-1.5 rounded-lg bg-slate-800/40 p-3 text-left opacity-50 ring-1 ring-slate-700/50'
+                : 'flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80'
+            }
           >
-            <span className="font-medium text-slate-100">{t(a.labelKey)}</span>
-            <span className="text-xs text-slate-400">{t(a.descKey)}</span>
-            <EffectList effect={a.effect} />
+            <span className="font-medium text-slate-100">
+              {t(action.labelKey)}
+            </span>
+            {disabled && reasonKey ? (
+              <span className="text-xs font-medium text-amber-400/90">
+                🔒 {t(reasonKey)}
+              </span>
+            ) : (
+              <span className="text-xs text-slate-400">{t(action.descKey)}</span>
+            )}
+            <EffectList effect={action.effect} />
           </button>
         ))}
       </div>

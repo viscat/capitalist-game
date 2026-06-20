@@ -40,6 +40,7 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     descKey: 'action.feina_estiu.desc',
     effect: { efectiu: 700, benestar: -6 },
     available: (state) => estacioFromEdat(state.person.edatMesos) === 'estiu',
+    lockedReasonKey: 'action.locked.estiu',
   },
 ]
 
