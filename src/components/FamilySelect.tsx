@@ -7,13 +7,21 @@ import type { FamilyClass } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
+type GameMode = 'normal' | 'at16' | 'atCarrera'
+
+function chooseLabelKey(mode: GameMode): string {
+  if (mode === 'at16') return 'family.select.chooseAt16'
+  if (mode === 'atCarrera') return 'family.select.chooseAtCarrera'
+  return 'family.select.choose'
+}
+
 function PresetCard({
   preset,
   mode,
   onPick,
 }: {
   preset: FamilyPreset
-  mode: 'normal' | 'at16'
+  mode: GameMode
   onPick: (preset: FamilyClass) => void
 }) {
   const { t } = useT()
@@ -46,7 +54,7 @@ function PresetCard({
         onClick={onChoose}
         className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white transition hover:bg-indigo-500"
       >
-        {mode === 'at16' ? t('family.select.chooseAt16') : t('family.select.choose')}
+        {t(chooseLabelKey(mode))}
       </button>
     </div>
   )
@@ -57,7 +65,7 @@ export function FamilySelect({
   onBack,
   onPick,
 }: {
-  mode: 'normal' | 'at16'
+  mode: GameMode
   onBack: () => void
   onPick: (preset: FamilyClass) => void
 }) {
@@ -71,7 +79,7 @@ export function FamilySelect({
         ←
       </button>
       <h2 className="text-3xl font-bold text-slate-100">
-        {mode === 'at16' ? t('family.select.titleAt16') : t('family.select.title')}
+        {mode === 'normal' ? t('family.select.title') : t('family.select.titleAt16')}
       </h2>
       <p className="mt-1 text-slate-400">{t('family.select.subtitle')}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

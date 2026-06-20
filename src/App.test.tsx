@@ -42,4 +42,20 @@ describe('flux de l’app', () => {
     if (next) fireEvent.click(next)
     expect(screen.getByText('Benestar')).toBeTruthy()
   })
+
+  it('el quick-start de carrera mostra el panell d’inversió', () => {
+    renderApp()
+
+    // Inici ràpid a la fase de carrera (22 anys). El botó duu un emoji al davant,
+    // així que cerquem per coincidència parcial.
+    fireEvent.click(screen.getByText(/Proves: carrera/))
+    fireEvent.click(screen.getAllByText('Començar als 22')[0])
+    fireEvent.click(screen.getByText('Començar la vida'))
+
+    // Es mostra el panell d'inversió amb les seves partides (també surten al
+    // resum de patrimoni, per això n'hi pot haver més d'una ocurrència).
+    expect(screen.getByText('On poses els teus diners?')).toBeTruthy()
+    expect(screen.getAllByText('Fons indexat').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Pla de pensions').length).toBeGreaterThan(0)
+  })
 })

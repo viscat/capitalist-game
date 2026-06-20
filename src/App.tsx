@@ -8,7 +8,8 @@ import { StartScreen } from './components/StartScreen'
 import { useGame } from './state/GameContext'
 import type { FamilyClass } from './domain/types'
 
-type Setup = { mode: 'normal' | 'at16'; preset?: FamilyClass }
+type GameMode = 'normal' | 'at16' | 'atCarrera'
+type Setup = { mode: GameMode; preset?: FamilyClass }
 
 export default function App() {
   const { state } = useGame()
@@ -42,6 +43,7 @@ export default function App() {
     <StartScreen
       onNew={() => setSetup({ mode: 'normal' })}
       onNewAt16={() => setSetup({ mode: 'at16' })}
+      onNewAtCarrera={() => setSetup({ mode: 'atCarrera' })}
     />
   )
 }

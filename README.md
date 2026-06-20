@@ -6,10 +6,12 @@ sobre com l'origen familiar condiciona el punt de sortida en un món capitalista
 
 ### 🎮 Juga-hi: https://viscat.github.io/capitalist-game/
 
-> Estat actual: **beta 1** — una vida jugable de **0 a 18 anys**: infància (torns
-> anuals), adolescència / ESO (trimestral, amb paga i decisions) i la bifurcació
-> dels 16 cap a **estudiar o treballar** (estudis trimestrals o vida laboral
-> mensual amb pressupost). La vida adulta arribarà més endavant.
+> Estat actual: **beta 1** — una vida jugable de **0 a 35 anys**: infància (torns
+> anuals), adolescència / ESO (trimestral, amb paga i decisions), la bifurcació
+> dels 16 cap a **estudiar o treballar**, i la vida adulta des dels 18:
+> **universitat** o **carrera professional** amb un **pla d'inversió** anual (estalvi,
+> fons indexat i pla de pensions) on es veu l'**interès compost**. La resta de la
+> vida adulta arribarà més endavant.
 
 ## Com funciona aquesta versió
 
@@ -31,7 +33,15 @@ sobre com l'origen familiar condiciona el punt de sortida en un món capitalista
    a torns mensuals i gestiones un **pressupost** (estalvi, oci, compres i aportació
    obligatòria a casa), amb sou dinàmic, atur i despeses greus que posen a prova el
    matalàs familiar.
-6. Als **18 anys** arribes a la majoria d'edat: fi de la beta 1.
+6. Als **18 anys** arribes a la **majoria d'edat** i tries: anar a la **universitat**
+   (quatre anys que costen diners però donen un títol i millor sou) o entrar de ple a
+   la **carrera professional**.
+7. A la **carrera** (torns anuals fins als 35) cada any decideixes el teu **pla
+   d'inversió**: quant va a oci, estalvi, **fons indexat** (més rendiment però volàtil)
+   i **pla de pensions** (estable, desgrava, però bloquejat). Les inversions **componen**
+   any rere any —amb cracs i rallys de mercat pel mig— i al final veus quina part del
+   teu patrimoni l'has fet treballar. Aquí entra el concepte d'inversió a llarg termini.
+8. Als **35 anys** acaba aquesta iteració amb el balanç de la teva vida financera.
 
 ### Idea de disseny
 

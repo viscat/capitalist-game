@@ -8,7 +8,13 @@ interface Badge {
   positive: boolean
 }
 
-const MONEY_FIELDS: (keyof EventEffect)[] = ['efectiu', 'estalvi', 'inversions']
+const MONEY_FIELDS: (keyof EventEffect)[] = [
+  'efectiu',
+  'estalvi',
+  'inversions',
+  'fonsIndexat',
+  'fonsPensions',
+]
 
 export function EffectList({ effect }: { effect: EventEffect }) {
   const { t } = useT()
@@ -37,6 +43,14 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       label: t('effect.despesaGreu'),
       text: `−${formatEuros(effect.despesaGreu)}`,
       positive: false,
+    })
+  }
+  if (effect.mercatPct) {
+    const pct = Math.round(effect.mercatPct * 100)
+    badges.push({
+      label: t('effect.mercat'),
+      text: `${pct > 0 ? '+' : ''}${pct}%`,
+      positive: pct > 0,
     })
   }
   if (effect.salariNou !== undefined) {

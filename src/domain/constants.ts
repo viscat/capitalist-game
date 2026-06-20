@@ -17,11 +17,55 @@ export const EDAT_FI_ADOLESCENCIA = 16
 /** Edat (en anys) a la qual acaba la fase postobligatòria (16→18). */
 export const EDAT_FI_POSTOBLIGATORI = 18
 
+/** Edat (en anys) a la qual s'acaba la carrera universitària (18→22). */
+export const EDAT_FI_UNIVERSITAT = 22
+
+/** Edat (en anys) a la qual acaba aquesta iteració de la vida adulta. */
+export const EDAT_FI_CARRERA = 35
+
 /** Sou net mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
 export const SALARI_BASE_16 = 650
+
+/** Sou net mensual base d'una feina adulta (18+), sense títol universitari. */
+export const SALARI_ADULT_BASE = 1300
+
+/** Plus de sou mensual per tenir un títol universitari. */
+export const PREMI_DIPLOMA = 650
 
 /** Pas d'ajust del pressupost mensual (€). */
 export const PAS_PRESSUPOST = 25
 
+/** Pas d'ajust del pla d'inversió anual (€). */
+export const PAS_PLA = 250
+
 /** Fracció del desfasament cap al benestar de referència que es recupera per torn. */
 export const DERIVA_BENESTAR = 0.25
+
+// --- Rendiments anuals de la inversió (fase de carrera) ---
+
+/** Rendiment anual del compte d'estalvi (gairebé nul: la inflació se'l menja). */
+export const RENDIMENT_ESTALVI = 0.0
+
+/** Rendiment anual mitjà de les inversions genèriques. */
+export const RENDIMENT_INVERSIONS = 0.03
+
+/** Rendiment anual del pla de pensions: estable i baix. */
+export const RENDIMENT_PENSIONS = 0.04
+
+/** Rendiment anual del fons indexat = MIN + aleatori·RANG (mitjana ≈ +6%, volàtil). */
+export const INDEX_RENDIMENT_MIN = -0.1
+export const INDEX_RENDIMENT_RANG = 0.32
+
+/** Desgravació fiscal de l'aportació anual al pla de pensions (es retorna a efectiu). */
+export const DESGRAVACIO_PENSIONS = 0.2
+/** Aportació anual al pla de pensions amb dret a desgravació (límit legal aproximat). */
+export const LIMIT_DESGRAVACIO_PENSIONS = 1500
+
+// --- Universitat i cost de vida adult ---
+
+/** Cost de vida anual a la fase de carrera: base + fracció de l'ingrés (estil de vida). */
+export const COST_VIDA_BASE = 8000
+export const COST_VIDA_FACTOR = 0.2
+
+/** Cost anual de matrícula i material universitari. */
+export const MATRICULA_ANUAL = 2000

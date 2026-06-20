@@ -1,14 +1,17 @@
 import {
   DERIVA_BENESTAR,
   EDAT_FI_ADOLESCENCIA,
+  EDAT_FI_CARRERA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
+  EDAT_FI_UNIVERSITAT,
   MESOS_PER_ANY,
   MESOS_PER_ESTACIO,
 } from './constants'
 import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
+import { ATUR_ADULT_EVENTS, CARRERA_EVENTS, UNIVERSITAT_EVENTS } from './events/adult'
 import {
   ATUR_EVENTS,
   COMMON_LIFE_EVENTS,
@@ -18,19 +21,25 @@ import {
 import { CHILDHOOD_EVENTS } from './events/pool'
 import { FAMILY_PRESETS } from './family/presets'
 import { MILESTONES } from './milestones'
-import { seedFromTime } from './rng'
+import { rng, seedFromTime } from './rng'
 import {
   aportacioMinima,
   applyBudgetMonth,
+  applyCareerYear,
   applyEffect,
+  balancUniversitatAnual,
   baselineBenestar,
   clampBenestar,
   defaultBudget,
+  defaultPlaInversio,
   estalviAnualCriatura,
   familyBaselineBenestar,
+  ingressosAnualsCarrera,
   ingressosMensuals16,
   pagaMensual,
+  rendimentIndexAnual,
   resolveDespesaGreu,
+  salariAdultInicial,
   salariInicial,
 } from './stats'
 import { edatAnys } from './time'
@@ -66,7 +75,7 @@ export function newGame(
   const person: Person = {
     edatMesos: 0,
     stats: { benestar: familyBaselineBenestar(familia) },
-    patrimoni: { efectiu: 0, estalvi: 0, inversions: 0, cases: [] },
+    patrimoni: emptyPatrimoni(),
   }
   return {
     torn: 0,
@@ -92,7 +101,7 @@ export function newGameAt16(
   const person: Person = {
     edatMesos: EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY,
     stats: { benestar: familyBaselineBenestar(familia) },
-    patrimoni: { efectiu: 50, estalvi: 200, inversions: 0, cases: [] },
+    patrimoni: { ...emptyPatrimoni(), efectiu: 50, estalvi: 200 },
   }
   return {
     torn: 16,
@@ -108,9 +117,55 @@ export function newGameAt16(
   }
 }
 
+/** Inici ràpid a la fase de carrera (22 anys, amb títol), per provar les inversions. */
+export function newGameAtCarrera(
+  presetId: FamilyClass,
+  seed: number = seedFromTime(),
+  setup: NewGameSetup = {},
+): GameState {
+  const preset = FAMILY_PRESETS[presetId]
+  const familia = { ...preset.familia }
+  const teDiploma = true
+  const salari = salariAdultInicial(familia, teDiploma)
+  const person: Person = {
+    edatMesos: EDAT_FI_UNIVERSITAT * MESOS_PER_ANY,
+    stats: { benestar: 55 },
+    patrimoni: { ...emptyPatrimoni(), efectiu: 3000, estalvi: 2000 },
+  }
+  return {
+    torn: 22,
+    lifeStage: 'carrera',
+    person,
+    familia,
+    identitat: setup.identitat,
+    dataNaixement: setup.dataNaixement,
+    rngState: seed >>> 0,
+    teDiploma,
+    salari,
+    salariBase: salari,
+    plaInversio: defaultPlaInversio(salari * 12),
+    historial: [],
+    acabat: false,
+  }
+}
+
+/** Patrimoni buit (tots els comptes a zero). */
+function emptyPatrimoni(): Person['patrimoni'] {
+  return {
+    efectiu: 0,
+    estalvi: 0,
+    inversions: 0,
+    fonsIndexat: 0,
+    fonsPensions: 0,
+    cases: [],
+  }
+}
+
 /** Mesos que avança cada torn segons la fase. */
 function turnMonths(stage: LifeStage): number {
-  if (stage === 'infancia') return MESOS_PER_ANY
+  if (stage === 'infancia' || stage === 'universitat' || stage === 'carrera') {
+    return MESOS_PER_ANY
+  }
   if (stage === 'laboral') return 1
   return MESOS_PER_ESTACIO
 }
@@ -127,6 +182,13 @@ function eventPool(state: GameState): GameEvent[] {
       return CHILDHOOD_EVENTS
     case 'estudis_post':
       return [...ADOLESCENCE_EVENTS, ...COMMON_LIFE_EVENTS]
+    case 'universitat':
+      return [...UNIVERSITAT_EVENTS, ...COMMON_LIFE_EVENTS]
+    case 'carrera':
+      // A l'atur (sou 0), prioritza tornar a treballar; si no, vida laboral normal.
+      return (state.salari ?? 0) > 0
+        ? [...CARRERA_EVENTS, ...COMMON_LIFE_EVENTS]
+        : [...ATUR_ADULT_EVENTS, ...COMMON_LIFE_EVENTS]
     case 'laboral': {
       const base =
         state.itinerari === 'nini'
@@ -203,8 +265,9 @@ export function actionOptions(state: GameState): ActionOption[] {
 
 /**
  * Avança un torn segons la fase: infància (any), estudis (trimestre amb paga i
- * acció) o laboral (mes amb ingrés + pressupost). Després pot saltar un
- * esdeveniment; si requereix decisió, queda pendent fins a `applyChoice`.
+ * acció), laboral (mes amb ingrés + pressupost), universitat (any amb suport i
+ * matrícula) o carrera (any amb sou, inversions i interès compost). Després pot
+ * saltar un esdeveniment; si requereix decisió, queda pendent fins a `applyChoice`.
  */
 export function advanceTurn(state: GameState, actionId?: string): GameState {
   if (state.acabat || state.pendingEvent || state.pendingMilestone) return state
@@ -228,6 +291,10 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     stats: { ...state.person.stats, benestar },
   }
 
+  // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
+  // p. ex. per sortejar el rendiment anual del fons indexat).
+  let rngState = state.rngState
+
   // Flux econòmic per fase.
   if (stage === 'infancia') {
     person = {
@@ -243,6 +310,25 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     const minCasa =
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
     person = applyBudgetMonth(person, budget, income, minCasa)
+  } else if (stage === 'universitat') {
+    // Any d'universitat: suport familiar + beca − matrícula (mai genera deute).
+    person = {
+      ...person,
+      patrimoni: {
+        ...person.patrimoni,
+        efectiu: Math.max(
+          0,
+          person.patrimoni.efectiu + balancUniversitatAnual(state.familia),
+        ),
+      },
+    }
+  } else if (stage === 'carrera') {
+    // Any de carrera: el fons indexat rendeix segons l'atzar del mercat.
+    const draw = rng(rngState)
+    rngState = draw.state
+    const income = ingressosAnualsCarrera(state)
+    const pla = state.plaInversio ?? defaultPlaInversio(income)
+    person = applyCareerYear(person, pla, income, rendimentIndexAnual(draw.value))
   } else {
     const estipendi =
       stage === 'estudis_post' && state.itinerari === 'grau_mig'
@@ -280,10 +366,10 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     }
   }
 
-  const { event, rngState } = selectEvent(
+  const { event, rngState: nextRng } = selectEvent(
     eventPool(state),
     state.familia,
-    state.rngState,
+    rngState,
     state.ultimEventId,
   )
 
@@ -291,7 +377,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     ...state,
     torn,
     person,
-    rngState,
+    rngState: nextRng,
     ultimEventId: event.id,
     historial: [...state.historial, ...entries],
   }
@@ -360,19 +446,32 @@ function resolveEvent(
     descobert,
   }
 
-  // Fites i final segons l'edat assolida.
-  const acabat = person.edatMesos >= EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY
+  // Fites i final segons l'edat i la fase assolida.
+  const mesos = person.edatMesos
+  let acabat = false
   let pendingMilestone = state.pendingMilestone
-  if (
+  if (mesos >= EDAT_FI_CARRERA * MESOS_PER_ANY) {
+    acabat = true
+  } else if (
     state.lifeStage === 'infancia' &&
-    person.edatMesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
+    mesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
   ) {
     pendingMilestone = 'institut'
   } else if (
     state.lifeStage === 'adolescencia' &&
-    person.edatMesos >= EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY
+    mesos >= EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY
   ) {
     pendingMilestone = 'postobligatori'
+  } else if (
+    (state.lifeStage === 'estudis_post' || state.lifeStage === 'laboral') &&
+    mesos >= EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY
+  ) {
+    pendingMilestone = 'majoria'
+  } else if (
+    state.lifeStage === 'universitat' &&
+    mesos >= EDAT_FI_UNIVERSITAT * MESOS_PER_ANY
+  ) {
+    pendingMilestone = 'fi_uni'
   }
 
   // Cooldown de l'augment de sou demanat.
@@ -408,7 +507,7 @@ export function applyMilestoneChoice(
   const next: GameState = {
     ...state,
     lifeStage: option.lifeStage,
-    itinerari: option.itinerari,
+    itinerari: option.itinerari ?? state.itinerari,
     pendingMilestone: undefined,
   }
   if (option.itinerari === 'treball') {
@@ -419,6 +518,15 @@ export function applyMilestoneChoice(
     const minCasa =
       next.itinerari === 'treball' ? aportacioMinima(next.familia, income) : 0
     next.pressupost = defaultBudget(income, minCasa)
+  }
+  // Entrada a la vida adulta amb inversions: sou adult (amb premi si hi ha títol)
+  // i pla d'inversió inicial.
+  if (option.lifeStage === 'carrera') {
+    const teDiploma = option.teDiploma ?? state.teDiploma ?? false
+    const salari = salariAdultInicial(next.familia, teDiploma)
+    next.teDiploma = teDiploma
+    next.salari = next.salariBase = salari
+    next.plaInversio = defaultPlaInversio(salari * 12)
   }
   const entry: LogEntry = {
     torn: state.torn,

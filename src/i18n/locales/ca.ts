@@ -11,6 +11,7 @@ export const ca: Record<string, string> = {
   'start.new': 'Nova partida',
   'start.continue': 'Continuar partida',
   'start.newAt16': 'Proves: començar als 16',
+  'start.newAtCarrera': 'Proves: carrera i inversions (22)',
 
   // Selecció de família
   'family.select.title': 'On naixeràs?',
@@ -18,6 +19,7 @@ export const ca: Record<string, string> = {
   'family.select.subtitle': 'Tria la família que et tocarà en sort.',
   'family.select.choose': 'Néixer aquí',
   'family.select.chooseAt16': 'Començar als 16',
+  'family.select.chooseAtCarrera': 'Començar als 22',
 
   'family.pobra.name': 'Família pobra',
   'family.pobra.desc':
@@ -51,6 +53,8 @@ export const ca: Record<string, string> = {
   'game.stage.adolescencia': 'Institut (ESO)',
   'game.stage.estudis_post': 'Estudis',
   'game.stage.laboral': 'Vida laboral',
+  'game.stage.universitat': 'Universitat',
+  'game.stage.carrera': 'Vida adulta',
   'game.age': '{anys} anys',
   'game.ageZero': 'Nadó (0 anys)',
   'game.turn': 'Torn {torn}',
@@ -70,6 +74,8 @@ export const ca: Record<string, string> = {
   'patrimoni.efectiu': 'Efectiu',
   'patrimoni.estalvi': 'Estalvi',
   'patrimoni.inversions': 'Inversions',
+  'patrimoni.fonsIndexat': 'Fons indexat',
+  'patrimoni.fonsPensions': 'Pla de pensions',
   'patrimoni.cases': 'Cases',
   'patrimoni.total': 'Total',
 
@@ -78,6 +84,7 @@ export const ca: Record<string, string> = {
   'context.estalviAnual': 'T’estalvien cada any',
   'context.paga': 'La teva paga',
   'context.ingressosPropis': 'El teu ingrés',
+  'context.suportUni': 'Et queda cada any',
 
   'event.thisYear': 'El que ha passat:',
   'event.choose': 'Què fas?',
@@ -146,6 +153,57 @@ export const ca: Record<string, string> = {
   'milestone.post.summary.molt_alt':
     'Arribes ple d’energia i seguretat: tens el futur a les teves mans.',
 
+  // Camins de la vida adulta (fites dels 18 i 22)
+  'cami.universitat.label': 'Anar a la universitat',
+  'cami.universitat.desc':
+    'Quatre anys d’estudis. Costa diners i temps, però un títol obre portes i apuja el sou.',
+  'cami.carrera.label': 'Entrar al món laboral',
+  'cami.carrera.desc':
+    'Una feina, un sou propi i, per primera vegada, decidir què fas amb els teus diners: gastar o invertir.',
+  'cami.carrera_titulat.label': 'Començar la carrera professional',
+  'cami.carrera_titulat.desc':
+    'Amb el títol a la mà, entres al mercat laboral amb millor sou.',
+
+  // Fita dels 18 (majoria d'edat)
+  'milestone.majoria.kicker': 'Majoria d’edat',
+  'milestone.majoria.title': 'Fas 18 anys',
+  'milestone.majoria.summaryTitle': 'Com arribes als 18',
+  'milestone.majoria.summary.molt_baix':
+    'Arribes a la vida adulta esgotat i amb poc marge. Tot serà costa amunt.',
+  'milestone.majoria.summary.baix':
+    'No ho has tingut fàcil, però ja ets adult i toca decidir el teu camí.',
+  'milestone.majoria.summary.mig':
+    'Arribes als 18 amb una base raonable i ganes de construir la teva vida.',
+  'milestone.majoria.summary.alt':
+    'Arribes en bona forma, amb confiança per fer passes importants.',
+  'milestone.majoria.summary.molt_alt':
+    'Arribes ple d’energia i recursos: el món és teu.',
+  'milestone.majoria.loreTitle': 'Comença la vida adulta',
+  'milestone.majoria.lore1':
+    'Ja ets major d’edat. Ara sí: les teves decisions tenen conseqüències de debò i de llarg recorregut.',
+  'milestone.majoria.lore2':
+    'Pots seguir estudiant a la universitat (inversió en tu mateix) o entrar al món laboral i començar a gestionar —i fer créixer— els teus diners.',
+
+  // Fita dels 22 (fi de la universitat)
+  'milestone.fi_uni.kicker': 'Fi de la universitat',
+  'milestone.fi_uni.title': 'Ja ets titulat',
+  'milestone.fi_uni.summaryTitle': 'Com surts de la universitat',
+  'milestone.fi_uni.summary.molt_baix':
+    'Han estat anys durs i acabes ben tocat, però amb un títol sota el braç.',
+  'milestone.fi_uni.summary.baix':
+    'No ha estat un camí fàcil, però te’n surts amb la carrera acabada.',
+  'milestone.fi_uni.summary.mig':
+    'Tanques una bona etapa amb el títol a la mà i ganes de menjar-te el món.',
+  'milestone.fi_uni.summary.alt':
+    'Acabes la carrera en plena forma i amb molt bones perspectives.',
+  'milestone.fi_uni.summary.molt_alt':
+    'Surts de la universitat imparable, amb títol i energia de sobres.',
+  'milestone.fi_uni.loreTitle': 'I ara, a treballar',
+  'milestone.fi_uni.lore1':
+    'S’acaba la universitat. El títol no garanteix res, però sol obrir portes i millorar el sou de sortida.',
+  'milestone.fi_uni.lore2':
+    'Entres al món laboral adult: cada any decidiràs quant gastes i quant —i com— inverteixes per al teu futur.',
+
   // Pressupost mensual (fase laboral)
   'budget.title': 'El teu pressupost mensual',
   'budget.income': 'Ingrés',
@@ -162,6 +220,26 @@ export const ca: Record<string, string> = {
   'budget.benestar': 'Benestar (oci + compres)',
   'budget.benestar.min': 'Gasta almenys {min} en oci/compres per no perdre benestar.',
   'budget.nextMonth': 'Següent mes →',
+
+  // Pla d'inversió anual (fase de carrera)
+  'pla.title': 'On poses els teus diners?',
+  'pla.income': 'Sou',
+  'pla.costVida': 'Cost de vida: {cost}/any (obligatori)',
+  'pla.disponible': 'Per repartir: {amount}',
+  'pla.oci': 'Oci i vida',
+  'pla.oci.desc': 'Gaudir del present. El que et dóna (o et treu) benestar.',
+  'pla.estalvi': 'Estalvi',
+  'pla.estalvi.desc': 'Líquid i segur, però amb prou feines rendeix.',
+  'pla.fonsIndexat': 'Fons indexat',
+  'pla.fonsIndexat.desc': 'Inverteix a la borsa. Puja i baixa, però a llarg termini compon.',
+  'pla.fonsPensions': 'Pla de pensions',
+  'pla.fonsPensions.desc': 'Rendiment estable i desgrava, però bloquejat fins a la jubilació.',
+  'pla.benestar': 'Benestar (oci)',
+  'pla.benestar.min': 'Dedica almenys {min} a oci per no perdre benestar.',
+  'pla.notaIndex': 'El fons indexat rendeix de mitjana ~{pct}% l’any, però amb sotracs.',
+  'pla.notaPensions': 'Desgravació fiscal: et tornen {amount} a efectiu.',
+  'pla.lliure': 'Sense assignar (a efectiu)',
+  'pla.nextYear': 'Següent any →',
 
   // Estacions
   'season.tardor': 'Tardor',
@@ -221,17 +299,17 @@ export const ca: Record<string, string> = {
   'category.salut': 'Salut',
   'category.escola': 'Escola',
 
-  // Final de fase (majoria d'edat, als 18)
-  'gameover.title': 'Fas 18 anys',
+  // Final d'aquesta iteració (35 anys)
+  'gameover.title': 'Fas 35 anys',
   'gameover.subtitle':
-    'Arribes a la majoria d’edat. S’obre una nova etapa: pots anar a la universitat o buscar-te la vida i emancipar-te.',
+    'Ja ets una persona adulta amb una vida feta. És moment de mirar enrere i veure on t’han portat les teves decisions.',
   'gameover.benestarFinal': 'Benestar final',
-  'gameover.patrimoniFinal': 'Patrimoni acumulat',
-  'gameover.fork.question': 'I ara, què faràs?',
-  'gameover.fork.uni': 'Anar a la universitat',
-  'gameover.fork.emancipar': 'Treballar i emancipar-te',
+  'gameover.patrimoniFinal': 'Patrimoni net',
+  'gameover.desglos': 'De què es compon el teu patrimoni',
+  'gameover.notaInversio':
+    'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
   'gameover.soon':
-    'La vida adulta (universitat, feina, emancipació i pressupostos de debò) arribarà en una futura versió.',
+    'La resta de la vida adulta (habitatge, família, jubilació...) arribarà en una futura versió.',
   'gameover.restart': 'Tornar a començar',
 
   // --- Esdeveniments ---
@@ -483,11 +561,143 @@ export const ca: Record<string, string> = {
   'event.compra_temptadora.choice.comprar': 'Comprar-la',
   'event.compra_temptadora.choice.contenir': 'Contenir-me',
 
+  // --- Esdeveniments d'universitat (18→22) ---
+  'event.examens_uni.title': 'Setmana d’exàmens finals',
+  'event.examens_uni.desc':
+    'Nits sense dormir i molta cafeïna. La pressió es nota.',
+
+  'event.aprovar_curs.title': 'Aproves el curs',
+  'event.aprovar_curs.desc':
+    'Has tret el curs net. Una bona empenta d’autoconfiança.',
+
+  'event.suspendre_uni.title': 'Et queden assignatures',
+  'event.suspendre_uni.desc':
+    'No ha anat com volies i arrossegues feina per al setembre.',
+
+  'event.colla_uni.title': 'La colla de la facultat',
+  'event.colla_uni.desc':
+    'Has trobat gent amb qui compartir hores de biblioteca i de festa.',
+
+  'event.festa_uni.title': 'Festa major universitària',
+  'event.festa_uni.desc':
+    'Concerts, amics i una nit per recordar ({cost} €).',
+
+  'event.erasmus.title': 'Oportunitat d’Erasmus',
+  'event.erasmus.desc':
+    'Pots passar un curs a l’estranger ({cost} €). Una experiència única, però costa. Hi vas?',
+  'event.erasmus.choice.anar': 'Marxar d’Erasmus',
+  'event.erasmus.choice.quedarse': 'Quedar-me aquí',
+
+  'event.beca_merit.title': 'Beca per mèrits',
+  'event.beca_merit.desc':
+    'Les teves notes t’han valgut una beca de {amount} €. Ben merescuda.',
+
+  'event.practiques_uni.title': 'Pràctiques remunerades',
+  'event.practiques_uni.desc':
+    'Et surten pràctiques a una empresa ({amount} € el curs). Resten temps d’estudi. Les acceptes?',
+  'event.practiques_uni.choice.acceptar': 'Acceptar les pràctiques',
+  'event.practiques_uni.choice.rebutjar': 'Centrar-me en estudiar',
+
+  // --- Esdeveniments de carrera adulta (→35) ---
+  'event.pujada_anual.title': 'Revisió salarial',
+  'event.pujada_anual.desc':
+    'L’empresa reconeix la teva feina amb una pujada de sou.',
+
+  'event.ascens_carrera.title': 'T’ofereixen un ascens',
+  'event.ascens_carrera.desc':
+    'Més sou i responsabilitat, però també més hores i estrès. L’acceptes?',
+  'event.ascens_carrera.choice.acceptar': 'Acceptar l’ascens',
+  'event.ascens_carrera.choice.rebutjar': 'Quedar-me com estic',
+
+  'event.negociar_sou.title': 'Vols negociar el sou',
+  'event.negociar_sou.desc':
+    'Creus que mereixes cobrar més. És el moment de demanar-ho?',
+  'event.negociar_sou.choice.negociar': 'Negociar amb el cap',
+  'event.negociar_sou.choice.conformar': 'Deixar-ho estar',
+
+  'event.retallada_carrera.title': 'Retallada a l’empresa',
+  'event.retallada_carrera.desc':
+    'Mal any per al sector i et toca apretar-te el cinturó.',
+
+  'event.acomiadament.title': 'Et fan fora',
+  'event.acomiadament.desc':
+    'Una reestructuració i el teu lloc desapareix. De cop, sense sou.',
+
+  'event.nova_feina.title': 'Una oferta millor',
+  'event.nova_feina.desc':
+    'Una altra empresa et vol i paga més. Canviar fa respecte… ho fas?',
+  'event.nova_feina.choice.canviar': 'Acceptar la nova feina',
+  'event.nova_feina.choice.quedarse': 'Quedar-me on soc',
+
+  'event.crisi_mercat.title': 'Crac borsari',
+  'event.crisi_mercat.desc':
+    'Els mercats s’enfonsen i el teu fons indexat cau en picat. Respira: històricament, sempre s’ha recuperat.',
+
+  'event.rally_mercat.title': 'La borsa s’enfila',
+  'event.rally_mercat.desc':
+    'Un bon any als mercats i el teu fons indexat puja amb força.',
+
+  'event.consell_inversio.title': 'Un consell financer',
+  'event.consell_inversio.desc':
+    'Un company et convenç dels avantatges del fons indexat. Hi mous fins a {amount} € de l’efectiu?',
+  'event.consell_inversio.choice.invertir': 'Invertir-hi',
+  'event.consell_inversio.choice.passar': 'Deixar-ho a efectiu',
+
+  'event.cotxe_nou.title': 'Et cal un cotxe',
+  'event.cotxe_nou.desc':
+    'Necessites vehicle. Un de nou ({cost} €) o un de segona mà més assequible?',
+  'event.cotxe_nou.choice.comprar': 'Comprar-lo nou',
+  'event.cotxe_nou.choice.segona_ma': 'Buscar-ne un de segona mà',
+
+  'event.viatge_adult.title': 'El viatge dels teus somnis',
+  'event.viatge_adult.desc':
+    'Una oportunitat de fer aquell viatge ({cost} €). Memorable, però costa. Hi vas?',
+  'event.viatge_adult.choice.anar': 'Fer el viatge',
+  'event.viatge_adult.choice.esperar': 'Deixar-ho per a un altre any',
+
+  'event.formacio_adult.title': 'Formar-te més',
+  'event.formacio_adult.desc':
+    'Un curs especialitzat ({cost} €) que pot millorar el teu sou. Hi inverteixes?',
+  'event.formacio_adult.choice.formar': 'Apuntar-m’hi',
+  'event.formacio_adult.choice.passar': 'Ara no',
+
+  'event.herencia_adult.title': 'Una herència',
+  'event.herencia_adult.desc':
+    'Es mor un familiar i t’hereta {amount} €. Tristesa i, alhora, un coixí.',
+
+  'event.ajudar_familia_adult.title': 'La família necessita ajuda',
+  'event.ajudar_familia_adult.desc':
+    'Els teus pares passen un mal moment i et demanen {amount} €. Els ajudes?',
+  'event.ajudar_familia_adult.choice.ajudar': 'Ajudar-los',
+  'event.ajudar_familia_adult.choice.no_puc': 'No puc permetre-m’ho',
+
+  // --- A l'atur durant la carrera ---
+  'event.oferta_carrera.title': 'Una oferta de feina',
+  'event.oferta_carrera.desc':
+    'Després de buscar, surt una bona oferta. Tornes a tenir sou. L’acceptes?',
+  'event.oferta_carrera.choice.acceptar': 'Acceptar la feina',
+  'event.oferta_carrera.choice.esperar': 'Esperar-ne una de millor',
+
+  'event.feina_pont.title': 'Una feina pont',
+  'event.feina_pont.desc':
+    'Una feina temporal i mal pagada per anar fent. Pitjor això que res?',
+  'event.feina_pont.choice.acceptar': 'Acceptar-la mentrestant',
+  'event.feina_pont.choice.rebutjar': 'Seguir buscant',
+
+  'event.subsidi_atur.title': 'Cobres l’atur',
+  'event.subsidi_atur.desc':
+    'La prestació d’atur t’arriba ({amount} €) i et dóna una mica d’aire.',
+
+  'event.desanim_adult.title': 'Desànim',
+  'event.desanim_adult.desc':
+    'Tantes portes tancades pesen. Costa mantenir l’ànim per seguir buscant.',
+
   // Etiquetes d'efecte i notes
   'effect.salari': 'Sou',
   'effect.salariNou': 'Nova feina',
   'effect.atur': 'Et quedes sense feina',
   'effect.despesaGreu': 'Despesa greu',
+  'effect.mercat': 'Mercat',
   'note.donacio': 'La família cobreix {amount}',
   'note.descobert': 'No has pogut cobrir {amount} → benestar',
   'context.atur': 'A l’atur',

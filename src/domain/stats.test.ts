@@ -3,24 +3,36 @@ import {
   ajutFamiliarMax,
   aportacioMinima,
   applyBudgetMonth,
+  applyCareerYear,
   applyEffect,
   augmentSou,
+  balancUniversitatAnual,
   benestarEstilDeVida,
   clampBenestar,
+  creixementInversions,
+  desgravacioPensions,
   minimOciCompres,
   estalviAnualCriatura,
   familyBaselineBenestar,
   pagaMensual,
   resolveDespesaGreu,
+  salariAdultInicial,
   salariInicial,
 } from './stats'
 import { FAMILY_PRESETS } from './family/presets'
-import type { Person } from './types'
+import type { Patrimoni, Person } from './types'
 
 const person: Person = {
   edatMesos: 0,
   stats: { benestar: 50 },
-  patrimoni: { efectiu: 0, estalvi: 0, inversions: 0, cases: [] },
+  patrimoni: {
+    efectiu: 0,
+    estalvi: 0,
+    inversions: 0,
+    fonsIndexat: 0,
+    fonsPensions: 0,
+    cases: [],
+  },
 }
 
 describe('clampBenestar', () => {
@@ -119,7 +131,14 @@ describe('applyBudgetMonth — benestar segons la despesa', () => {
   const base = {
     ...person,
     stats: { benestar: 50 },
-    patrimoni: { efectiu: 0, estalvi: 0, inversions: 0, cases: [] },
+    patrimoni: {
+      efectiu: 0,
+      estalvi: 0,
+      inversions: 0,
+      fonsIndexat: 0,
+      fonsPensions: 0,
+      cases: [],
+    },
   }
   const budget = (oci: number, compres: number) => ({
     casa: 0,
@@ -175,7 +194,14 @@ describe('resolveDespesaGreu (matalàs familiar)', () => {
   const ambEstalvi = (estalvi: number): Person => ({
     ...person,
     stats: { benestar: 70 },
-    patrimoni: { efectiu: 0, estalvi, inversions: 0, cases: [] },
+    patrimoni: {
+      efectiu: 0,
+      estalvi,
+      inversions: 0,
+      fonsIndexat: 0,
+      fonsPensions: 0,
+      cases: [],
+    },
   })
 
   it('una família rica cobreix tot i el benestar a penes baixa', () => {
@@ -196,5 +222,88 @@ describe('resolveDespesaGreu (matalàs familiar)', () => {
     expect(res.person.patrimoni.estalvi).toBe(400)
     expect(res.descobert).toBe(0)
     expect(res.donacio).toBe(0)
+  })
+})
+
+// --- Vida adulta i inversions ---
+
+const patrimoniAmb = (parts: Partial<Patrimoni>): Patrimoni => ({
+  efectiu: 0,
+  estalvi: 0,
+  inversions: 0,
+  fonsIndexat: 0,
+  fonsPensions: 0,
+  cases: [],
+  ...parts,
+})
+
+describe('salariAdultInicial', () => {
+  it('el títol universitari apuja el sou', () => {
+    const f = FAMILY_PRESETS.mitjana.familia
+    expect(salariAdultInicial(f, true)).toBeGreaterThan(salariAdultInicial(f, false))
+  })
+
+  it('una família amb més contactes parteix d’un sou més alt', () => {
+    const pobra = salariAdultInicial(FAMILY_PRESETS.pobra.familia, false)
+    const rica = salariAdultInicial(FAMILY_PRESETS.rica.familia, false)
+    expect(pobra).toBeLessThan(rica)
+  })
+})
+
+describe('balancUniversitatAnual', () => {
+  it('és més alt com més recursos té la família, i mai negatiu per a la pobra', () => {
+    const pobra = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia)
+    const rica = balancUniversitatAnual(FAMILY_PRESETS.rica.familia)
+    expect(pobra).toBeGreaterThanOrEqual(0) // la beca compensa la matrícula
+    expect(rica).toBeGreaterThan(pobra)
+  })
+})
+
+describe('creixementInversions', () => {
+  it('el pla de pensions creix de forma estable i el fons indexat segueix el mercat', () => {
+    const p = patrimoniAmb({ fonsPensions: 1000, fonsIndexat: 1000 })
+    const puja = creixementInversions(p, 0.1)
+    expect(puja.fonsPensions).toBeGreaterThan(1000)
+    expect(puja.fonsIndexat).toBe(1100)
+    // En un mal any, el fons indexat baixa; el pla de pensions no.
+    const baixa = creixementInversions(p, -0.2)
+    expect(baixa.fonsIndexat).toBe(800)
+    expect(baixa.fonsPensions).toBeGreaterThan(1000)
+  })
+})
+
+describe('desgravacioPensions', () => {
+  it('retorna una fracció de l’aportació, amb un límit', () => {
+    expect(desgravacioPensions(1000)).toBe(200)
+    // Per sobre del límit de desgravació, no creix més.
+    expect(desgravacioPensions(5000)).toBe(desgravacioPensions(1500))
+  })
+})
+
+describe('applyCareerYear', () => {
+  const adult: Person = {
+    edatMesos: 22 * 12,
+    stats: { benestar: 50 },
+    patrimoni: patrimoniAmb({ efectiu: 20000 }),
+  }
+
+  it('aporta a les inversions i la desgravació de pensions torna a efectiu', () => {
+    const pla = { oci: 2000, estalvi: 1000, fonsIndexat: 3000, fonsPensions: 1000 }
+    const after = applyCareerYear(adult, pla, 24000, 0.05)
+    expect(after.patrimoni.fonsIndexat).toBeGreaterThan(0)
+    expect(after.patrimoni.fonsPensions).toBe(1000)
+    expect(after.patrimoni.estalvi).toBe(1000)
+    expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+
+  it('no genera deute encara que el pla superi el disponible', () => {
+    const pobre: Person = {
+      edatMesos: 22 * 12,
+      stats: { benestar: 50 },
+      patrimoni: patrimoniAmb({ efectiu: 0 }),
+    }
+    const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
+    const after = applyCareerYear(pobre, pla, 12000, 0.05)
+    expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })
 })

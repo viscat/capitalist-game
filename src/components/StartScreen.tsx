@@ -4,9 +4,11 @@ import { useT } from '../i18n'
 export function StartScreen({
   onNew,
   onNewAt16,
+  onNewAtCarrera,
 }: {
   onNew: () => void
   onNewAt16: () => void
+  onNewAtCarrera: () => void
 }) {
   const { t } = useT()
   const { hasSave, continueGame } = useGame()
@@ -41,6 +43,12 @@ export function StartScreen({
             className="mt-2 w-64 rounded-xl border border-dashed border-slate-600 px-6 py-2 text-sm font-medium text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
           >
             🧪 {t('start.newAt16')}
+          </button>
+          <button
+            onClick={onNewAtCarrera}
+            className="w-64 rounded-xl border border-dashed border-slate-600 px-6 py-2 text-sm font-medium text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
+          >
+            🧪 {t('start.newAtCarrera')}
           </button>
         </div>
       </div>
