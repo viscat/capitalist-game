@@ -215,7 +215,14 @@ Duplica `src/i18n/locales/ca.ts`, tradueix els valors, registra'l a `LOCALES` i 
 ## Desplegament
 
 GitHub Pages via `.github/workflows/deploy.yml` (push a `main`). La build serveix sota
-`/capitalist-game/` (vegeu `base` a `vite.config.ts`); en local serveix des de l'arrel.
+`/capitalist-game/` per defecte (vegeu `base` a `vite.config.ts`); en local serveix des
+de l'arrel.
+
+El **base path és configurable** amb la variable d'entorn `BASE_PATH`: per autoallotjar
+el joc a l'arrel d'un host (Proxmox/LXC, Docker...) construeix amb `BASE_PATH=/ npm run
+build`. És una SPA estàtica (estat al `localStorage`), sense backend. Vegeu la secció
+**Desplegament → Autoallotjament (Proxmox)** del README, amb `deploy/nginx.conf` i el
+`Dockerfile` a punt.
 
 ## “Gotchas”
 

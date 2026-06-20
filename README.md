@@ -81,6 +81,66 @@ src/
 Per a una visió més profunda de l'arquitectura, el model de joc i com afegir
 features, mira **[CLAUDE.md](CLAUDE.md)**.
 
+## Desplegament
+
+El joc és una **SPA estàtica**: tot l'estat es desa al navegador (`localStorage`),
+així que **no cal backend ni base de dades**. N'hi ha prou de servir la carpeta
+`dist/` amb qualsevol servidor web.
+
+La branca `main` es publica automàticament a **GitHub Pages**
+(`.github/workflows/deploy.yml`), sota `/capitalist-game/`.
+
+### Autoallotjament (Proxmox)
+
+> **Important:** per servir-lo a l'arrel d'un host (i no sota `/capitalist-game/`),
+> construeix amb `BASE_PATH=/`. La variable `BASE_PATH` controla el camí dels assets.
+
+#### Opció A — Contenidor LXC + nginx (recomanat)
+
+1. A Proxmox, crea un **contenidor LXC** (plantilla Debian 12, sense privilegis,
+   ~1 vCPU / 512 MB RAM / 4 GB disc) amb accés a la xarxa (IP per DHCP o fixa).
+2. Entra a la consola del contenidor i instal·la nginx:
+   ```bash
+   apt update && apt install -y nginx
+   mkdir -p /var/www/capitalist-game
+   ```
+3. Posa-hi la build. Pots construir-la a la teva màquina i copiar-la:
+   ```bash
+   # a la teva màquina, dins del repo
+   BASE_PATH=/ npm ci && BASE_PATH=/ npm run build
+   scp -r dist/* root@IP_DEL_CONTENIDOR:/var/www/capitalist-game/
+   ```
+   …o bé clonar i construir dins del contenidor (cal Node ≥ 22 i git):
+   ```bash
+   apt install -y git
+   curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt install -y nodejs
+   git clone https://github.com/viscat/capitalist-game.git
+   cd capitalist-game && BASE_PATH=/ npm ci && BASE_PATH=/ npm run build
+   cp -r dist/* /var/www/capitalist-game/
+   ```
+4. Configura nginx amb [`deploy/nginx.conf`](deploy/nginx.conf):
+   ```bash
+   cp deploy/nginx.conf /etc/nginx/conf.d/capitalist-game.conf
+   rm -f /etc/nginx/sites-enabled/default   # treu el site per defecte
+   nginx -t && systemctl reload nginx
+   ```
+5. Obre `http://IP_DEL_CONTENIDOR/` al navegador.
+
+Per actualitzar: reconstrueix i torna a copiar `dist/` a `/var/www/capitalist-game`.
+
+#### Opció B — Docker
+
+Si fas servir Docker (en un LXC o VM de Proxmox), hi ha un [`Dockerfile`](Dockerfile)
+multinivell que construeix i serveix amb nginx:
+
+```bash
+docker build -t capitalist-game .
+docker run -d --restart unless-stopped -p 8080:80 --name capitalist-game capitalist-game
+```
+
+El joc quedarà a `http://IP_DEL_HOST:8080/`. Per servir-lo sota un subcamí, passa
+`--build-arg BASE_PATH=/elteu-subcami/`.
+
 ## Full de ruta (futures iteracions)
 
 Vida adulta a partir dels 18: universitat i emancipació, feina qualificada i
