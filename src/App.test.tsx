@@ -30,6 +30,10 @@ describe('flux de l’app', () => {
     expect(screen.getByText('On naixeràs?')).toBeTruthy()
     fireEvent.click(screen.getAllByText('Néixer aquí')[0])
 
+    // Creació de personatge: comencem la vida
+    expect(screen.getByText('Qui seràs?')).toBeTruthy()
+    fireEvent.click(screen.getByText('Començar la vida'))
+
     // Pantalla de joc: es mostra la barra de benestar
     expect(screen.getByText('Benestar')).toBeTruthy()
 

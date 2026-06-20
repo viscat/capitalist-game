@@ -45,6 +45,19 @@ export interface Patrimoni {
   cases: number[]
 }
 
+export interface Progenitor {
+  nom: string
+  cognoms: string
+}
+
+/** Identitat personalitzable de la persona i els seus pares. */
+export interface Identitat {
+  nom: string
+  cognoms: string
+  pare: Progenitor
+  mare: Progenitor
+}
+
 export interface Familia {
   classe: FamilyClass
   /** Patrimoni net de la llar. */
@@ -156,6 +169,10 @@ export interface GameState {
   lifeStage: LifeStage
   person: Person
   familia: Familia
+  /** Identitat personalitzada (nom de la persona i dels pares). */
+  identitat?: Identitat
+  /** Data de naixement (ISO `YYYY-MM-DD`); per defecte, el dia que comença la partida. */
+  dataNaixement?: string
   /** Estat del generador pseudoaleatori (serialitzable). */
   rngState: number
   /** Id de l'últim esdeveniment, per evitar repeticions immediates. */

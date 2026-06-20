@@ -3,24 +3,22 @@ import {
   FAMILY_PRESET_ORDER,
 } from '../domain/family/presets'
 import type { FamilyPreset } from '../domain/family/presets'
-import { useGame } from '../state/GameContext'
+import type { FamilyClass } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
 function PresetCard({
   preset,
   mode,
+  onPick,
 }: {
   preset: FamilyPreset
   mode: 'normal' | 'at16'
+  onPick: (preset: FamilyClass) => void
 }) {
   const { t } = useT()
-  const { startGame, startGameAt16 } = useGame()
   const f = preset.familia
-  const onChoose =
-    mode === 'at16'
-      ? () => startGameAt16(preset.id)
-      : () => startGame(preset.id)
+  const onChoose = () => onPick(preset.id)
 
   const rows: [string, string][] = [
     [t('family.stat.ingressos'), `${formatEuros(f.ingressosMensuals)}/mes`],
@@ -57,9 +55,11 @@ function PresetCard({
 export function FamilySelect({
   mode,
   onBack,
+  onPick,
 }: {
   mode: 'normal' | 'at16'
   onBack: () => void
+  onPick: (preset: FamilyClass) => void
 }) {
   const { t } = useT()
   return (
@@ -76,7 +76,12 @@ export function FamilySelect({
       <p className="mt-1 text-slate-400">{t('family.select.subtitle')}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FAMILY_PRESET_ORDER.map((id) => (
-          <PresetCard key={id} preset={FAMILY_PRESETS[id]} mode={mode} />
+          <PresetCard
+            key={id}
+            preset={FAMILY_PRESETS[id]}
+            mode={mode}
+            onPick={onPick}
+          />
         ))}
       </div>
     </div>

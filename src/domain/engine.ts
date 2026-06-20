@@ -39,6 +39,7 @@ import type {
   FamilyClass,
   GameEvent,
   GameState,
+  Identitat,
   LifeStage,
   LogEntry,
   Person,
@@ -47,10 +48,17 @@ import type {
 /** Petit ajut mensual de pràctiques per a qui fa un grau mitjà (per trimestre). */
 const ESTIPENDI_GRAU_MIG = 150
 
+/** Opcions de personalització en crear una partida. */
+export interface NewGameSetup {
+  dataNaixement?: string
+  identitat?: Identitat
+}
+
 /** Crea una partida nova a partir d'un preset de família. */
 export function newGame(
   presetId: FamilyClass,
   seed: number = seedFromTime(),
+  setup: NewGameSetup = {},
 ): GameState {
   const preset = FAMILY_PRESETS[presetId]
   const familia = { ...preset.familia }
@@ -64,6 +72,8 @@ export function newGame(
     lifeStage: 'infancia',
     person,
     familia,
+    identitat: setup.identitat,
+    dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
     historial: [],
     acabat: false,
@@ -74,6 +84,7 @@ export function newGame(
 export function newGameAt16(
   presetId: FamilyClass,
   seed: number = seedFromTime(),
+  setup: NewGameSetup = {},
 ): GameState {
   const preset = FAMILY_PRESETS[presetId]
   const familia = { ...preset.familia }
@@ -87,6 +98,8 @@ export function newGameAt16(
     lifeStage: 'adolescencia',
     person,
     familia,
+    identitat: setup.identitat,
+    dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
     pendingMilestone: 'postobligatori',
     historial: [],

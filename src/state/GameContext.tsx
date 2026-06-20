@@ -8,11 +8,13 @@ import {
   newGame,
   newGameAt16,
 } from '../domain/engine'
+import { avuiISO } from '../domain/time'
 import type {
   ActionOption,
   Budget,
   FamilyClass,
   GameState,
+  Identitat,
 } from '../domain/types'
 
 const STORAGE_KEY = 'capitalist-game/save/v1'
@@ -29,9 +31,9 @@ function loadSave(): GameState | null {
 interface GameContextValue {
   state: GameState | null
   hasSave: boolean
-  startGame: (preset: FamilyClass) => void
+  startGame: (preset: FamilyClass, identitat?: Identitat) => void
   /** Inici ràpid al fork dels 16 (proves manuals). */
-  startGameAt16: (preset: FamilyClass) => void
+  startGameAt16: (preset: FamilyClass, identitat?: Identitat) => void
   continueGame: () => void
   /** Avança un torn. A les fases d'estudi cal passar l'`actionId` triat. */
   nextTurn: (actionId?: string) => void
@@ -66,8 +68,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       state,
       hasSave,
-      startGame: (preset) => setState(newGame(preset)),
-      startGameAt16: (preset) => setState(newGameAt16(preset)),
+      startGame: (preset, identitat) =>
+        setState(newGame(preset, undefined, { dataNaixement: avuiISO(), identitat })),
+      startGameAt16: (preset, identitat) =>
+        setState(
+          newGameAt16(preset, undefined, { dataNaixement: avuiISO(), identitat }),
+        ),
       continueGame: () => setState(loadSave()),
       nextTurn: (actionId) =>
         setState((s) => (s ? advanceTurn(s, actionId) : s)),

@@ -1,11 +1,13 @@
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { edatAnys, estacioFromEdat } from '../domain/time'
+import { nomComplet } from '../domain/identitat'
 import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
+import { SummaryBar } from './SummaryBar'
 import { TurnLog } from './TurnLog'
 
 export function GameScreen() {
@@ -21,9 +23,17 @@ export function GameScreen() {
   const esLaboral = lifeStage === 'laboral'
   const esInfancia = lifeStage === 'infancia'
   const aLatur = lifeStage === 'laboral' && itinerari === 'treball' && !salari
+  const nom = state.identitat?.nom
 
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6">
+      <SummaryBar
+        nom={nom}
+        benestar={person.stats.benestar}
+        efectiu={person.patrimoni.efectiu}
+        edatMesos={person.edatMesos}
+        dataNaixement={state.dataNaixement}
+      />
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <button
@@ -33,8 +43,13 @@ export function GameScreen() {
             ← {t('app.title')}
           </button>
           <h1 className="text-2xl font-bold text-slate-100">
-            {t(`family.${familia.classe}.name`)}
+            {state.identitat ? nomComplet(state.identitat) : t(`family.${familia.classe}.name`)}
           </h1>
+          {state.identitat && (
+            <div className="text-xs text-slate-500">
+              {t(`family.${familia.classe}.name`)}
+            </div>
+          )}
         </div>
         <div className="text-right">
           <div className="text-lg font-semibold text-slate-200">
@@ -62,6 +77,7 @@ export function GameScreen() {
             stage={lifeStage}
             itinerari={itinerari}
             salari={salari}
+            identitat={state.identitat}
           />
         </aside>
 

@@ -82,6 +82,32 @@ export const ca: Record<string, string> = {
   'event.thisYear': 'El que ha passat:',
   'event.choose': 'Què fas?',
 
+  // Mesos de l'any
+  'mes.0': 'Gener',
+  'mes.1': 'Febrer',
+  'mes.2': 'Març',
+  'mes.3': 'Abril',
+  'mes.4': 'Maig',
+  'mes.5': 'Juny',
+  'mes.6': 'Juliol',
+  'mes.7': 'Agost',
+  'mes.8': 'Setembre',
+  'mes.9': 'Octubre',
+  'mes.10': 'Novembre',
+  'mes.11': 'Desembre',
+
+  // Creació de personatge
+  'create.title': 'Qui seràs?',
+  'create.bornOn': 'Naixeràs el {data}',
+  'create.person': 'Tu',
+  'create.nom': 'Nom',
+  'create.cognoms': 'Cognoms',
+  'create.fullName': 'Et diràs',
+  'create.pare': 'Pare',
+  'create.mare': 'Mare',
+  'create.random': 'A l’atzar',
+  'create.start': 'Començar la vida',
+
   // Itineraris (fork dels 16)
   'itinerari.batxillerat.label': 'Batxillerat',
   'itinerari.batxillerat.short': 'Batxillerat',
