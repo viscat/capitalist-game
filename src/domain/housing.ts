@@ -5,7 +5,14 @@ import {
   LLOGUER_PIS_ANUAL,
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
-import type { GameState, Habitatge, Hipoteca, TipusHabitatge } from './types'
+import type {
+  Familia,
+  FamilyClass,
+  GameState,
+  Habitatge,
+  Hipoteca,
+  TipusHabitatge,
+} from './types'
 
 /** Opció de lloguer (habitació o pis sencer). */
 export interface OpcioLloguer {
@@ -67,11 +74,30 @@ export function liquidDisponible(state: GameState): number {
   return state.person.patrimoni.efectiu + state.person.patrimoni.estalvi
 }
 
+// L'origen pesa també a l'hora de comprar: la família pot regalar part de
+// l'entrada segons la seva classe (una fracció del seu patrimoni). La pobra no
+// pot aportar res; la treballadora molt poc; com més amunt, més marge.
+const FACTOR_AJUT_ENTRADA: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0.03,
+  mitjana: 0.1,
+  alta: 0.2,
+  rica: 0.3,
+  super_rica: 0.4,
+}
+
+/** Quant pot regalar la família per a l'entrada, segons la seva classe social. */
+export function ajutEntradaMax(familia: Familia): number {
+  return Math.round(familia.patrimoni * FACTOR_AJUT_ENTRADA[familia.classe])
+}
+
 /** Resum d'una possible compra, per a la UI. */
 export interface OfertaCompra {
   preu: number
   entrada: number
   hipoteca: Hipoteca
+  /** Part de l'entrada que cobreix la família (regal segons la classe social). */
+  ajutFamiliar: number
   teEntrada: boolean
   bancAprova: boolean
 }
@@ -83,11 +109,16 @@ export function ofertaCompra(
 ): OfertaCompra {
   const entrada = entradaHipoteca(preu)
   const hipoteca = calculaHipoteca(preu, anys)
+  // La família només cobreix el que no arribes a posar tu, fins al seu màxim.
+  const liquid = liquidDisponible(state)
+  const falta = Math.max(0, entrada - liquid)
+  const ajutFamiliar = Math.min(falta, ajutEntradaMax(state.familia))
   return {
     preu,
     entrada,
     hipoteca,
-    teEntrada: liquidDisponible(state) >= entrada,
+    ajutFamiliar,
+    teEntrada: liquid + ajutFamiliar >= entrada,
     bancAprova: bancConcedeix(hipoteca.quotaAnual, ingressosAnuals(state)),
   }
 }
@@ -138,8 +169,9 @@ export function comprarCasa(
   const oferta = ofertaCompra(state, propietat.preu, anys)
   if (!oferta.teEntrada || !oferta.bancAprova) return state
 
-  // Paga l'entrada: primer de l'efectiu, després de l'estalvi.
-  let restant = oferta.entrada
+  // El jugador només paga la part de l'entrada que no regala la família, primer de
+  // l'efectiu i després de l'estalvi.
+  let restant = oferta.entrada - oferta.ajutFamiliar
   const efectiu = Math.max(0, state.person.patrimoni.efectiu - restant)
   restant -= state.person.patrimoni.efectiu - efectiu
   const estalvi = Math.max(0, state.person.patrimoni.estalvi - restant)
