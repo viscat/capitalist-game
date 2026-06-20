@@ -4,10 +4,16 @@ import {
   actionOptions,
   advanceTurn,
   applyChoice,
-  continuePhase,
+  applyMilestoneChoice,
   newGame,
+  newGameAt16,
 } from '../domain/engine'
-import type { ActionOption, FamilyClass, GameState } from '../domain/types'
+import type {
+  ActionOption,
+  Budget,
+  FamilyClass,
+  GameState,
+} from '../domain/types'
 
 const STORAGE_KEY = 'capitalist-game/save/v1'
 
@@ -24,12 +30,16 @@ interface GameContextValue {
   state: GameState | null
   hasSave: boolean
   startGame: (preset: FamilyClass) => void
+  /** Inici ràpid al fork dels 16 (proves manuals). */
+  startGameAt16: (preset: FamilyClass) => void
   continueGame: () => void
-  /** Avança un torn. A l'adolescència cal passar l'`actionId` triat. */
+  /** Avança un torn. A les fases d'estudi cal passar l'`actionId` triat. */
   nextTurn: (actionId?: string) => void
   choose: (choiceId: string) => void
-  /** Confirma la transició a l'adolescència des de la pantalla intermèdia. */
-  continuePhase: () => void
+  /** Aplica l'opció escollida en una fita (pantalla de decisió). */
+  chooseMilestone: (optionId: string) => void
+  /** Desa el pressupost mensual (fase laboral). */
+  setBudget: (budget: Budget) => void
   reset: () => void
   actions: ActionOption[]
 }
@@ -57,11 +67,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
       state,
       hasSave,
       startGame: (preset) => setState(newGame(preset)),
+      startGameAt16: (preset) => setState(newGameAt16(preset)),
       continueGame: () => setState(loadSave()),
       nextTurn: (actionId) =>
         setState((s) => (s ? advanceTurn(s, actionId) : s)),
       choose: (choiceId) => setState((s) => (s ? applyChoice(s, choiceId) : s)),
-      continuePhase: () => setState((s) => (s ? continuePhase(s) : s)),
+      chooseMilestone: (optionId) =>
+        setState((s) => (s ? applyMilestoneChoice(s, optionId) : s)),
+      setBudget: (budget) =>
+        setState((s) => (s ? { ...s, pressupost: budget } : s)),
       reset: () => {
         try {
           localStorage.removeItem(STORAGE_KEY)

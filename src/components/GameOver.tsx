@@ -45,7 +45,7 @@ export function GameOver() {
             {t('gameover.fork.question')}
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {(['estudiar', 'treballar'] as const).map((opt) => (
+            {(['uni', 'emancipar'] as const).map((opt) => (
               <button
                 key={opt}
                 disabled

@@ -7,10 +7,20 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
-function PresetCard({ preset }: { preset: FamilyPreset }) {
+function PresetCard({
+  preset,
+  mode,
+}: {
+  preset: FamilyPreset
+  mode: 'normal' | 'at16'
+}) {
   const { t } = useT()
-  const { startGame } = useGame()
+  const { startGame, startGameAt16 } = useGame()
   const f = preset.familia
+  const onChoose =
+    mode === 'at16'
+      ? () => startGameAt16(preset.id)
+      : () => startGame(preset.id)
 
   const rows: [string, string][] = [
     [t('family.stat.ingressos'), `${formatEuros(f.ingressosMensuals)}/mes`],
@@ -35,16 +45,22 @@ function PresetCard({ preset }: { preset: FamilyPreset }) {
         ))}
       </dl>
       <button
-        onClick={() => startGame(preset.id)}
+        onClick={onChoose}
         className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white transition hover:bg-indigo-500"
       >
-        {t('family.select.choose')}
+        {mode === 'at16' ? t('family.select.chooseAt16') : t('family.select.choose')}
       </button>
     </div>
   )
 }
 
-export function FamilySelect({ onBack }: { onBack: () => void }) {
+export function FamilySelect({
+  mode,
+  onBack,
+}: {
+  mode: 'normal' | 'at16'
+  onBack: () => void
+}) {
   const { t } = useT()
   return (
     <div className="mx-auto max-w-5xl p-6">
@@ -52,15 +68,15 @@ export function FamilySelect({ onBack }: { onBack: () => void }) {
         onClick={onBack}
         className="mb-4 text-sm text-slate-400 transition hover:text-slate-200"
       >
-        ← {t('start.new')}
+        ←
       </button>
       <h2 className="text-3xl font-bold text-slate-100">
-        {t('family.select.title')}
+        {mode === 'at16' ? t('family.select.titleAt16') : t('family.select.title')}
       </h2>
       <p className="mt-1 text-slate-400">{t('family.select.subtitle')}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FAMILY_PRESET_ORDER.map((id) => (
-          <PresetCard key={id} preset={FAMILY_PRESETS[id]} />
+          <PresetCard key={id} preset={FAMILY_PRESETS[id]} mode={mode} />
         ))}
       </div>
     </div>

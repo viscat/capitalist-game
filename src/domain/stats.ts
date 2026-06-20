@@ -1,5 +1,5 @@
-import { BENESTAR_MAX, BENESTAR_MIN } from './constants'
-import type { EventEffect, Familia, Person } from './types'
+import { BENESTAR_MAX, BENESTAR_MIN, SALARI_TREBALL_16 } from './constants'
+import type { Budget, EventEffect, Familia, GameState, Itinerari, Person } from './types'
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -87,4 +87,87 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
 export function patrimoniTotal(person: Person): number {
   const { efectiu, estalvi, inversions, cases } = person.patrimoni
   return efectiu + estalvi + inversions + cases.reduce((a, b) => a + b, 0)
+}
+
+// --- Fase 16→18 ---
+
+/** Petit ajust del benestar de referència segons l'itinerari triat als 16. */
+export function itinerariBenestarOffset(itinerari?: Itinerari): number {
+  switch (itinerari) {
+    case 'treball':
+      return 2 // propòsit i diners propis, però cansat
+    case 'nini':
+      return -6 // llibertat inicial, però estancament i pressió
+    case 'grau_mig':
+      return 1
+    default:
+      return 0
+  }
+}
+
+/** Benestar de referència tenint en compte família i itinerari. */
+export function baselineBenestar(state: GameState): number {
+  return clampBenestar(
+    familyBaselineBenestar(state.familia) +
+      itinerariBenestarOffset(state.itinerari),
+  )
+}
+
+/** Ingrés mensual a la fase laboral: sou (treball) o suport familiar (nini). */
+export function ingressosMensuals16(state: GameState): number {
+  return state.itinerari === 'treball'
+    ? SALARI_TREBALL_16
+    : pagaMensual(state.familia)
+}
+
+/** Pressupost mensual per defecte a partir de l'ingrés disponible. */
+export function defaultBudget(income: number): Budget {
+  const round = (n: number) => Math.round(n / 5) * 5
+  return {
+    estalvi: round(income * 0.25),
+    oci: round(income * 0.2),
+    compres: round(income * 0.15),
+    casa: round(income * 0.1),
+  }
+}
+
+/**
+ * Aplica un mes a la fase laboral: ingressa, mou l'estalvi al patrimoni, gasta
+ * oci/compres/casa i deixa el sobrant a efectiu (mai negatiu). El benestar reacciona
+ * a l'estil de vida (poc oci penalitza; un mínim de vida social i alguna compra
+ * apugen una mica), de manera que estalviar-ho tot té un cost de benestar.
+ */
+export function applyBudgetMonth(
+  person: Person,
+  budget: Budget,
+  income: number,
+): Person {
+  const patrimoni = { ...person.patrimoni }
+  // Caixa disponible aquest mes (ingrés + el que ja hi havia).
+  let disponible = patrimoni.efectiu + income
+
+  const gasta = (n: number) => {
+    const real = Math.max(0, Math.min(n, disponible))
+    disponible -= real
+    return real
+  }
+  const aEstalvi = gasta(budget.estalvi)
+  const oci = gasta(budget.oci)
+  gasta(budget.compres)
+  gasta(budget.casa)
+
+  patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
+  patrimoni.efectiu = Math.round(disponible)
+
+  // Efecte de l'estil de vida sobre el benestar (petit, mensual).
+  const ociRatio = income > 0 ? oci / income : 0
+  let deltaBenestar = 0
+  if (ociRatio < 0.05) deltaBenestar -= 2
+  else if (ociRatio >= 0.15) deltaBenestar += 2
+
+  const stats = {
+    ...person.stats,
+    benestar: clampBenestar(person.stats.benestar + deltaBenestar),
+  }
+  return { ...person, stats, patrimoni }
 }

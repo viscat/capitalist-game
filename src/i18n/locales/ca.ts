@@ -10,11 +10,14 @@ export const ca: Record<string, string> = {
     'L’origen marca el punt de sortida... però no ho és tot.',
   'start.new': 'Nova partida',
   'start.continue': 'Continuar partida',
+  'start.newAt16': 'Proves: començar als 16',
 
   // Selecció de família
   'family.select.title': 'On naixeràs?',
+  'family.select.titleAt16': 'On has crescut?',
   'family.select.subtitle': 'Tria la família que et tocarà en sort.',
   'family.select.choose': 'Néixer aquí',
+  'family.select.chooseAt16': 'Començar als 16',
 
   'family.pobra.name': 'Família pobra',
   'family.pobra.desc':
@@ -46,6 +49,8 @@ export const ca: Record<string, string> = {
   // Pantalla de joc
   'game.stage.infancia': 'Infància',
   'game.stage.adolescencia': 'Institut (ESO)',
+  'game.stage.estudis_post': 'Estudis',
+  'game.stage.laboral': 'Vida laboral',
   'game.age': '{anys} anys',
   'game.ageZero': 'Nadó (0 anys)',
   'game.turn': 'Torn {torn}',
@@ -72,9 +77,62 @@ export const ca: Record<string, string> = {
   'context.ingressos': 'Ingressos de la llar',
   'context.estalviAnual': 'T’estalvien cada any',
   'context.paga': 'La teva paga',
+  'context.ingressosPropis': 'El teu ingrés',
 
   'event.thisYear': 'El que ha passat:',
   'event.choose': 'Què fas?',
+
+  // Itineraris (fork dels 16)
+  'itinerari.batxillerat.label': 'Batxillerat',
+  'itinerari.batxillerat.short': 'Batxillerat',
+  'itinerari.batxillerat.desc':
+    'Segueixes estudiant per anar, potser, a la universitat. Sense ingressos propis.',
+  'itinerari.grau_mig.label': 'Mòdul de grau mitjà',
+  'itinerari.grau_mig.short': 'Grau mitjà',
+  'itinerari.grau_mig.desc':
+    'Formació professional amb pràctiques: un petit ajut econòmic i feina abans.',
+  'itinerari.treball.label': 'Posar-te a treballar',
+  'itinerari.treball.short': 'Treballant',
+  'itinerari.treball.desc':
+    'Una feina i un sou propi. Comences a gestionar un pressupost mes a mes.',
+  'itinerari.nini.label': 'No fer res',
+  'itinerari.nini.short': 'Sense rumb',
+  'itinerari.nini.desc':
+    'Ni estudies ni treballes. Llibertat… però depens de casa i el temps passa.',
+
+  // Fita dels 16 (postobligatòria)
+  'milestone.post.kicker': 'Fi de l’ESO',
+  'milestone.post.title': 'Fas 16 anys',
+  'milestone.post.loreTitle': 'I ara, què?',
+  'milestone.post.lore1':
+    'S’acaba l’etapa obligatòria. Per primera vegada el camí no està marcat: tu tries cap on tira la teva vida.',
+  'milestone.post.lore2':
+    'Pots seguir estudiant (batxillerat o un grau mitjà) o entrar al món laboral. Encara no et pots emancipar: això arribarà als 18.',
+  'milestone.post.summaryTitle': 'Com has arribat als 16',
+  'milestone.post.summary.molt_baix':
+    'Arribes a aquesta cruïlla tocat i amb poques forces. La decisió pesa el doble.',
+  'milestone.post.summary.baix':
+    'No ha estat fàcil arribar fins aquí, però hi ets. Toca decidir.',
+  'milestone.post.summary.mig':
+    'Arribes als 16 amb les idees més o menys clares i ganes de tirar endavant.',
+  'milestone.post.summary.alt':
+    'Arribes en bona forma i amb confiança per triar el teu camí.',
+  'milestone.post.summary.molt_alt':
+    'Arribes ple d’energia i seguretat: tens el futur a les teves mans.',
+
+  // Pressupost mensual (fase laboral)
+  'budget.title': 'El teu pressupost mensual',
+  'budget.income': 'Ingrés',
+  'budget.estalvi': 'Estalvi',
+  'budget.estalvi.desc': 'El que apartes cada mes. El teu futur.',
+  'budget.oci': 'Oci',
+  'budget.oci.desc': 'Sortir, plans, capricis petits.',
+  'budget.compres': 'Compres',
+  'budget.compres.desc': 'Roba, tecnologia, els teus gustos.',
+  'budget.casa': 'A casa',
+  'budget.casa.desc': 'El que aportes a la família.',
+  'budget.lliure': 'Sense assignar (a efectiu)',
+  'budget.nextMonth': 'Següent mes →',
 
   // Estacions
   'season.tardor': 'Tardor',
@@ -109,7 +167,7 @@ export const ca: Record<string, string> = {
   'transition.kicker': 'Fi de la infància',
   'transition.title': 'Fas 12 anys',
   'transition.summaryTitle': 'Com ha anat la teva infància',
-  'transition.benestar': 'Benestar als 12',
+  'transition.benestar': 'Benestar',
   'transition.estalvi': 'Estalvi acumulat',
   'transition.summary.molt_baix':
     'Han estat uns anys durs: pocs moments bons i molta motxilla emocional per carregar.',
@@ -138,17 +196,17 @@ export const ca: Record<string, string> = {
   'category.salut': 'Salut',
   'category.escola': 'Escola',
 
-  // Final de fase (final de l'ESO, als 16)
-  'gameover.title': 'Fi de l’ESO',
+  // Final de fase (majoria d'edat, als 18)
+  'gameover.title': 'Fas 18 anys',
   'gameover.subtitle':
-    'Has fet 16 anys i acabes l’ESO. Toca decidir què vols fer amb el teu futur.',
+    'Arribes a la majoria d’edat. S’obre una nova etapa: pots anar a la universitat o buscar-te la vida i emancipar-te.',
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni acumulat',
   'gameover.fork.question': 'I ara, què faràs?',
-  'gameover.fork.estudiar': 'Seguir estudiant',
-  'gameover.fork.treballar': 'Posar-te a treballar',
+  'gameover.fork.uni': 'Anar a la universitat',
+  'gameover.fork.emancipar': 'Treballar i emancipar-te',
   'gameover.soon':
-    'El que ve després (batxillerat o feina, i la vida adulta) arribarà en una futura versió.',
+    'La vida adulta (universitat, feina, emancipació i pressupostos de debò) arribarà en una futura versió.',
   'gameover.restart': 'Tornar a començar',
 
   // --- Esdeveniments ---
@@ -276,4 +334,53 @@ export const ca: Record<string, string> = {
   'event.festa.title': 'Una festa per recordar',
   'event.festa.desc':
     'Gran festa amb la colla ({cost} €). Cansat però amb un somriure.',
+
+  // --- Esdeveniments laborals (treball, 16-18) ---
+  'event.pujada_sou.title': 'Pugen el sou',
+  'event.pujada_sou.desc':
+    'La feina va bé i et reconeixen l’esforç amb una millora de sou.',
+
+  'event.paga_extra.title': 'Paga extra',
+  'event.paga_extra.desc': 'Arriba una paga extra de {amount} €. Benvinguda sigui!',
+
+  'event.hores_extra.title': 'Et proposen hores extra',
+  'event.hores_extra.desc':
+    'Pots fer hores extra aquest mes ({amount} €). Més diners, menys temps. Què fas?',
+  'event.hores_extra.choice.acceptar': 'Acceptar les hores extra',
+  'event.hores_extra.choice.rebutjar': 'Rebutjar-les i descansar',
+
+  'event.conflicte_cap.title': 'Problemes amb el cap',
+  'event.conflicte_cap.desc':
+    'Tensions amb qui mana. La feina s’ha fet incòmoda aquests dies.',
+
+  'event.feina_dura.title': 'Un mes esgotador',
+  'event.feina_dura.desc':
+    'Molta càrrega i poc descans. Arribes a casa sense forces.',
+
+  'event.companys_feina.title': 'Bona gent a la feina',
+  'event.companys_feina.desc':
+    'Has fet bon rotllo amb els companys i el dia a dia es fa més lleuger.',
+
+  // --- Esdeveniments de no fer res (nini, 16-18) ---
+  'event.avorriment.title': 'Dies que no passen',
+  'event.avorriment.desc':
+    'Les hores se’t fan llargues i la sensació de no anar enlloc creix.',
+
+  'event.pressio_familiar.title': 'Pressió a casa',
+  'event.pressio_familiar.desc':
+    'A casa et pregunten cada dia què penses fer amb la teva vida. Pesa.',
+
+  'event.amics_avancen.title': 'Els amics tiren endavant',
+  'event.amics_avancen.desc':
+    'Els teus amics estudien o treballen i tu et quedes enrere. No és agradable.',
+
+  'event.temps_lliure.title': 'Temps per a tu',
+  'event.temps_lliure.desc':
+    'Almenys tens temps lliure i el dediques a coses que t’agraden.',
+
+  'event.oferta_reengantxar.title': 'Una oportunitat',
+  'event.oferta_reengantxar.desc':
+    'Sorgeix una feina temporal ({amount} €). Podria ser una empenta. L’agafes?',
+  'event.oferta_reengantxar.choice.acceptar': 'Agafar-la',
+  'event.oferta_reengantxar.choice.passar': 'Deixar-ho córrer',
 }

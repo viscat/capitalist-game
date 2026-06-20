@@ -2,6 +2,7 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { edatAnys, estacioFromEdat } from '../domain/time'
 import { ActionPanel } from './ActionPanel'
+import { BudgetPanel } from './BudgetPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
@@ -12,10 +13,12 @@ export function GameScreen() {
   const { state, nextTurn, choose, reset, actions } = useGame()
   if (!state) return null
 
-  const { person, familia, historial, pendingEvent, lifeStage } = state
+  const { person, familia, historial, pendingEvent, lifeStage, itinerari } = state
   const anys = edatAnys(person.edatMesos)
   const lastEntry = historial[historial.length - 1]
-  const esAdolescencia = lifeStage === 'adolescencia'
+  const esEstacional = lifeStage === 'adolescencia' || lifeStage === 'estudis_post'
+  const esLaboral = lifeStage === 'laboral'
+  const esInfancia = lifeStage === 'infancia'
 
   return (
     <div className="mx-auto max-w-6xl p-4 sm:p-6">
@@ -36,8 +39,8 @@ export function GameScreen() {
             {anys === 0 ? t('game.ageZero') : t('game.age', { anys })}
           </div>
           <div className="text-sm text-slate-500">
-            {t(`game.stage.${lifeStage}`)}
-            {esAdolescencia &&
+            {itinerari ? t(`itinerari.${itinerari}.short`) : t(`game.stage.${lifeStage}`)}
+            {esEstacional &&
               ` · ${t(`season.${estacioFromEdat(person.edatMesos)}`)}`}{' '}
             · {t('game.turn', { torn: state.torn })}
           </div>
@@ -47,7 +50,7 @@ export function GameScreen() {
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr_18rem]">
         <aside className="space-y-4">
           <StatBar benestar={person.stats.benestar} />
-          <PatrimoniPanel person={person} familia={familia} stage={lifeStage} />
+          <PatrimoniPanel person={person} familia={familia} stage={lifeStage} itinerari={itinerari} />
         </aside>
 
         <main className="space-y-4">
@@ -56,17 +59,18 @@ export function GameScreen() {
             lastEntry={lastEntry}
             onChoose={choose}
           />
-          {!pendingEvent &&
-            (esAdolescencia ? (
-              <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
-            ) : (
-              <button
-                onClick={() => nextTurn()}
-                className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
-              >
-                {t('game.nextYear')}
-              </button>
-            ))}
+          {!pendingEvent && esEstacional && (
+            <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
+          )}
+          {!pendingEvent && esLaboral && <BudgetPanel />}
+          {!pendingEvent && esInfancia && (
+            <button
+              onClick={() => nextTurn()}
+              className="w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
+            >
+              {t('game.nextYear')}
+            </button>
+          )}
         </main>
 
         <aside>

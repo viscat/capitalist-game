@@ -2,23 +2,29 @@ import { useState } from 'react'
 import { FamilySelect } from './components/FamilySelect'
 import { GameOver } from './components/GameOver'
 import { GameScreen } from './components/GameScreen'
-import { PhaseTransition } from './components/PhaseTransition'
+import { MilestoneScreen } from './components/MilestoneScreen'
 import { StartScreen } from './components/StartScreen'
 import { useGame } from './state/GameContext'
 
 export default function App() {
   const { state } = useGame()
-  const [showFamily, setShowFamily] = useState(false)
+  const [familyMode, setFamilyMode] = useState<null | 'normal' | 'at16'>(null)
 
   if (state) {
     if (state.acabat) return <GameOver />
-    if (state.transicioPendent) return <PhaseTransition />
+    if (state.pendingMilestone) return <MilestoneScreen />
     return <GameScreen />
   }
 
-  return showFamily ? (
-    <FamilySelect onBack={() => setShowFamily(false)} />
-  ) : (
-    <StartScreen onNew={() => setShowFamily(true)} />
+  if (familyMode) {
+    return (
+      <FamilySelect mode={familyMode} onBack={() => setFamilyMode(null)} />
+    )
+  }
+  return (
+    <StartScreen
+      onNew={() => setFamilyMode('normal')}
+      onNewAt16={() => setFamilyMode('at16')}
+    />
   )
 }

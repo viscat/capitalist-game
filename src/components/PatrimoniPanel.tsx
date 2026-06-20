@@ -1,5 +1,6 @@
+import { SALARI_TREBALL_16 } from '../domain/constants'
 import { estalviAnualCriatura, pagaMensual, patrimoniTotal } from '../domain/stats'
-import type { Familia, LifeStage, Person } from '../domain/types'
+import type { Familia, Itinerari, LifeStage, Person } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
@@ -16,10 +17,12 @@ export function PatrimoniPanel({
   person,
   familia,
   stage,
+  itinerari,
 }: {
   person: Person
   familia: Familia
   stage: LifeStage
+  itinerari?: Itinerari
 }) {
   const { t } = useT()
   const { efectiu, estalvi, inversions, cases } = person.patrimoni
@@ -56,7 +59,16 @@ export function PatrimoniPanel({
             label={t('context.ingressos')}
             value={`${formatEuros(familia.ingressosMensuals)}/mes`}
           />
-          {stage === 'adolescencia' ? (
+          {stage === 'laboral' ? (
+            <Row
+              label={t('context.ingressosPropis')}
+              value={`${formatEuros(
+                itinerari === 'treball'
+                  ? SALARI_TREBALL_16
+                  : pagaMensual(familia),
+              )}/mes`}
+            />
+          ) : stage === 'adolescencia' || stage === 'estudis_post' ? (
             <Row
               label={t('context.paga')}
               value={`${formatEuros(pagaMensual(familia))}/mes`}

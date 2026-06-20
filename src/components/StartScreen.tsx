@@ -1,7 +1,13 @@
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 
-export function StartScreen({ onNew }: { onNew: () => void }) {
+export function StartScreen({
+  onNew,
+  onNewAt16,
+}: {
+  onNew: () => void
+  onNewAt16: () => void
+}) {
   const { t } = useT()
   const { hasSave, continueGame } = useGame()
 
@@ -30,6 +36,12 @@ export function StartScreen({ onNew }: { onNew: () => void }) {
               {t('start.continue')}
             </button>
           )}
+          <button
+            onClick={onNewAt16}
+            className="mt-2 w-64 rounded-xl border border-dashed border-slate-600 px-6 py-2 text-sm font-medium text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
+          >
+            🧪 {t('start.newAt16')}
+          </button>
         </div>
       </div>
     </div>

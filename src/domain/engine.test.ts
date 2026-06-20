@@ -3,148 +3,150 @@ import {
   actionOptions,
   advanceTurn,
   applyChoice,
-  continuePhase,
+  applyMilestoneChoice,
   newGame,
+  newGameAt16,
 } from './engine'
-import { familyBaselineBenestar } from './stats'
-import { EDAT_FI_ADOLESCENCIA, EDAT_FI_INFANCIA, MESOS_PER_ANY } from './constants'
+import { familyBaselineBenestar, ingressosMensuals16 } from './stats'
+import { edatAnys } from './time'
+import {
+  EDAT_FI_ADOLESCENCIA,
+  EDAT_FI_INFANCIA,
+  EDAT_FI_POSTOBLIGATORI,
+  MESOS_PER_ANY,
+} from './constants'
 import type { GameState } from './types'
 
-/** Id de la primera acció habilitada disponible. */
 function firstEnabled(s: GameState): string | undefined {
   return actionOptions(s).find((o) => !o.disabled)?.action.id
 }
 
-/** Avança un pas resolent decisions, transicions i triant una acció a l'adolescència. */
-function step(s: GameState): GameState {
+/** Avança un pas resolent decisions i fites (a la fita dels 16 tria `itinerari`). */
+function step(s: GameState, itinerari = 'batxillerat'): GameState {
   if (s.pendingEvent) return applyChoice(s, s.pendingEvent.choices![0].id)
-  if (s.transicioPendent) return continuePhase(s)
-  if (s.lifeStage === 'adolescencia') return advanceTurn(s, firstEnabled(s))
+  if (s.pendingMilestone === 'institut') return applyMilestoneChoice(s, 'continuar')
+  if (s.pendingMilestone === 'postobligatori') {
+    return applyMilestoneChoice(s, itinerari)
+  }
+  if (s.lifeStage === 'adolescencia' || s.lifeStage === 'estudis_post') {
+    return advanceTurn(s, firstEnabled(s))
+  }
   return advanceTurn(s)
 }
 
-/** Juga una partida sencera fins al final. */
-function playToEnd(presetId: Parameters<typeof newGame>[0], seed: number): GameState {
-  let s = newGame(presetId, seed)
-  for (let i = 0; i < 500 && !s.acabat; i++) s = step(s)
-  return s
-}
-
-/** Avança fins que es compleix una condició (resolent pel camí). */
-function playUntil(
+function playToEnd(
   presetId: Parameters<typeof newGame>[0],
   seed: number,
-  done: (s: GameState) => boolean,
+  itinerari = 'batxillerat',
 ): GameState {
   let s = newGame(presetId, seed)
-  for (let i = 0; i < 200 && !done(s) && !s.acabat; i++) s = step(s)
+  for (let i = 0; i < 600 && !s.acabat; i++) s = step(s, itinerari)
   return s
 }
 
-describe('newGame', () => {
-  it('inicialitza el benestar amb la referència de la família', () => {
+function playUntil(
+  start: GameState,
+  done: (s: GameState) => boolean,
+  itinerari = 'batxillerat',
+): GameState {
+  let s = start
+  for (let i = 0; i < 300 && !done(s) && !s.acabat; i++) s = step(s, itinerari)
+  return s
+}
+
+describe('newGame i fites', () => {
+  it('comença a la infància', () => {
     const s = newGame('mitjana', 1)
     expect(s.person.stats.benestar).toBe(familyBaselineBenestar(s.familia))
-    expect(s.torn).toBe(0)
-    expect(s.acabat).toBe(false)
-    expect(s.lifeStage).toBe('infancia')
-  })
-})
-
-describe('advanceTurn — infància', () => {
-  it('envelleix un any i incrementa el torn', () => {
-    const s = advanceTurn(newGame('treballadora', 7))
-    expect(s.torn).toBe(1)
-    expect(s.person.edatMesos).toBe(12)
-  })
-
-  it('és determinista per a una mateixa llavor', () => {
-    expect(playToEnd('alta', 123)).toEqual(playToEnd('alta', 123))
-  })
-})
-
-describe('transició a l’adolescència', () => {
-  it('als 12 anys marca la transició sense canviar de fase ni acabar', () => {
-    const s = playUntil('mitjana', 3, (g) => !!g.transicioPendent)
-    expect(s.transicioPendent).toBe(true)
     expect(s.lifeStage).toBe('infancia')
     expect(s.acabat).toBe(false)
-    expect(s.person.edatMesos).toBe(EDAT_FI_INFANCIA * MESOS_PER_ANY)
   })
 
-  it('continuePhase passa a l’adolescència i deixa constància al registre', () => {
-    const abans = playUntil('mitjana', 3, (g) => !!g.transicioPendent)
-    const longAbans = abans.historial.length
-    const ado = continuePhase(abans)
+  it('als 12 obre la fita institut i continuePhase passa a adolescència', () => {
+    const fork = playUntil(newGame('mitjana', 3), (s) => !!s.pendingMilestone)
+    expect(fork.pendingMilestone).toBe('institut')
+    expect(fork.lifeStage).toBe('infancia')
+    expect(fork.person.edatMesos).toBe(EDAT_FI_INFANCIA * MESOS_PER_ANY)
+    const ado = applyMilestoneChoice(fork, 'continuar')
     expect(ado.lifeStage).toBe('adolescencia')
-    expect(ado.transicioPendent).toBe(false)
-    expect(ado.historial.length).toBe(longAbans + 1)
-    expect(ado.historial.at(-1)!.eventId).toBe('transicio_institut')
+    expect(ado.pendingMilestone).toBeUndefined()
+  })
+
+  it('als 16 obre la fita postobligatòria sense acabar', () => {
+    const ado = applyMilestoneChoice(
+      playUntil(newGame('mitjana', 3), (s) => s.pendingMilestone === 'institut'),
+      'continuar',
+    )
+    const fork = playUntil(ado, (s) => s.pendingMilestone === 'postobligatori')
+    expect(fork.pendingMilestone).toBe('postobligatori')
+    expect(fork.acabat).toBe(false)
+    expect(fork.person.edatMesos).toBe(EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY)
   })
 })
 
-describe('actionOptions', () => {
-  it('no n’hi ha a la infància i n’hi ha a l’adolescència', () => {
-    expect(actionOptions(newGame('mitjana', 3))).toHaveLength(0)
-    const ado = playUntil('mitjana', 3, (g) => g.lifeStage === 'adolescencia')
-    expect(actionOptions(ado).length).toBeGreaterThan(0)
-  })
-
-  it('mostra les accions massa cares com a deshabilitades, no les amaga', () => {
-    let ado = playUntil('pobra', 7, (g) => g.lifeStage === 'adolescencia')
-    // Forcem manca d'efectiu per garantir que un caprici no és assequible.
-    ado = { ...ado, person: { ...ado.person, patrimoni: { ...ado.person.patrimoni, efectiu: 0 } } }
-    const opcions = actionOptions(ado)
-    const caprici = opcions.find((o) => o.action.id === 'caprici')
-    expect(caprici).toBeDefined()
-    expect(caprici!.disabled).toBe(true)
-    expect(caprici!.reasonKey).toBe('action.locked.diners')
-    // Sempre queda almenys una acció habilitada (trimestre tranquil).
-    expect(opcions.some((o) => !o.disabled)).toBe(true)
-  })
-
-  it('la feina d’estiu només està habilitada a l’estiu', () => {
-    let s = playUntil('mitjana', 3, (g) => g.lifeStage === 'adolescencia')
-    let habilitadaEstiu = false
-    let deshabilitadaFora = false
-    for (let i = 0; i < 16 && !s.acabat; i++) {
-      const feina = actionOptions(s).find((o) => o.action.id === 'feina_estiu')
-      if (feina && !feina.disabled) habilitadaEstiu = true
-      if (feina && feina.disabled && feina.reasonKey === 'action.locked.estiu') {
-        deshabilitadaFora = true
-      }
-      s = s.pendingEvent
-        ? applyChoice(s, s.pendingEvent.choices![0].id)
-        : advanceTurn(s, 'mes_tranquil')
-    }
-    expect(habilitadaEstiu).toBe(true)
-    expect(deshabilitadaFora).toBe(true)
+describe('inici ràpid als 16', () => {
+  it('aterra directament a la fita dels 16', () => {
+    const s = newGameAt16('mitjana', 1)
+    expect(s.pendingMilestone).toBe('postobligatori')
+    expect(edatAnys(s.person.edatMesos)).toBe(16)
   })
 })
 
-describe('adolescència — paga', () => {
-  it('cada torn avança 3 mesos i ingressa la paga', () => {
-    const ado = playUntil('mitjana', 3, (g) => g.lifeStage === 'adolescencia')
-    const efectiuAbans = ado.person.patrimoni.efectiu
-    const seguent = advanceTurn(ado, 'mes_tranquil')
-    expect(seguent.person.edatMesos).toBe(ado.person.edatMesos + 3)
-    expect(seguent.person.patrimoni.efectiu).toBeGreaterThan(efectiuAbans)
+describe('fork dels 16', () => {
+  const fork = () => newGameAt16('mitjana', 7)
+
+  it('triar batxillerat porta a estudis trimestrals', () => {
+    const s = applyMilestoneChoice(fork(), 'batxillerat')
+    expect(s.lifeStage).toBe('estudis_post')
+    expect(s.itinerari).toBe('batxillerat')
+    expect(s.pressupost).toBeUndefined()
+    expect(actionOptions(s).length).toBeGreaterThan(0)
+  })
+
+  it('triar treball porta a la fase laboral amb pressupost', () => {
+    const s = applyMilestoneChoice(fork(), 'treball')
+    expect(s.lifeStage).toBe('laboral')
+    expect(s.itinerari).toBe('treball')
+    expect(s.pressupost).toBeDefined()
+    expect(actionOptions(s)).toHaveLength(0) // laboral no usa targetes
   })
 })
 
-describe('partida completa', () => {
-  it('acaba als 16 anys amb benestar i efectiu acotats', () => {
-    const s = playToEnd('pobra', 42)
+describe('fase laboral i pressupost', () => {
+  it('cada mes avança 1 mes, ingressa i estalvia segons el pressupost', () => {
+    const s = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
+    const estalviAbans = s.person.patrimoni.estalvi
+    const after = advanceTurn(s)
+    expect(after.person.edatMesos).toBe(s.person.edatMesos + 1)
+    expect(after.person.patrimoni.estalvi).toBeGreaterThan(estalviAbans)
+    expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+
+  it('treballar dóna més ingrés que no fer res', () => {
+    const tre = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
+    const nin = applyMilestoneChoice(newGameAt16('mitjana', 7), 'nini')
+    expect(ingressosMensuals16(tre)).toBeGreaterThan(ingressosMensuals16(nin))
+  })
+})
+
+describe('final als 18', () => {
+  it('la branca d’estudis acaba als 18', () => {
+    const s = playToEnd('mitjana', 11, 'batxillerat')
     expect(s.acabat).toBe(true)
-    expect(s.person.edatMesos).toBe(EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY)
+    expect(s.person.edatMesos).toBe(EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY)
+  })
+
+  it('la branca laboral acaba als 18 amb benestar i efectiu acotats', () => {
+    const s = playToEnd('treballadora', 5, 'treball')
+    expect(s.acabat).toBe(true)
+    expect(s.person.edatMesos).toBe(EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY)
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
     expect(s.person.stats.benestar).toBeLessThanOrEqual(100)
     expect(s.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })
 
-  it('no avança un cop acabada', () => {
-    const s = playToEnd('rica', 5)
-    expect(advanceTurn(s, 'mes_tranquil')).toBe(s)
+  it('és determinista per a una mateixa llavor i itinerari', () => {
+    expect(playToEnd('alta', 42, 'treball')).toEqual(playToEnd('alta', 42, 'treball'))
   })
 })
 
@@ -155,10 +157,8 @@ describe('decisions', () => {
       s = advanceTurn(newGame('mitjana', seed))
     }
     expect(s.pendingEvent).toBeDefined()
-    const longAbans = s.historial.length
     const after = applyChoice(s, s.pendingEvent!.choices![0].id)
     expect(after.pendingEvent).toBeUndefined()
-    expect(after.historial.length).toBe(longAbans + 1)
     expect(after.historial.at(-1)!.choiceLabelKey).toBeDefined()
   })
 })

@@ -2,20 +2,27 @@ import {
   DERIVA_BENESTAR,
   EDAT_FI_ADOLESCENCIA,
   EDAT_FI_INFANCIA,
+  EDAT_FI_POSTOBLIGATORI,
   MESOS_PER_ANY,
   MESOS_PER_ESTACIO,
 } from './constants'
 import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
+import { NINI_EVENTS, TREBALL_EVENTS } from './events/laboral'
 import { CHILDHOOD_EVENTS } from './events/pool'
 import { FAMILY_PRESETS } from './family/presets'
+import { MILESTONES } from './milestones'
 import { seedFromTime } from './rng'
 import {
+  applyBudgetMonth,
   applyEffect,
+  baselineBenestar,
   clampBenestar,
+  defaultBudget,
   estalviAnualCriatura,
   familyBaselineBenestar,
+  ingressosMensuals16,
   pagaMensual,
 } from './stats'
 import { edatAnys } from './time'
@@ -29,6 +36,9 @@ import type {
   LogEntry,
   Person,
 } from './types'
+
+/** Petit ajut mensual de pràctiques per a qui fa un grau mitjà (per trimestre). */
+const ESTIPENDI_GRAU_MIG = 150
 
 /** Crea una partida nova a partir d'un preset de família. */
 export function newGame(
@@ -53,18 +63,66 @@ export function newGame(
   }
 }
 
+/** Inici ràpid directament al fork dels 16 anys (per a proves manuals). */
+export function newGameAt16(
+  presetId: FamilyClass,
+  seed: number = seedFromTime(),
+): GameState {
+  const preset = FAMILY_PRESETS[presetId]
+  const familia = { ...preset.familia }
+  const person: Person = {
+    edatMesos: EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY,
+    stats: { benestar: familyBaselineBenestar(familia) },
+    patrimoni: { efectiu: 50, estalvi: 200, inversions: 0, cases: [] },
+  }
+  return {
+    torn: 16,
+    lifeStage: 'adolescencia',
+    person,
+    familia,
+    rngState: seed >>> 0,
+    pendingMilestone: 'postobligatori',
+    historial: [],
+    acabat: false,
+  }
+}
+
 /** Mesos que avança cada torn segons la fase. */
 function turnMonths(stage: LifeStage): number {
-  return stage === 'infancia' ? MESOS_PER_ANY : MESOS_PER_ESTACIO
+  if (stage === 'infancia') return MESOS_PER_ANY
+  if (stage === 'laboral') return 1
+  return MESOS_PER_ESTACIO
+}
+
+/** Fases en què el jugador tria una acció de targeta cada torn. */
+function isActionStage(stage: LifeStage): boolean {
+  return stage === 'adolescencia' || stage === 'estudis_post'
+}
+
+/** Pool d'esdeveniments corresponent a la fase (i itinerari) actual. */
+function eventPool(state: GameState): GameEvent[] {
+  switch (state.lifeStage) {
+    case 'infancia':
+      return CHILDHOOD_EVENTS
+    case 'laboral':
+      return state.itinerari === 'nini' ? NINI_EVENTS : TREBALL_EVENTS
+    default:
+      return ADOLESCENCE_EVENTS
+  }
 }
 
 /**
- * Totes les accions adolescents amb el seu estat. No s'amaguen: les que no es
- * poden fer es retornen `disabled` amb el motiu (temporada, diners o benestar)
- * perquè la UI les mostri atenuades. Buit fora de l'adolescència.
+ * Totes les accions de targeta amb el seu estat. No s'amaguen: les que no es
+ * poden fer es retornen `disabled` amb el motiu (temporada, diners o benestar).
+ * Buit fora de les fases d'acció.
  */
 export function actionOptions(state: GameState): ActionOption[] {
-  if (state.lifeStage !== 'adolescencia' || state.acabat || state.pendingEvent) {
+  if (
+    !isActionStage(state.lifeStage) ||
+    state.acabat ||
+    state.pendingEvent ||
+    state.pendingMilestone
+  ) {
     return []
   }
   // Caixa prevista després d'ingressar la paga del trimestre (no hi ha deute).
@@ -90,48 +148,66 @@ export function actionOptions(state: GameState): ActionOption[] {
 }
 
 /**
- * Avança un torn. A la infància és un any (flux passiu i un esdeveniment); a
- * l'adolescència és un trimestre, on s'aplica primer l'acció triada (`actionId`)
- * i després pot saltar un esdeveniment. Si l'esdeveniment requereix una decisió,
- * queda pendent fins que el jugador crida `applyChoice`.
+ * Avança un torn segons la fase: infància (any), estudis (trimestre amb paga i
+ * acció) o laboral (mes amb ingrés + pressupost). Després pot saltar un
+ * esdeveniment; si requereix decisió, queda pendent fins a `applyChoice`.
  */
 export function advanceTurn(state: GameState, actionId?: string): GameState {
-  if (state.acabat || state.pendingEvent) return state
+  if (state.acabat || state.pendingEvent || state.pendingMilestone) return state
 
   const stage = state.lifeStage
   const torn = state.torn + 1
   const edatMesos = state.person.edatMesos + turnMonths(stage)
   const anys = edatAnys(edatMesos)
 
-  // Deriva del benestar cap a la referència de l'entorn (els xocs es recuperen
-  // a poc a poc).
-  const baseline = familyBaselineBenestar(state.familia)
+  // Deriva del benestar cap a la referència de l'entorn.
+  const baseline = baselineBenestar(state)
   const benestar = clampBenestar(
     Math.round(
       state.person.stats.benestar +
         (baseline - state.person.stats.benestar) * DERIVA_BENESTAR,
     ),
   )
-
-  // Flux passiu de patrimoni: estalvi familiar (infància) o paga (adolescència).
-  const patrimoni = { ...state.person.patrimoni }
-  if (stage === 'infancia') {
-    patrimoni.estalvi += estalviAnualCriatura(state.familia)
-  } else {
-    patrimoni.efectiu += pagaMensual(state.familia) * MESOS_PER_ESTACIO
-  }
-
   let person: Person = {
     ...state.person,
     edatMesos,
     stats: { ...state.person.stats, benestar },
-    patrimoni,
+  }
+
+  // Flux econòmic per fase.
+  if (stage === 'infancia') {
+    person = {
+      ...person,
+      patrimoni: {
+        ...person.patrimoni,
+        estalvi: person.patrimoni.estalvi + estalviAnualCriatura(state.familia),
+      },
+    }
+  } else if (stage === 'laboral') {
+    const income = ingressosMensuals16(state)
+    const budget = state.pressupost ?? defaultBudget(income)
+    person = applyBudgetMonth(person, budget, income)
+  } else {
+    const estipendi =
+      stage === 'estudis_post' && state.itinerari === 'grau_mig'
+        ? ESTIPENDI_GRAU_MIG
+        : 0
+    person = {
+      ...person,
+      patrimoni: {
+        ...person.patrimoni,
+        efectiu:
+          person.patrimoni.efectiu +
+          pagaMensual(state.familia) * MESOS_PER_ESTACIO +
+          estipendi,
+      },
+    }
   }
 
   const entries: LogEntry[] = []
 
-  // Acció voluntària (només adolescència).
-  if (stage === 'adolescencia' && actionId) {
+  // Acció voluntària (fases d'estudi).
+  if (isActionStage(stage) && actionId) {
     const action = findAction(actionId)
     if (action) {
       person = applyEffect(person, action.effect)
@@ -148,9 +224,8 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     }
   }
 
-  const pool = stage === 'adolescencia' ? ADOLESCENCE_EVENTS : CHILDHOOD_EVENTS
   const { event, rngState } = selectEvent(
-    pool,
+    eventPool(state),
     state.familia,
     state.rngState,
     state.ultimEventId,
@@ -177,7 +252,13 @@ export function applyChoice(state: GameState, choiceId: string): GameState {
   if (!event || !event.choices) return state
   const choice = event.choices.find((c) => c.id === choiceId)
   if (!choice) return state
-  return resolveEvent(state, event, choice.effect, edatAnys(state.person.edatMesos), choice.labelKey)
+  return resolveEvent(
+    state,
+    event,
+    choice.effect,
+    edatAnys(state.person.edatMesos),
+    choice.labelKey,
+  )
 }
 
 function resolveEvent(
@@ -200,42 +281,64 @@ function resolveEvent(
     choiceLabelKey,
     effect,
   }
-  const acabat = person.edatMesos >= EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY
-  // En tancar l'últim torn d'infància (12 anys) marquem la transició perquè la UI
-  // mostri la pantalla intermèdia abans de començar l'institut.
-  const transicioPendent =
+
+  // Fites i final segons l'edat assolida.
+  const acabat = person.edatMesos >= EDAT_FI_POSTOBLIGATORI * MESOS_PER_ANY
+  let pendingMilestone = state.pendingMilestone
+  if (
     state.lifeStage === 'infancia' &&
     person.edatMesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
+  ) {
+    pendingMilestone = 'institut'
+  } else if (
+    state.lifeStage === 'adolescencia' &&
+    person.edatMesos >= EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY
+  ) {
+    pendingMilestone = 'postobligatori'
+  }
+
   return {
     ...state,
     person,
     pendingEvent: undefined,
-    transicioPendent,
+    pendingMilestone,
     historial: [...state.historial, entry],
     acabat,
   }
 }
 
 /**
- * Confirma la transició de la infància a l'adolescència: canvia de fase, neteja
- * el flag i deixa constància al registre. La crida la pantalla de transició.
+ * Aplica l'opció escollida en una fita: canvia de fase i itinerari, inicialitza
+ * el pressupost si entra a la fase laboral, i deixa constància al registre.
  */
-export function continuePhase(state: GameState): GameState {
-  if (!state.transicioPendent) return state
+export function applyMilestoneChoice(
+  state: GameState,
+  optionId: string,
+): GameState {
+  const milestone = state.pendingMilestone
+  if (!milestone) return state
+  const option = MILESTONES[milestone].options.find((o) => o.id === optionId)
+  if (!option) return state
+
+  const next: GameState = {
+    ...state,
+    lifeStage: option.lifeStage,
+    itinerari: option.itinerari,
+    pendingMilestone: undefined,
+  }
+  if (option.lifeStage === 'laboral') {
+    next.pressupost = defaultBudget(ingressosMensuals16(next))
+  }
   const entry: LogEntry = {
     torn: state.torn,
     edatAnys: edatAnys(state.person.edatMesos),
-    eventId: 'transicio_institut',
-    titleKey: 'transition.institut.title',
-    descKey: 'transition.institut.desc',
+    eventId: `milestone_${option.id}`,
+    titleKey: option.labelKey,
+    descKey: option.descKey,
     category: 'escola',
     kind: 'event',
     effect: {},
   }
-  return {
-    ...state,
-    lifeStage: 'adolescencia',
-    transicioPendent: false,
-    historial: [...state.historial, entry],
-  }
+  next.historial = [...state.historial, entry]
+  return next
 }

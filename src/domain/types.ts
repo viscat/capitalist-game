@@ -9,9 +9,28 @@ export type FamilyClass =
   | 'rica'
   | 'super_rica'
 
-// Infància (torns anuals) i adolescència/ESO (torns estacionals). El motor està
-// pensat per encaixar fases futures (estudis, vida adulta...) sense reescriure.
-export type LifeStage = 'infancia' | 'adolescencia'
+// Fases de la vida. Infància (anual) i adolescència/ESO (trimestral); als 16
+// es ramifica en estudis postobligatoris (trimestral) o feina/nini (mensual, amb
+// pressupost). El motor està pensat per encaixar fases futures sense reescriure.
+export type LifeStage =
+  | 'infancia'
+  | 'adolescencia'
+  | 'estudis_post'
+  | 'laboral'
+
+/** Itinerari triat al fork dels 16 anys. */
+export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
+
+/** Fites de la vida que obren una pantalla de decisió. */
+export type MilestoneId = 'institut' | 'postobligatori'
+
+/** Pressupost mensual de la fase laboral (imports en €). El sobrant va a efectiu. */
+export interface Budget {
+  oci: number
+  compres: number
+  casa: number
+  estalvi: number
+}
 
 export interface Stats {
   /** Benestar global 0..100 (condensa felicitat / angoixa / tranquil·litat). */
@@ -129,8 +148,12 @@ export interface GameState {
   ultimEventId?: string
   /** Esdeveniment pendent d'una decisió del jugador (bloqueja el següent torn). */
   pendingEvent?: GameEvent
-  /** Cert quan s'acaba la infància i cal mostrar la pantalla de transició. */
-  transicioPendent?: boolean
+  /** Fita pendent: la UI mostra la pantalla de decisió corresponent. */
+  pendingMilestone?: MilestoneId
+  /** Itinerari triat als 16 (fases estudis_post / laboral). */
+  itinerari?: Itinerari
+  /** Pressupost mensual actiu (fase laboral). */
+  pressupost?: Budget
   historial: LogEntry[]
   acabat: boolean
 }
