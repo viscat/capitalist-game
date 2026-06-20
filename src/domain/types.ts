@@ -9,9 +9,9 @@ export type FamilyClass =
   | 'rica'
   | 'super_rica'
 
-// De moment només la infància. El motor està pensat per encaixar fases futures
-// (adolescència mensual, estudis, vida adulta...) sense reescriure.
-export type LifeStage = 'infancia'
+// Infància (torns anuals) i adolescència/ESO (torns estacionals). El motor està
+// pensat per encaixar fases futures (estudis, vida adulta...) sense reescriure.
+export type LifeStage = 'infancia' | 'adolescencia'
 
 export interface Stats {
   /** Benestar global 0..100 (condensa felicitat / angoixa / tranquil·litat). */
@@ -83,6 +83,21 @@ export interface GameEvent {
   choices?: EventChoice[]
 }
 
+/**
+ * Acció proactiva que el jugador tria a l'inici d'un torn (adolescència). A
+ * diferència dels esdeveniments (reactius), és una decisió voluntària amb cost i
+ * efecte coneguts.
+ */
+export interface GameAction {
+  id: string
+  category: EventCategory
+  labelKey: string
+  descKey: string
+  effect: EventEffect
+  /** Disponible només si es compleix la condició de context (p. ex. estiu). */
+  available?: (state: GameState) => boolean
+}
+
 /** Entrada de l'historial: què ha passat en un torn i quin efecte ha tingut. */
 export interface LogEntry {
   torn: number
@@ -92,6 +107,8 @@ export interface LogEntry {
   descKey: string
   params?: Record<string, number>
   category: EventCategory
+  /** Distingeix una acció voluntària del jugador d'un esdeveniment reactiu. */
+  kind?: 'event' | 'action'
   /** Etiqueta de l'opció escollida, si l'esdeveniment en tenia. */
   choiceLabelKey?: string
   /** Efecte realment aplicat. */

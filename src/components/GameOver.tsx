@@ -40,6 +40,23 @@ export function GameOver() {
           </div>
         </div>
 
+        <div className="mt-8">
+          <p className="mb-3 text-sm font-semibold text-slate-300">
+            {t('gameover.fork.question')}
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {(['estudiar', 'treballar'] as const).map((opt) => (
+              <button
+                key={opt}
+                disabled
+                className="cursor-not-allowed rounded-lg bg-slate-800/70 px-4 py-3 text-sm font-medium text-slate-400 ring-1 ring-slate-700"
+              >
+                {t(`gameover.fork.${opt}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <p className="mt-6 text-sm italic text-slate-500">
           {t('gameover.soon')}
         </p>

@@ -1,5 +1,5 @@
-import { estalviAnualCriatura, patrimoniTotal } from '../domain/stats'
-import type { Familia, Person } from '../domain/types'
+import { estalviAnualCriatura, pagaMensual, patrimoniTotal } from '../domain/stats'
+import type { Familia, LifeStage, Person } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
@@ -15,9 +15,11 @@ function Row({ label, value }: { label: string; value: string }) {
 export function PatrimoniPanel({
   person,
   familia,
+  stage,
 }: {
   person: Person
   familia: Familia
+  stage: LifeStage
 }) {
   const { t } = useT()
   const { efectiu, estalvi, inversions, cases } = person.patrimoni
@@ -54,10 +56,17 @@ export function PatrimoniPanel({
             label={t('context.ingressos')}
             value={`${formatEuros(familia.ingressosMensuals)}/mes`}
           />
-          <Row
-            label={t('context.estalviAnual')}
-            value={formatEuros(estalviAnualCriatura(familia))}
-          />
+          {stage === 'adolescencia' ? (
+            <Row
+              label={t('context.paga')}
+              value={`${formatEuros(pagaMensual(familia))}/mes`}
+            />
+          ) : (
+            <Row
+              label={t('context.estalviAnual')}
+              value={formatEuros(estalviAnualCriatura(familia))}
+            />
+          )}
         </div>
       </div>
     </div>

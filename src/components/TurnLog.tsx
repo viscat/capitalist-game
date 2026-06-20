@@ -18,10 +18,15 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
           {items.map((entry, i) => (
             <li
               key={`${entry.torn}-${i}`}
-              className="border-l-2 border-slate-700 pl-3"
+              className={`border-l-2 pl-3 ${
+                entry.kind === 'action'
+                  ? 'border-indigo-500/60'
+                  : 'border-slate-700'
+              }`}
             >
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-sm font-medium text-slate-200">
+                  {entry.kind === 'action' && '▸ '}
                   {t(entry.titleKey)}
                 </span>
                 <span className="shrink-0 text-xs text-slate-500">

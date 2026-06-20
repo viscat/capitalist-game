@@ -53,13 +53,29 @@ export function estalviAnualCriatura(familia: Familia): number {
   return Math.round((perPatrimoni + perIngressos) / 10) * 10
 }
 
+/**
+ * Paga mensual que rep l'adolescent segons la capacitat de la família. Marca el
+ * punt de partida de la gestió activa dels diners.
+ */
+export function pagaMensual(familia: Familia): number {
+  const perIngressos = familia.ingressosMensuals * 0.008
+  const perPatrimoni = Math.min(familia.patrimoni, 2_000_000) * 0.00015
+  return Math.round((perIngressos + perPatrimoni) / 5) * 5
+}
+
 /** Aplica un EventEffect a una persona retornant una còpia nova (immutable). */
 export function applyEffect(person: Person, effect: EventEffect): Person {
+  // Els comptes no baixen de zero (no modelem deute en aquesta fase).
   const patrimoni = { ...person.patrimoni }
-  if (effect.efectiu) patrimoni.efectiu = Math.round(patrimoni.efectiu + effect.efectiu)
-  if (effect.estalvi) patrimoni.estalvi = Math.round(patrimoni.estalvi + effect.estalvi)
+  if (effect.efectiu)
+    patrimoni.efectiu = Math.max(0, Math.round(patrimoni.efectiu + effect.efectiu))
+  if (effect.estalvi)
+    patrimoni.estalvi = Math.max(0, Math.round(patrimoni.estalvi + effect.estalvi))
   if (effect.inversions)
-    patrimoni.inversions = Math.round(patrimoni.inversions + effect.inversions)
+    patrimoni.inversions = Math.max(
+      0,
+      Math.round(patrimoni.inversions + effect.inversions),
+    )
 
   const stats = { ...person.stats }
   if (effect.benestar) stats.benestar = clampBenestar(stats.benestar + effect.benestar)

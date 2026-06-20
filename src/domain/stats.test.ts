@@ -4,6 +4,7 @@ import {
   clampBenestar,
   estalviAnualCriatura,
   familyBaselineBenestar,
+  pagaMensual,
 } from './stats'
 import { FAMILY_PRESETS } from './family/presets'
 import type { Person } from './types'
@@ -33,6 +34,26 @@ describe('applyEffect', () => {
   it('acota el benestar al màxim', () => {
     const next = applyEffect({ ...person, stats: { benestar: 98 } }, { benestar: 10 })
     expect(next.stats.benestar).toBe(100)
+  })
+
+  it('no deixa l’efectiu per sota de zero', () => {
+    const ric = {
+      ...person,
+      patrimoni: { ...person.patrimoni, efectiu: 30 },
+    }
+    const next = applyEffect(ric, { efectiu: -100 })
+    expect(next.patrimoni.efectiu).toBe(0)
+  })
+})
+
+describe('pagaMensual', () => {
+  it('és més gran com més recursos té la família', () => {
+    const pobra = pagaMensual(FAMILY_PRESETS.pobra.familia)
+    const mitjana = pagaMensual(FAMILY_PRESETS.mitjana.familia)
+    const rica = pagaMensual(FAMILY_PRESETS.rica.familia)
+    expect(pobra).toBeLessThan(mitjana)
+    expect(mitjana).toBeLessThan(rica)
+    expect(pobra).toBeGreaterThanOrEqual(0)
   })
 })
 

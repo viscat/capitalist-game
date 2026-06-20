@@ -4,7 +4,10 @@ Joc per torns sobre la **vida financera d'una persona**, des del naixement fins 
 la mort. L'objectiu és posar llum sobre la importància de les finances personals i
 sobre com l'origen familiar condiciona el punt de sortida en un món capitalista.
 
-> Estat actual: **prototip jugable (MVP)** — fase d'infància (0–12 anys, 1 torn = 1 any).
+### 🎮 Juga-hi: https://viscat.github.io/capitalist-game/
+
+> Estat actual: **prototip jugable** — fase d'infància (0–12, torns anuals) i
+> fase d'adolescència / ESO (12–16, torns trimestrals amb paga i decisions).
 
 ## Com funciona aquesta versió
 
@@ -16,7 +19,12 @@ sobre com l'origen familiar condiciona el punt de sortida en un món capitalista
    regals, salut, escola) que afecta el teu **benestar** i el teu **patrimoni**.
 3. Alguns esdeveniments ofereixen una **decisió** (p. ex. estalviar o gastar un
    regal en diners) — la primera llavor del pensament financer.
-4. Als 12 anys acaba la fase d'infància (final de l'MVP).
+4. Als **12 anys** entres a l'**institut (ESO)**: els torns passen a ser
+   **trimestrals**, comences a rebre una **paga** i cada trimestre tries una
+   **acció** (sortir amb amics, ajudar a casa per diners, feina d'estiu, un
+   caprici, o un trimestre tranquil). Gestiones activament estalvi vs despesa.
+5. Als **16 anys** acabes l'ESO i arribes al fork **seguir estudiant o treballar**
+   (les branques arribaran en una pròxima versió).
 
 ### Idea de disseny
 

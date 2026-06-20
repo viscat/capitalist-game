@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { advanceTurn, applyChoice, newGame } from '../domain/engine'
-import type { FamilyClass, GameState } from '../domain/types'
+import { advanceTurn, applyChoice, availableActions, newGame } from '../domain/engine'
+import type { FamilyClass, GameAction, GameState } from '../domain/types'
 
 const STORAGE_KEY = 'capitalist-game/save/v1'
 
@@ -19,9 +19,11 @@ interface GameContextValue {
   hasSave: boolean
   startGame: (preset: FamilyClass) => void
   continueGame: () => void
-  nextTurn: () => void
+  /** Avança un torn. A l'adolescència cal passar l'`actionId` triat. */
+  nextTurn: (actionId?: string) => void
   choose: (choiceId: string) => void
   reset: () => void
+  actions: GameAction[]
 }
 
 const GameContext = createContext<GameContextValue | null>(null)
@@ -48,7 +50,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       hasSave,
       startGame: (preset) => setState(newGame(preset)),
       continueGame: () => setState(loadSave()),
-      nextTurn: () => setState((s) => (s ? advanceTurn(s) : s)),
+      nextTurn: (actionId) =>
+        setState((s) => (s ? advanceTurn(s, actionId) : s)),
       choose: (choiceId) => setState((s) => (s ? applyChoice(s, choiceId) : s)),
       reset: () => {
         try {
@@ -59,6 +62,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setHasSave(false)
         setState(null)
       },
+      actions: state ? availableActions(state) : [],
     }),
     [state, hasSave],
   )

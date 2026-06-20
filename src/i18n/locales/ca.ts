@@ -45,6 +45,7 @@ export const ca: Record<string, string> = {
 
   // Pantalla de joc
   'game.stage.infancia': 'Infància',
+  'game.stage.adolescencia': 'Institut (ESO)',
   'game.age': '{anys} anys',
   'game.ageZero': 'Nadó (0 anys)',
   'game.turn': 'Torn {torn}',
@@ -70,9 +71,34 @@ export const ca: Record<string, string> = {
   'context.title': 'Context familiar',
   'context.ingressos': 'Ingressos de la llar',
   'context.estalviAnual': 'T’estalvien cada any',
+  'context.paga': 'La teva paga',
 
-  'event.thisYear': 'Aquest any...',
+  'event.thisYear': 'El que ha passat:',
   'event.choose': 'Què fas?',
+
+  // Estacions
+  'season.tardor': 'Tardor',
+  'season.hivern': 'Hivern',
+  'season.primavera': 'Primavera',
+  'season.estiu': 'Estiu',
+
+  // Accions (adolescència)
+  'action.title': 'Què fas aquest trimestre?',
+  'action.sortir_amics.label': 'Sortir amb els amics',
+  'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
+  'action.mes_tranquil.label': 'Trimestre tranquil',
+  'action.mes_tranquil.desc': 'Temps per a tu, sense gastar. Recarregues piles.',
+  'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
+  'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
+  'action.caprici.label': 'Donar-te un caprici',
+  'action.caprici.desc': 'Aquella cosa que tant vols. Alegria immediata, butxaca buida.',
+  'action.feina_estiu.label': 'Feina d’estiu',
+  'action.feina_estiu.desc': 'Treballar durant l’estiu: cansa, però omples la guardiola.',
+
+  // Transició a l'institut
+  'transition.institut.title': 'Comences l’institut',
+  'transition.institut.desc':
+    'Fas 12 anys i entres a l’ESO. A partir d’ara reps una paga i decideixes, trimestre a trimestre, què en fas.',
 
   'log.title': 'Història',
   'log.empty': 'Encara no ha passat res.',
@@ -84,13 +110,17 @@ export const ca: Record<string, string> = {
   'category.salut': 'Salut',
   'category.escola': 'Escola',
 
-  // Final de fase
-  'gameover.title': 'Fi de la infància',
+  // Final de fase (final de l'ESO, als 16)
+  'gameover.title': 'Fi de l’ESO',
   'gameover.subtitle':
-    'Has arribat als 12 anys. Aviat comença l’institut i la vida es controlarà mes a mes.',
+    'Has fet 16 anys i acabes l’ESO. Toca decidir què vols fer amb el teu futur.',
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni acumulat',
-  'gameover.soon': 'La pròxima fase (adolescència) arribarà en una futura versió.',
+  'gameover.fork.question': 'I ara, què faràs?',
+  'gameover.fork.estudiar': 'Seguir estudiant',
+  'gameover.fork.treballar': 'Posar-te a treballar',
+  'gameover.soon':
+    'El que ve després (batxillerat o feina, i la vida adulta) arribarà en una futura versió.',
   'gameover.restart': 'Tornar a començar',
 
   // --- Esdeveniments ---
@@ -156,4 +186,66 @@ export const ca: Record<string, string> = {
     'Pots apuntar-te a una activitat que t’agrada (esport, música...). T’hi apuntes?',
   'event.extraescolar.choice.apuntar': 'Apuntar-m’hi',
   'event.extraescolar.choice.no': 'Deixar-ho passar',
+
+  // --- Esdeveniments d'adolescència (ESO) ---
+  'event.examens.title': 'Època d’exàmens',
+  'event.examens.desc':
+    'Setmanes d’estudi intens i nervis. Les notes pesen i el cap també.',
+
+  'event.primer_amor.title': 'El primer amor',
+  'event.primer_amor.desc':
+    'T’has enamorat per primera vegada. Tot brilla una mica més.',
+
+  'event.bon_grup_amics.title': 'Una colla genial',
+  'event.bon_grup_amics.desc':
+    'Has trobat el teu grup. Rises, plans i gent que t’entén.',
+
+  'event.baralla_amics.title': 'Conflicte amb la colla',
+  'event.baralla_amics.desc':
+    'Una baralla forta amb els amics t’ha deixat tocat aquests dies.',
+
+  'event.xarxes.title': 'Comparacions a les xarxes',
+  'event.xarxes.desc':
+    'Hores de scroll i la sensació que tothom viu millor que tu. No ajuda.',
+
+  'event.pressio_grup.title': 'Pressió de grup',
+  'event.pressio_grup.desc':
+    'La colla s’ho compra tot i t’empenyen a fer el mateix ({cost} €). Què fas?',
+  'event.pressio_grup.choice.cedir': 'Seguir el corrent i comprar-ho',
+  'event.pressio_grup.choice.plantarse': 'Plantar-te i estalviar els diners',
+
+  'event.mobil_nou.title': 'Vols un mòbil nou',
+  'event.mobil_nou.desc':
+    'Ha sortit el model que vols ({cost} €). Tens estalvis... t’hi llences?',
+  'event.mobil_nou.choice.comprar': 'Comprar-lo amb els meus estalvis',
+  'event.mobil_nou.choice.esperar': 'Esperar i conservar el que tinc',
+
+  'event.feina_caps_setmana.title': 'Feina de caps de setmana',
+  'event.feina_caps_setmana.desc':
+    'T’ofereixen feina els caps de setmana ({amount} € el trimestre). L’acceptes?',
+  'event.feina_caps_setmana.choice.acceptar': 'Acceptar la feina',
+  'event.feina_caps_setmana.choice.rebutjar': 'Rebutjar-la i tenir temps lliure',
+
+  'event.conflicte_pares.title': 'Topades amb els pares',
+  'event.conflicte_pares.desc':
+    'Discutiu per horaris i llibertat. La convivència s’ha tensat.',
+
+  'event.paga_extra_avis.title': 'Els avis t’ajuden',
+  'event.paga_extra_avis.desc':
+    'Els avis t’han donat {amount} € «per a les teves coses».',
+
+  'event.despesa_inesperada.title': 'Una despesa imprevista',
+  'event.despesa_inesperada.desc':
+    'Se t’ha trencat una cosa i has hagut de pagar {cost} € de la teva butxaca.',
+
+  'event.esport_equip.title': 'Entres en un equip',
+  'event.esport_equip.desc':
+    'T’has apuntat a un equip i has fet pinya amb la gent. T’ho passes bé.',
+
+  'event.malaltia_ado.title': 'Uns dies de baixa',
+  'event.malaltia_ado.desc': 'Una grip et deixa fet pols uns quants dies.',
+
+  'event.festa.title': 'Una festa per recordar',
+  'event.festa.desc':
+    'Gran festa amb la colla ({cost} €). Cansat però amb un somriure.',
 }
