@@ -7,7 +7,13 @@ import {
   newGame,
   newGameAt16,
 } from './engine'
-import { familyBaselineBenestar, ingressosMensuals16, salariInicial } from './stats'
+import {
+  aportacioMinima,
+  augmentSou,
+  familyBaselineBenestar,
+  ingressosMensuals16,
+  salariInicial,
+} from './stats'
 import { edatAnys } from './time'
 import {
   EDAT_FI_ADOLESCENCIA,
@@ -156,6 +162,32 @@ describe('sou dinàmic i atur', () => {
     expect(after.person.stats.benestar).toBeLessThan(70)
     expect(after.historial.at(-1)!.descobert).toBeGreaterThan(0)
     expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+
+  it('demanar un augment apuja el sou i marca el cooldown anual', () => {
+    const s = laboralTreball()
+    const after = resolWith(s, [
+      {
+        id: 'a',
+        labelKey: 'x',
+        effect: {},
+        resolve: (st) => ({
+          salariDelta: augmentSou(st.salari ?? 0, st.person.stats.benestar),
+          marcaAugmentSou: true,
+        }),
+      },
+    ])
+    expect(after.salari).toBeGreaterThan(s.salari!)
+    expect(after.ultimAugmentMes).toBe(after.person.edatMesos)
+  })
+})
+
+describe('aportació obligatòria a casa', () => {
+  it('el pressupost inicial respecta el mínim obligatori segons la família', () => {
+    const s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
+    const min = aportacioMinima(s.familia, s.salari!)
+    expect(min).toBeGreaterThan(0)
+    expect(s.pressupost!.casa).toBeGreaterThanOrEqual(min)
   })
 })
 

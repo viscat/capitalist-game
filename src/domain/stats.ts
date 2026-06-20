@@ -1,5 +1,13 @@
 import { BENESTAR_MAX, BENESTAR_MIN, SALARI_BASE_16 } from './constants'
-import type { Budget, EventEffect, Familia, GameState, Itinerari, Person } from './types'
+import type {
+  Budget,
+  EventEffect,
+  Familia,
+  FamilyClass,
+  GameState,
+  Itinerari,
+  Person,
+} from './types'
 
 export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
@@ -176,14 +184,41 @@ export function resolveDespesaGreu(
   }
 }
 
-/** Pressupost mensual per defecte a partir de l'ingrés disponible. */
-export function defaultBudget(income: number): Budget {
-  const round = (n: number) => Math.round(n / 5) * 5
+/** Augment de sou en demanar-ne un: entre el 2% (benestar 0) i el 10% (benestar 100). */
+export function augmentSou(salari: number, benestar: number): number {
+  const pct = 0.02 + (clampBenestar(benestar) / 100) * 0.08
+  return Math.round((salari * pct) / 5) * 5
+}
+
+// Mentre es viu a casa, l'aportació a la família és obligatòria i més alta com més
+// pobra és la família (la més pobra: 50% del sou, fins a un màxim de 700 €/mes).
+const FACTOR_APORTACIO: Record<FamilyClass, number> = {
+  pobra: 0.5,
+  treballadora: 0.35,
+  mitjana: 0.2,
+  alta: 0.1,
+  rica: 0.05,
+  super_rica: 0,
+}
+const APORTACIO_MAX = 700
+
+/** Aportació mínima obligatòria a la família segons l'origen i l'ingrés. */
+export function aportacioMinima(familia: Familia, income: number): number {
+  if (income <= 0) return 0
+  const min = Math.min(FACTOR_APORTACIO[familia.classe] * income, APORTACIO_MAX)
+  return Math.round(min / 5) * 5
+}
+
+/** Pressupost mensual per defecte; respecta l'aportació mínima obligatòria a casa. */
+export function defaultBudget(income: number, minCasa = 0): Budget {
+  const round = (n: number) => Math.max(0, Math.round(n / 5) * 5)
+  const casa = Math.max(round(income * 0.1), minCasa)
+  const rest = Math.max(0, income - casa)
   return {
-    estalvi: round(income * 0.25),
-    oci: round(income * 0.2),
-    compres: round(income * 0.15),
-    casa: round(income * 0.1),
+    casa,
+    estalvi: round(rest * 0.4),
+    oci: round(rest * 0.35),
+    compres: round(rest * 0.25),
   }
 }
 
@@ -197,6 +232,7 @@ export function applyBudgetMonth(
   person: Person,
   budget: Budget,
   income: number,
+  minCasa = 0,
 ): Person {
   const patrimoni = { ...person.patrimoni }
   // Caixa disponible aquest mes (ingrés + el que ja hi havia).
@@ -207,10 +243,11 @@ export function applyBudgetMonth(
     disponible -= real
     return real
   }
+  // L'aportació a la família és obligatòria: es paga primer i mai per sota del mínim.
+  gasta(Math.max(budget.casa, minCasa))
   const aEstalvi = gasta(budget.estalvi)
   const oci = gasta(budget.oci)
   gasta(budget.compres)
-  gasta(budget.casa)
 
   patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
   patrimoni.efectiu = Math.round(disponible)

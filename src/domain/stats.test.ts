@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   ajutFamiliarMax,
+  aportacioMinima,
   applyEffect,
+  augmentSou,
   clampBenestar,
   estalviAnualCriatura,
   familyBaselineBenestar,
@@ -95,6 +97,27 @@ describe('ajutFamiliarMax', () => {
     const pobra = ajutFamiliarMax(FAMILY_PRESETS.pobra.familia)
     const rica = ajutFamiliarMax(FAMILY_PRESETS.rica.familia)
     expect(pobra).toBeLessThan(rica)
+  })
+})
+
+describe('augmentSou', () => {
+  it('va del 2% (benestar 0) al 10% (benestar 100) del sou', () => {
+    expect(augmentSou(1000, 0)).toBe(20)
+    expect(augmentSou(1000, 100)).toBe(100)
+    expect(augmentSou(1000, 50)).toBeGreaterThan(augmentSou(1000, 0))
+  })
+})
+
+describe('aportacioMinima', () => {
+  it('és més alta com més pobra és la família, amb un màxim de 700', () => {
+    const pobra = aportacioMinima(FAMILY_PRESETS.pobra.familia, 2000)
+    const rica = aportacioMinima(FAMILY_PRESETS.rica.familia, 2000)
+    expect(pobra).toBeGreaterThan(rica)
+    expect(pobra).toBe(700) // 50% de 2000 = 1000, però es capa a 700
+  })
+
+  it('és 0 sense ingrés', () => {
+    expect(aportacioMinima(FAMILY_PRESETS.pobra.familia, 0)).toBe(0)
   })
 })
 

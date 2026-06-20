@@ -157,6 +157,7 @@ export const ca: Record<string, string> = {
   'budget.compres.desc': 'Roba, tecnologia, els teus gustos.',
   'budget.casa': 'A casa',
   'budget.casa.desc': 'El que aportes a la família.',
+  'budget.casa.obligatori': 'Obligatori mentre vius a casa · mín. {min}',
   'budget.lliure': 'Sense assignar (a efectiu)',
   'budget.nextMonth': 'Següent mes →',
 

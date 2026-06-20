@@ -1,5 +1,9 @@
 import { PAS_PRESSUPOST } from '../domain/constants'
-import { defaultBudget, ingressosMensuals16 } from '../domain/stats'
+import {
+  aportacioMinima,
+  defaultBudget,
+  ingressosMensuals16,
+} from '../domain/stats'
 import type { Budget } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -13,13 +17,20 @@ export function BudgetPanel() {
   if (!state) return null
 
   const income = ingressosMensuals16(state)
-  const budget = state.pressupost ?? defaultBudget(income)
+  // Aportació mínima obligatòria a casa (només si tens sou propi).
+  const minCasa =
+    state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
+  const base = state.pressupost ?? defaultBudget(income, minCasa)
+  // La casa mai per sota del mínim obligatori.
+  const budget: Budget = { ...base, casa: Math.max(base.casa, minCasa) }
   const total = CATEGORIES.reduce((sum, k) => sum + budget[k], 0)
   const lliure = income - total
 
+  const minOf = (k: keyof Budget) => (k === 'casa' ? minCasa : 0)
+
   const set = (k: keyof Budget, delta: number) => {
-    const next = Math.max(0, budget[k] + delta)
     if (delta > 0 && total + delta > income) return // no assignis més del que ingresses
+    const next = Math.max(minOf(k), budget[k] + delta)
     setBudget({ ...budget, [k]: next })
   }
 
@@ -41,12 +52,16 @@ export function BudgetPanel() {
               <div className="text-sm font-medium text-slate-100">
                 {t(`budget.${k}`)}
               </div>
-              <div className="text-xs text-slate-500">{t(`budget.${k}.desc`)}</div>
+              <div className="text-xs text-slate-500">
+                {k === 'casa' && minCasa > 0
+                  ? t('budget.casa.obligatori', { min: formatEuros(minCasa) })
+                  : t(`budget.${k}.desc`)}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => set(k, -PAS_PRESSUPOST)}
-                disabled={budget[k] <= 0}
+                disabled={budget[k] <= minOf(k)}
                 className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 −

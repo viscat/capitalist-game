@@ -97,6 +97,8 @@ export interface EventEffect {
   salariNou?: number
   /** Despesa gran subjecta al matalàs familiar (separada d'`efectiu`). */
   despesaGreu?: number
+  /** Marca que aquest efecte és una pujada de sou demanada (cooldown anual). */
+  marcaAugmentSou?: boolean
 }
 
 export interface EventChoice {
@@ -189,6 +191,8 @@ export interface GameState {
   salari?: number
   /** Sou de referència d'aquesta partida (per a reincorporacions). */
   salariBase?: number
+  /** Edat (mesos) en què es va demanar l'últim augment (cooldown anual). */
+  ultimAugmentMes?: number
   historial: LogEntry[]
   acabat: boolean
 }

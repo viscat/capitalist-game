@@ -20,6 +20,7 @@ import { FAMILY_PRESETS } from './family/presets'
 import { MILESTONES } from './milestones'
 import { seedFromTime } from './rng'
 import {
+  aportacioMinima,
   applyBudgetMonth,
   applyEffect,
   baselineBenestar,
@@ -133,7 +134,15 @@ function eventPool(state: GameState): GameEvent[] {
           : (state.salari ?? 0) > 0
             ? TREBALL_EVENTS
             : ATUR_EVENTS
-      return [...base, ...COMMON_LIFE_EVENTS]
+      let pool = [...base, ...COMMON_LIFE_EVENTS]
+      // Demanar un augment: com a molt un cop l'any.
+      if (
+        state.ultimAugmentMes !== undefined &&
+        state.person.edatMesos - state.ultimAugmentMes < MESOS_PER_ANY
+      ) {
+        pool = pool.filter((e) => e.id !== 'demanar_augment')
+      }
+      return pool
     }
     default:
       return ADOLESCENCE_EVENTS
@@ -223,7 +232,9 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
   } else if (stage === 'laboral') {
     const income = ingressosMensuals16(state)
     const budget = state.pressupost ?? defaultBudget(income)
-    person = applyBudgetMonth(person, budget, income)
+    const minCasa =
+      state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
+    person = applyBudgetMonth(person, budget, income, minCasa)
   } else {
     const estipendi =
       stage === 'estudis_post' && state.itinerari === 'grau_mig'
@@ -356,10 +367,16 @@ function resolveEvent(
     pendingMilestone = 'postobligatori'
   }
 
+  // Cooldown de l'augment de sou demanat.
+  const ultimAugmentMes = effect.marcaAugmentSou
+    ? person.edatMesos
+    : state.ultimAugmentMes
+
   return {
     ...state,
     person,
     salari,
+    ultimAugmentMes,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],
@@ -390,7 +407,10 @@ export function applyMilestoneChoice(
     next.salari = next.salariBase = salariInicial(state.familia)
   }
   if (option.lifeStage === 'laboral') {
-    next.pressupost = defaultBudget(ingressosMensuals16(next))
+    const income = ingressosMensuals16(next)
+    const minCasa =
+      next.itinerari === 'treball' ? aportacioMinima(next.familia, income) : 0
+    next.pressupost = defaultBudget(income, minCasa)
   }
   const entry: LogEntry = {
     torn: state.torn,

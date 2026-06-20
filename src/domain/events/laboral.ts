@@ -1,4 +1,4 @@
-import { salariInicial } from '../stats'
+import { augmentSou, salariInicial } from '../stats'
 import type { GameEvent } from '../types'
 
 // Esdeveniments de la fase laboral (16-18), separats per situació. Molts tenen
@@ -25,7 +25,13 @@ export const TREBALL_EVENTS: GameEvent[] = [
       {
         id: 'demanar',
         labelKey: 'event.demanar_augment.choice.demanar',
-        effect: { salariDelta: 120, benestar: -2 },
+        effect: { benestar: -2 },
+        // Augment del 2% al 10% del sou segons el benestar; com a molt un cop l'any.
+        resolve: (s) => ({
+          salariDelta: augmentSou(s.salari ?? 0, s.person.stats.benestar),
+          benestar: -2,
+          marcaAugmentSou: true,
+        }),
       },
       {
         id: 'callar',
