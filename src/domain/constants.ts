@@ -32,11 +32,15 @@ export const SALARI_ADULT_BASE = 1650
 /** Plus de sou BRUT mensual per tenir un títol universitari. */
 export const PREMI_DIPLOMA = 800
 
+/** Salari mínim interprofessional: 17.000 € bruts anuals (terra del sou adult). */
+export const SALARI_MINIM_ANUAL = 17_000
+export const SALARI_MINIM_MENSUAL = Math.round(SALARI_MINIM_ANUAL / MESOS_PER_ANY)
+
 /** Pas d'ajust del pressupost mensual (€). */
 export const PAS_PRESSUPOST = 25
 
-/** Pas d'ajust del pla d'inversió anual (€). */
-export const PAS_PLA = 250
+/** Pas d'ajust del pla d'inversió anual (€). Múltiple de 12 → passos mensuals nets. */
+export const PAS_PLA = 300
 
 /** Fracció del desfasament cap al benestar de referència que es recupera per torn. */
 export const DERIVA_BENESTAR = 0.25

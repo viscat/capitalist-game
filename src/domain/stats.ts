@@ -15,6 +15,7 @@ import {
   RENDIMENT_PENSIONS,
   SALARI_ADULT_BASE,
   SALARI_BASE_16,
+  SALARI_MINIM_MENSUAL,
 } from './constants'
 import type {
   Budget,
@@ -500,13 +501,20 @@ export function balancUniversitatAnual(familia: Familia): number {
 
 // --- Carrera adulta (inversions, 18/22 → 35) ---
 
-/** Sou brut mensual d'una primera feina adulta: base (+ títol) + contactes − precarietat. */
+/**
+ * Sou brut mensual d'una primera feina adulta: base (+ títol) + contactes − precarietat.
+ * Les classes pobra i treballadora comencen la vida adulta amb el salari mínim (el títol
+ * universitari, si en tenen, s'hi suma per damunt). El salari mínim és el terra per a tothom.
+ */
 export function salariAdultInicial(familia: Familia, teDiploma: boolean): number {
-  const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
   const premi = teDiploma ? PREMI_DIPLOMA : 0
+  if (familia.classe === 'pobra' || familia.classe === 'treballadora') {
+    return SALARI_MINIM_MENSUAL + premi
+  }
+  const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
   const sou =
     SALARI_ADULT_BASE + premi + plusContactes - PRECARIETAT_SALARI[familia.classe]
-  return Math.max(600, Math.round(sou / 25) * 25)
+  return Math.max(SALARI_MINIM_MENSUAL, Math.round(sou / 25) * 25)
 }
 
 /** Ingrés NET anual disponible a la fase de carrera (sou brut × 12, menys impostos). */

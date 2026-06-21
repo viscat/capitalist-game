@@ -24,6 +24,7 @@ import {
   salariInicial,
 } from './stats'
 import { FAMILY_PRESETS } from './family/presets'
+import { SALARI_MINIM_MENSUAL } from './constants'
 import type { Patrimoni, Person } from './types'
 
 const person: Person = {
@@ -251,6 +252,19 @@ describe('salariAdultInicial', () => {
     const pobra = salariAdultInicial(FAMILY_PRESETS.pobra.familia, false)
     const rica = salariAdultInicial(FAMILY_PRESETS.rica.familia, false)
     expect(pobra).toBeLessThan(rica)
+  })
+
+  it('les classes pobra i treballadora comencen amb el salari mínim (17k bruts/any)', () => {
+    const pobra = salariAdultInicial(FAMILY_PRESETS.pobra.familia, false)
+    const treballadora = salariAdultInicial(FAMILY_PRESETS.treballadora.familia, false)
+    expect(pobra).toBe(SALARI_MINIM_MENSUAL)
+    expect(treballadora).toBe(SALARI_MINIM_MENSUAL)
+    expect(pobra * 12).toBeGreaterThanOrEqual(16_900)
+    expect(pobra * 12).toBeLessThanOrEqual(17_100)
+    // Cap classe comença per sota del salari mínim.
+    expect(salariAdultInicial(FAMILY_PRESETS.mitjana.familia, false)).toBeGreaterThanOrEqual(
+      SALARI_MINIM_MENSUAL,
+    )
   })
 })
 

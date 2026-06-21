@@ -227,9 +227,9 @@ export const ca: Record<string, string> = {
 
   // Pla d'inversió anual (fase de carrera)
   'pla.title': 'On poses els teus diners?',
-  'pla.income': 'Sou net',
-  'pla.costVida': 'Cost de vida: {cost}/any (obligatori)',
-  'pla.disponible': 'Per repartir: {amount}',
+  'pla.income': 'Sou',
+  'pla.costVida': 'Cost de vida',
+  'pla.costVida.desc': 'El dia a dia. Obligatori, no es pot modificar.',
   'pla.oci': 'Oci i vida',
   'pla.oci.desc': 'Gaudir del present. El que et dóna (o et treu) benestar.',
   'pla.estalvi': 'Estalvi',
@@ -242,7 +242,8 @@ export const ca: Record<string, string> = {
   'pla.benestar.min': 'Dedica almenys {min} a oci per no perdre benestar.',
   'pla.notaIndex': 'El fons indexat rendeix de mitjana ~{pct}% l’any, però amb sotracs.',
   'pla.notaPensions': 'Desgravació fiscal: et tornen {amount} a efectiu.',
-  'pla.costHabitatge': 'habitatge {cost}/any',
+  'pla.costHabitatge': 'Habitatge',
+  'pla.costHabitatge.desc': 'Lloguer o hipoteca. Obligatori, no es pot modificar.',
   'pla.lliure': 'Sense assignar (a efectiu)',
   'pla.nextYear': 'Següent any →',
 
