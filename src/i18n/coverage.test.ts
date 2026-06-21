@@ -142,10 +142,9 @@ describe('cobertura i18n (català)', () => {
         `budget.${k}`,
         `budget.${k}.desc`,
       ]),
-      ...['oci', 'estalvi', 'fonsIndexat', 'fonsPensions'].flatMap((k) => [
-        `pla.${k}`,
-        `pla.${k}.desc`,
-      ]),
+      ...['oci', 'estalvi', 'fonsIndexat', 'fonsPensions', 'costVida', 'costHabitatge'].flatMap(
+        (k) => [`pla.${k}`, `pla.${k}.desc`],
+      ),
       ...['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'].map(
         (f) => `patrimoni.${f}`,
       ),
