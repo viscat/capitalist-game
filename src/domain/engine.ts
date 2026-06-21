@@ -32,6 +32,7 @@ import {
   balancUniversitatAnual,
   baselineBenestar,
   clampBenestar,
+  costVidaPropi,
   defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
@@ -340,6 +341,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       pla,
       income,
       rendimentIndexAnual(draw.value),
+      costVidaPropi(income, state.familia, habitatge),
       costHabitatgeAnual(habitatge),
     )
   } else {

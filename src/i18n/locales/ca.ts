@@ -230,6 +230,7 @@ export const ca: Record<string, string> = {
   'pla.income': 'Sou',
   'pla.costVida': 'Cost de vida',
   'pla.costVida.desc': 'El dia a dia. Obligatori, no es pot modificar.',
+  'pla.costVida.cobreix': 'Els teus pares et cobreixen {amount}/mes del cost de vida.',
   'pla.oci': 'Oci i vida',
   'pla.oci.desc': 'Gaudir del present. El que et dóna (o et treu) benestar.',
   'pla.estalvi': 'Estalvi',

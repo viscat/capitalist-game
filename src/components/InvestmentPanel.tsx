@@ -6,7 +6,8 @@ import {
 } from '../domain/constants'
 import {
   benestarOciAnual,
-  costVidaAnual,
+  cobreixVidaFamiliar,
+  costVidaPropi,
   defaultPlaInversio,
   desgravacioPensions,
   ingressosAnualsCarrera,
@@ -38,7 +39,9 @@ export function InvestmentPanel() {
 
   // El model treballa en anual; el panell ho presenta tot en mensual.
   const income = ingressosAnualsCarrera(state)
-  const costVida = costVidaAnual(income)
+  // El cost de vida és la teva aportació; si vius amb els pares, en cobreixen una part.
+  const costVida = costVidaPropi(income, state.familia, state.habitatge)
+  const cobertFamilia = cobreixVidaFamiliar(income, state.familia, state.habitatge)
   const costHab = costHabitatgeAnual(state.habitatge)
   const efectiu = state.person.patrimoni.efectiu
   // El que es pot repartir: efectiu acumulat + sou − despeses obligatòries.
@@ -90,6 +93,11 @@ export function InvestmentPanel() {
             </div>
           </div>
         ))}
+        {cobertFamilia > 0 && (
+          <p className="text-xs text-emerald-300/90">
+            🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
+          </p>
+        )}
 
         {/* Repartiment lliure. */}
         {CATEGORIES.map((k) => (
