@@ -1,10 +1,12 @@
-import { PAS_PRESSUPOST } from '../domain/constants'
+import { MESOS_PER_ANY, PAS_PRESSUPOST } from '../domain/constants'
 import {
   aportacioMinima,
   benestarEstilDeVida,
   defaultBudget,
   ingressosMensuals16,
   minimOciCompres,
+  penalitzacioDescobert,
+  repartDeficit,
 } from '../domain/stats'
 import type { Budget } from '../domain/types'
 import { useGame } from '../state/GameContext'
@@ -26,7 +28,22 @@ export function BudgetPanel() {
   // La casa mai per sota del mínim obligatori.
   const budget: Budget = { ...base, casa: Math.max(base.casa, minCasa) }
   const total = CATEGORIES.reduce((sum, k) => sum + budget[k], 0)
-  const lliure = income - total
+
+  // Pots gastar per sobre del sou tirant dels teus estalvis (repartits al llarg de l'any).
+  const efectiu = state.person.patrimoni.efectiu
+  const estalvi = state.person.patrimoni.estalvi
+  const assignable = income + (efectiu + estalvi) / MESOS_PER_ANY
+
+  // Balanç del mes: ingrés − pressupost. Pot ser negatiu (tires d'estalvis).
+  const balancMes = income - total
+  // Descobert: quan les necessitats anuals superen sou + estalvis + família.
+  const necessitatsAnual = (budget.casa + budget.oci + budget.compres) * MESOS_PER_ANY
+  const deficit = repartDeficit(
+    Math.max(0, necessitatsAnual - (efectiu + income * MESOS_PER_ANY)),
+    estalvi,
+    state.familia,
+  )
+  const benestarDescobert = penalitzacioDescobert(deficit.descobert)
 
   // Benestar mensual segons l'oci+compres i el mínim per no perdre'n.
   const benestar = benestarEstilDeVida(budget.oci, budget.compres, income)
@@ -35,7 +52,8 @@ export function BudgetPanel() {
   const minOf = (k: keyof Budget) => (k === 'casa' ? minCasa : 0)
 
   const set = (k: keyof Budget, delta: number) => {
-    if (delta > 0 && total + delta > income) return // no assignis més del que ingresses
+    // Pots assignar per sobre del sou mentre ho cobreixin els teus estalvis.
+    if (delta > 0 && total + delta > assignable) return
     const next = Math.max(minOf(k), budget[k] + delta)
     setBudget({ ...budget, [k]: next })
   }
@@ -77,7 +95,7 @@ export function BudgetPanel() {
               </span>
               <button
                 onClick={() => set(k, PAS_PRESSUPOST)}
-                disabled={total + PAS_PRESSUPOST > income}
+                disabled={total + PAS_PRESSUPOST > assignable}
                 className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 +
@@ -109,9 +127,27 @@ export function BudgetPanel() {
           </p>
         )}
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('budget.lliure')}</span>
-          <span className="font-medium text-emerald-300">{formatEuros(lliure)}</span>
+          <span className="text-slate-400">{t('budget.balanc')}</span>
+          <span
+            className={`font-semibold ${
+              balancMes < 0 ? 'text-amber-400' : 'text-emerald-300'
+            }`}
+          >
+            {balancMes >= 0 ? '+' : ''}
+            {formatEuros(balancMes)}/mes
+          </span>
         </div>
+        {balancMes < 0 && deficit.descobert <= 0 && (
+          <p className="text-xs text-amber-400/80">{t('budget.balanc.estalvis')}</p>
+        )}
+        {deficit.descobert > 0 && (
+          <p className="text-xs text-red-400">
+            {t('budget.balanc.descobert', {
+              amount: formatEuros(Math.round(deficit.descobert / MESOS_PER_ANY)),
+              punts: benestarDescobert,
+            })}
+          </p>
+        )}
       </div>
 
       <p className="mt-4 text-xs text-slate-500">{t('budget.nota')}</p>

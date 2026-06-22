@@ -150,6 +150,14 @@ Punts clau perquè res no es bloquegi:
 - **Despeses greus** (`despesaGreu`): passen pel **matalàs familiar** — pagues el que
   pots, la família cobreix fins a un màxim segons el seu patrimoni, i el dèficit restant
   (*descobert*) resta benestar. Aquí és on l'origen es nota més.
+- **Pressupost/pla amb dèficit**: tant `applyBudgetYear` (laboral) com `applyCareerYear`
+  (carrera) admeten **gastar per sobre de l'ingrés**. Les necessitats de l'any (cost de
+  vida + habitatge + oci) es paguen de l'ingrés i, si no arriba, dels **estalvis propis**
+  (efectiu + estalvi) → **xarxa familiar** (`repartDeficit` / `ajutFamiliarMax`) →
+  **descobert** (`penalitzacioDescobert`, resta benestar). Les aportacions a inversió
+  només es fan si sobra (mai a crèdit). La UI mostra el **Balanç del mes** (pot ser
+  negatiu = «tires d'estalvis») i, si escau, el descobert amb els punts de benestar que
+  costa. El topall dels botons és ingrés + estalvis propis.
 - **Aportació obligatòria a casa**: mentre vius a casa i tens sou, una part va a la
   família (més alta com més pobra), respectada pel pressupost per defecte i pel mínim.
 

@@ -327,6 +327,40 @@ export function ajutFamiliarMax(familia: Familia): number {
   return Math.round(familia.patrimoni * 0.1)
 }
 
+export interface RepartDeficit {
+  /** Part del dèficit coberta amb estalvis propis (efectiu + estalvi). */
+  propi: number
+  /** Part coberta per la xarxa familiar (fins a `ajutFamiliarMax`). */
+  donacio: number
+  /** Part que ningú ha pogut cobrir (resta benestar). */
+  descobert: number
+}
+
+/**
+ * Reparteix un dèficit anual: primer es cobreix amb els estalvis propis
+ * (`reservaPropia` = efectiu + estalvi), després amb la xarxa familiar (fins al
+ * matalàs) i la resta queda com a descobert. Sense `familia`, no hi ha ajut familiar.
+ */
+export function repartDeficit(
+  deficit: number,
+  reservaPropia: number,
+  familia?: Familia,
+): RepartDeficit {
+  if (deficit <= 0) return { propi: 0, donacio: 0, descobert: 0 }
+  const propi = Math.min(deficit, Math.max(0, reservaPropia))
+  const falta = deficit - propi
+  const donacio = familia ? Math.min(falta, ajutFamiliarMax(familia)) : 0
+  return { propi, donacio, descobert: falta - donacio }
+}
+
+/**
+ * Penalització de benestar per un descobert anual del pressupost (no arribar a final
+ * de mes ni amb estalvis ni amb ajut familiar). Escalada i acotada.
+ */
+export function penalitzacioDescobert(descobert: number): number {
+  return descobert > 0 ? Math.min(15, Math.ceil(descobert / 250)) : 0
+}
+
 export interface DespesaGreuResult {
   person: Person
   donacio: number
@@ -432,41 +466,48 @@ export function benestarEstilDeVida(
 }
 
 /**
- * Aplica un ANY sencer de la fase laboral a partir d'un pressupost MENSUAL. Un torn
- * avança 12 mesos de cop, però el jugador decideix imports mensuals: aquí es
- * prorrategen (× 12) per ingressar, pagar l'aportació obligatòria a casa, moure
- * l'estalvi al patrimoni i gastar oci/compres, deixant el sobrant a efectiu (mai
- * negatiu). El benestar reacciona a la despesa discrecional MENSUAL (oci + compres
- * respecte al mínim) un sol cop l'any, igual que la fase de carrera: cal gastar un
- * mínim per no perdre'n i, per sobre, se'n guanya (rendiments decreixents).
+ * Aplica un ANY sencer de la fase laboral a partir d'un pressupost MENSUAL (× 12).
+ * Pots gastar per sobre de l'ingrés: les **necessitats** (aportació obligatòria a casa
+ * + oci + compres) es paguen de l'ingrés i, si no arriben, es tira dels estalvis
+ * propis i, després, de la xarxa familiar; el que ningú cobreix és **descobert** i
+ * resta benestar (`penalitzacioDescobert`). L'aportació a estalvi només es fa si sobra
+ * (mai s'estalvia a crèdit). Mai genera deute. El benestar per oci+compres s'aplica un
+ * cop l'any.
  */
 export function applyBudgetYear(
   person: Person,
   budget: Budget,
   income: number,
   minCasa = 0,
+  familia?: Familia,
 ): Person {
   const patrimoni = { ...person.patrimoni }
-  // Caixa disponible tot l'any (ingrés mensual × 12 + el que ja hi havia).
-  let disponible = patrimoni.efectiu + income * MESOS_PER_ANY
+  // Necessitats anuals (consum obligatori + discrecional) i caixa de l'any.
+  const necessitats =
+    (Math.max(budget.casa, minCasa) + budget.oci + budget.compres) * MESOS_PER_ANY
+  const caixa = patrimoni.efectiu + income * MESOS_PER_ANY
+  let estalvi = patrimoni.estalvi
+  let descobert = 0
 
-  const gasta = (n: number) => {
-    const real = Math.max(0, Math.min(n, disponible))
-    disponible -= real
-    return real
+  if (caixa >= necessitats) {
+    // Sobra: aporta a estalvi el que es pugui i deixa la resta a efectiu.
+    let rem = caixa - necessitats
+    const aEstalvi = Math.min(budget.estalvi * MESOS_PER_ANY, rem)
+    estalvi += aEstalvi
+    rem -= aEstalvi
+    patrimoni.efectiu = Math.round(rem)
+  } else {
+    // Dèficit: tira d'estalvis propis → xarxa familiar → descobert. Sense estalviar.
+    const r = repartDeficit(necessitats - caixa, estalvi, familia)
+    estalvi -= r.propi
+    descobert = r.descobert
+    patrimoni.efectiu = 0
   }
-  // L'aportació a la família és obligatòria: es paga primer i mai per sota del mínim.
-  gasta(Math.max(budget.casa, minCasa) * MESOS_PER_ANY)
-  const aEstalvi = gasta(budget.estalvi * MESOS_PER_ANY)
-  gasta(budget.oci * MESOS_PER_ANY)
-  gasta(budget.compres * MESOS_PER_ANY)
+  patrimoni.estalvi = Math.round(estalvi)
 
-  patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
-  patrimoni.efectiu = Math.round(disponible)
-
-  // El benestar depèn de la despesa MENSUAL en oci+compres respecte al mínim de
-  // manteniment (s'aplica un cop l'any, no acumulat mes a mes).
-  const deltaBenestar = benestarEstilDeVida(budget.oci, budget.compres, income)
+  const deltaBenestar =
+    benestarEstilDeVida(budget.oci, budget.compres, income) -
+    penalitzacioDescobert(descobert)
 
   const stats = {
     ...person.stats,
@@ -642,11 +683,12 @@ export function defaultPlaInversio(annualIncome: number): PlaInversio {
 }
 
 /**
- * Aplica un any de la fase de carrera. Per ordre: 1) els diners ja invertits
- * creixen (interès compost); 2) s'ingressa el sou; 3) es paga el cost de vida
- * obligatori; 4) es reparteix segons el pla (oci, estalvi, fons indexat, pensions);
- * 5) la desgravació del pla de pensions torna a efectiu; 6) el sobrant queda a
- * efectiu (mai negatiu). El benestar reacciona a l'oci respecte al mínim de manteniment.
+ * Aplica un any de la fase de carrera. Els diners invertits creixen (interès compost);
+ * després les **necessitats** (cost de vida + habitatge + oci) es paguen de l'ingrés i
+ * els estalvis, amb el **matalàs familiar** i, si cal, **descobert** (resta benestar)
+ * quan ni l'ingrés ni els estalvis ni la família hi arriben. Les **aportacions**
+ * (fons indexat, pla de pensions, estalvi) només es fan si sobra (mai a crèdit ni amb
+ * diners de la família). La desgravació de pensions torna a efectiu. Mai genera deute.
  */
 export function applyCareerYear(
   person: Person,
@@ -655,35 +697,43 @@ export function applyCareerYear(
   indexReturn: number,
   costVida = costVidaAnual(),
   costHabitatge = 0,
+  familia?: Familia,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
-  let disponible = patrimoni.efectiu + annualIncome
+  // Necessitats de l'any (consum, cobertes pel matalàs familiar si cal) i caixa.
+  const necessitats = costVida + costHabitatge + pla.oci
+  const caixa = patrimoni.efectiu + annualIncome
+  let estalvi = patrimoni.estalvi
+  let descobert = 0
 
-  const gasta = (n: number) => {
-    const real = Math.max(0, Math.min(n, disponible))
-    disponible -= real
-    return real
+  if (caixa >= necessitats) {
+    // Sobra: reparteix entre aportacions (capades al sobrant) i efectiu.
+    let rem = caixa - necessitats
+    const aIndex = Math.min(pla.fonsIndexat, rem)
+    rem -= aIndex
+    const aPensions = Math.min(pla.fonsPensions, rem)
+    rem -= aPensions
+    const aEstalvi = Math.min(pla.estalvi, rem)
+    rem -= aEstalvi
+    estalvi += aEstalvi
+    patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
+    patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
+    // La desgravació fiscal de l'aportació a pensions torna a efectiu.
+    patrimoni.efectiu = Math.round(rem + desgravacioPensions(aPensions))
+  } else {
+    // Dèficit: tira d'estalvis propis → xarxa familiar → descobert. Sense aportar.
+    const r = repartDeficit(necessitats - caixa, estalvi, familia)
+    estalvi -= r.propi
+    descobert = r.descobert
+    patrimoni.efectiu = 0
   }
+  patrimoni.estalvi = Math.round(estalvi)
 
-  // Despeses obligatòries: cost de vida (o la teva part) i habitatge (lloguer o hipoteca).
-  gasta(costVida)
-  gasta(costHabitatge)
-  const oci = gasta(pla.oci)
-  const aEstalvi = gasta(pla.estalvi)
-  const aIndex = gasta(pla.fonsIndexat)
-  const aPensions = gasta(pla.fonsPensions)
-
-  patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
-  patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
-  patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
-
-  // La desgravació fiscal de l'aportació a pensions torna a efectiu.
-  disponible += desgravacioPensions(aPensions)
-  patrimoni.efectiu = Math.round(disponible)
-
+  const deltaBenestar =
+    benestarOciAnual(pla.oci, annualIncome) - penalitzacioDescobert(descobert)
   const stats = {
     ...person.stats,
-    benestar: clampBenestar(person.stats.benestar + benestarOciAnual(oci, annualIncome)),
+    benestar: clampBenestar(person.stats.benestar + deltaBenestar),
   }
   return { ...person, stats, patrimoni }
 }
