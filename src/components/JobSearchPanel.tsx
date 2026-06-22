@@ -1,6 +1,6 @@
 import { MESOS_PER_ANY } from '../domain/constants'
 import { anysExperiencia, ocupabilitat } from '../domain/jobs'
-import { netMensual, prestacioAturAnual } from '../domain/stats'
+import { factorSalariPersonal, netMensual, prestacioAturAnual } from '../domain/stats'
 import type { QualitatOferta } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -32,6 +32,8 @@ export function JobSearchPanel() {
   const prestacioMes = Math.round(
     prestacioAturAnual(state.salariBase ?? 0, anys) / MESOS_PER_ANY,
   )
+  // Bretxa de gènere/origen: si < 1, les ofertes arriben rebaixades per discriminació.
+  const bretxa = factorSalariPersonal(state.identitat)
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -47,6 +49,11 @@ export function JobSearchPanel() {
           ? `🛟 ${t('jobsearch.prestacio', { amount: formatEuros(prestacioMes) })}`
           : `🛟 ${t('jobsearch.sensePrestacio')}`}
       </p>
+      {bretxa < 1 && (
+        <p className="mt-1 text-xs text-amber-400/80">
+          ⚖️ {t('jobsearch.bretxa', { pct: Math.round((1 - bretxa) * 100) })}
+        </p>
+      )}
 
       <div className="mt-3 space-y-2">
         {ofertes.map((oferta) => (

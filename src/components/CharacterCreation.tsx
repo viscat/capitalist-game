@@ -1,9 +1,48 @@
 import { useState } from 'react'
 import { FAMILY_PRESETS } from '../domain/family/presets'
 import { cognomsPersona, randomIdentitat } from '../domain/identitat'
-import type { FamilyClass, Identitat } from '../domain/types'
+import type { FamilyClass, Genere, Identitat, Origen } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+
+function Segmented<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  optionLabel,
+}: {
+  label: string
+  options: readonly T[]
+  value: T | undefined
+  onChange: (v: T) => void
+  optionLabel: (v: T) => string
+}) {
+  return (
+    <div>
+      <span className="text-xs text-slate-400">{label}</span>
+      <div className="mt-1 flex flex-wrap gap-1.5">
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            onClick={() => onChange(o)}
+            className={`min-h-9 flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition ${
+              value === o
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-900/60 text-slate-300 ring-1 ring-slate-700 hover:bg-slate-700'
+            }`}
+          >
+            {optionLabel(o)}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const GENERES: readonly Genere[] = ['dona', 'home', 'no_binari']
+const ORIGENS: readonly Origen[] = ['autocton', 'migrant']
 
 function Field({
   label,
@@ -82,6 +121,22 @@ export function CharacterCreation({
             value={id.nom}
             onChange={(nom) => setId((s) => ({ ...s, nom }))}
           />
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Segmented
+              label={t('create.genere')}
+              options={GENERES}
+              value={id.genere}
+              onChange={(genere) => setId((s) => ({ ...s, genere }))}
+              optionLabel={(g) => t(`genere.${g}`)}
+            />
+            <Segmented
+              label={t('create.origen')}
+              options={ORIGENS}
+              value={id.origen}
+              onChange={(origen) => setId((s) => ({ ...s, origen }))}
+              optionLabel={(o) => t(`origen.${o}`)}
+            />
+          </div>
           <p className="mt-2 text-xs text-slate-500">
             {t('create.fullName')}:{' '}
             <span className="text-slate-300">

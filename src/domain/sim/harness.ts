@@ -13,7 +13,13 @@ import {
   newGame,
 } from '../engine'
 import { patrimoniTotal } from '../stats'
-import type { EventEffect, FamilyClass, GameState, Itinerari } from '../types'
+import type {
+  EventEffect,
+  FamilyClass,
+  GameState,
+  Identitat,
+  Itinerari,
+} from '../types'
 
 /** Camí de vida que segueix el jugador simulat a les fites. */
 export interface SimPolicy {
@@ -120,10 +126,14 @@ export function simulateClass(
   cls: FamilyClass,
   nSeeds: number,
   policy: SimPolicy,
+  identitat?: Identitat,
 ): SimOutcome[] {
   const out: SimOutcome[] = []
   for (let i = 0; i < nSeeds; i++) {
-    const final = playout(newGame(cls, seedFor(i)), policy)
+    const final = playout(
+      newGame(cls, seedFor(i), identitat ? { identitat } : {}),
+      policy,
+    )
     out.push({
       benestar: final.person.stats.benestar,
       patrimoni: patrimoniTotal(final.person),

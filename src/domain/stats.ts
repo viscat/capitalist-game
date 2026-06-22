@@ -28,9 +28,12 @@ import type {
   Familia,
   FamilyClass,
   GameState,
+  Genere,
   Habitatge,
+  Identitat,
   Itinerari,
   NivellVida,
+  Origen,
   Patrimoni,
   Person,
   PlaInversio,
@@ -241,6 +244,8 @@ export function adultBaselineBenestar(state: GameState): number {
   base -= penalitzacioDeute(state.person.patrimoni.deute ?? 0, incomeM * MESOS_PER_ANY)
   // Seqüeles cròniques (incapacitat): rebaixa duradora, no recuperable amb la deriva.
   base -= state.salutCronica ?? 0
+  // Cost ecològic del consum: un nivell de vida alt i l'acumulació material pesen una mica.
+  base -= petjadaEcologicaBenestar(state.nivellVida, state.person.patrimoni.cases.length)
   return clampBenestar(Math.round(base))
 }
 
@@ -418,9 +423,64 @@ const FACTOR_HERENCIA_VIDA: Record<FamilyClass, number> = {
   super_rica: 0.025,
 }
 
-/** Capital que es rep en entrar a la carrera (herència en vida), segons l'origen. */
+// Impost de successions progressiu (knob redistributiu sobre l'herència en vida, P6):
+// les transmissions petites queden exemptes; com més gran l'herència, més se'n queda
+// l'Estat. Limita —no elimina— la reproducció de capital de les classes altes.
+const SUCCESSIONS_EXEMPT = 50_000
+export function impostSuccessions(brut: number): number {
+  const base = Math.max(0, brut - SUCCESSIONS_EXEMPT)
+  if (base <= 0) return 0
+  if (base <= 100_000) return Math.round(base * 0.1)
+  if (base <= 500_000) return Math.round(10_000 + (base - 100_000) * 0.2)
+  return Math.round(90_000 + (base - 500_000) * 0.34)
+}
+
+/** Capital NET que es rep en entrar a la carrera (herència en vida menys successions). */
 export function herenciaVida(familia: Familia): number {
-  return Math.round((familia.patrimoni * FACTOR_HERENCIA_VIDA[familia.classe]) / 100) * 100
+  const brut = familia.patrimoni * FACTOR_HERENCIA_VIDA[familia.classe]
+  const net = brut - impostSuccessions(brut)
+  return Math.round(net / 100) * 100
+}
+
+// --- Eixos de desigualtat ortogonals a la classe: gènere i origen ---
+
+// Bretxa salarial de gènere: a igualtat de tot, les dones cobren menys i pugen més lent;
+// les persones no binàries també pateixen discriminació salarial. Ordre de magnitud
+// proper a la bretxa real a Espanya.
+const BRETXA_GENERE: Record<Genere, number> = {
+  home: 1,
+  dona: 0.86,
+  no_binari: 0.9,
+}
+
+// Penalització de sou per origen migrant/racialitzat: menys contactes, currículums
+// descartats per cognom, sostres informals.
+const FACTOR_SALARI_ORIGEN: Record<Origen, number> = {
+  autocton: 1,
+  migrant: 0.9,
+}
+
+/** Factor multiplicatiu del sou segons gènere i origen (1 = sense penalització). */
+export function factorSalariPersonal(identitat?: Identitat): number {
+  const g = identitat?.genere ? BRETXA_GENERE[identitat.genere] : 1
+  const o = identitat?.origen ? FACTOR_SALARI_ORIGEN[identitat.origen] : 1
+  return g * o
+}
+
+/** Penalització d'ocupabilitat (0..1) per origen migrant/racialitzat (discriminació d'accés). */
+export function penalitzacioOcupabilitatOrigen(identitat?: Identitat): number {
+  return identitat?.origen === 'migrant' ? 0.12 : 0
+}
+
+// Cost ecològic del consum (lent post-materialista): un nivell de vida alt i l'acumulació
+// material tenen una petjada que pesa —una mica— sobre el benestar. Petit però present:
+// el creixement no és gratis ni infinit.
+export function petjadaEcologicaBenestar(
+  nivell: NivellVida = NIVELL_VIDA_DEFAULT,
+  cases = 0,
+): number {
+  const p = (nivell === 'alt' ? 2 : 0) + cases
+  return Math.min(p, 5)
 }
 
 /**

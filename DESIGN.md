@@ -518,6 +518,25 @@ seqüela crònica i vincles (`StatBar`/`GameOver`), prestació d'atur (`JobSearc
 frugalitat declarada i petjada ecològica (`InvestmentPanel`), i tres finals amb la mateixa
 dignitat —sòlid, **vida plena** (no-monetari) i precari— (`GameOver`).
 
-**Pendent / futures iteracions:** impost de successions sobre l'herència (knob de tuning),
-cost ecològic amb efecte mecànic (ara només indicador), discriminació de gènere/origen
-(fora d'abast). La corba es valida contínuament amb `domain/sim/harness.test.ts`.
+### 8.7 Iteracions posteriors: eixos de desigualtat i redistribució
+
+- **Impost de successions** (`impostSuccessions`): l'herència en vida (P6) passa per un
+  impost progressiu (exempt fins a 50.000 €, tipus creixent fins al 34%). Limita —no
+  elimina— la reproducció de capital: la super-rica rep menys coixí net del que transmet.
+- **Cost ecològic** (`petjadaEcologicaBenestar`): un nivell de vida alt i l'acumulació
+  material (propietats) resten una mica de benestar a la referència adulta. Petit però
+  mecànic: el creixement no és gratis. (Indicador visible a la UI.)
+- **Discriminació de gènere i origen** — nous eixos **ortogonals a la classe**
+  (`Identitat.genere`, `Identitat.origen`), que s'escullen a la creació del personatge:
+  - **Bretxa salarial** (`factorSalariPersonal`): dona 0,86, no binari 0,90; origen migrant
+    0,90 (multiplicatiu). S'aplica al sou de partida i a les ofertes.
+  - **Discriminació d'accés** (`penalitzacioOcupabilitatOrigen`): −0,12 d'ocupabilitat per
+    origen migrant → menys i pitjors ofertes.
+  - **Resultat mesurat (interseccionalitat)** — mateixa classe i estudis, identitat diferent:
+    a `mitjana`, home/autòcton acaba amb ~200.000 € i 58% d'escapada; dona/migrant amb
+    ~150.000 € i 30%. A `pobra`, la discriminació gairebé **elimina** l'escapada (0,3% vs
+    3%). La classe, el gènere i l'origen **es componen**.
+
+La tesi de §1 s'amplia: no només la **classe** condiciona el punt de sortida, sinó també
+el **gènere** i l'**origen**, i els tres eixos es reforcen. La corba es valida contínuament
+amb `domain/sim/harness.test.ts` (inclou ara una comparació de discriminació).

@@ -8,7 +8,12 @@
 
 import { SALARI_MINIM_MENSUAL } from './constants'
 import { rng } from './rng'
-import { clamp, salariAdultInicial } from './stats'
+import {
+  clamp,
+  factorSalariPersonal,
+  penalitzacioOcupabilitatOrigen,
+  salariAdultInicial,
+} from './stats'
 import { edatAnys } from './time'
 import type { GameState, OfertaFeina, QualitatOferta } from './types'
 
@@ -44,13 +49,21 @@ export function ocupabilitat(state: GameState): number {
   const experiencia = clamp(anysExperiencia(state) / 8, 0, 1) * 0.25
   const anim = (state.person.stats.benestar / 100) * 0.05
   const penalitzacioEdat = clamp((edatAnys(state.person.edatMesos) - 25) / 15, 0, 1) * 0.1
-  return clamp(eduScore(state) + contactes + experiencia + anim - penalitzacioEdat, 0, 1)
+  // Discriminació d'accés per origen (currículums descartats, menys xarxa).
+  const penalitzacioOrigen = penalitzacioOcupabilitatOrigen(state.identitat)
+  return clamp(
+    eduScore(state) + contactes + experiencia + anim - penalitzacioEdat - penalitzacioOrigen,
+    0,
+    1,
+  )
 }
 
 /** Sou BRUT mensual de referència d'una oferta: el de partida adult millorat per experiència. */
 export function salariBaseOferta(state: GameState): number {
   const base = salariAdultInicial(state.familia, state.teDiploma ?? false)
-  return Math.round(base * (1 + clamp(anysExperiencia(state) / 10, 0, 1) * 0.4))
+  const ambExperiencia = base * (1 + clamp(anysExperiencia(state) / 10, 0, 1) * 0.4)
+  // El sou ofert porta la bretxa de gènere/origen (discriminació salarial).
+  return Math.round(ambExperiencia * factorSalariPersonal(state.identitat))
 }
 
 /** Factor de sou segons la qualitat de l'oferta. */

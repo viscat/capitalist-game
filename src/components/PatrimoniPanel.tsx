@@ -170,6 +170,12 @@ export function PatrimoniPanel({
               value={formatEuros(estalviAnualCriatura(familia))}
             />
           )}
+          {identitat?.genere && (
+            <Row label={t('create.genere')} value={t(`genere.${identitat.genere}`)} />
+          )}
+          {identitat?.origen && (
+            <Row label={t('create.origen')} value={t(`origen.${identitat.origen}`)} />
+          )}
           {identitat && (
             <>
               <Row

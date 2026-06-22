@@ -128,12 +128,26 @@ export interface Progenitor {
   cognoms: string
 }
 
+/** Gènere de la persona (eix de desigualtat: bretxa salarial, càrrega de cures). */
+export type Genere = 'dona' | 'home' | 'no_binari'
+
+/**
+ * Origen percebut (eix de desigualtat ortogonal a la classe): condiciona l'accés al
+ * mercat laboral i de l'habitatge per discriminació. `autocton` = sense penalització;
+ * `migrant` = origen migrant/racialitzat amb barreres documentades.
+ */
+export type Origen = 'autocton' | 'migrant'
+
 /** Identitat personalitzable de la persona i els seus pares. */
 export interface Identitat {
   nom: string
   cognoms: string
   pare: Progenitor
   mare: Progenitor
+  /** Gènere de la persona (per defecte, no s'aplica cap bretxa si absent). */
+  genere?: Genere
+  /** Origen percebut (per defecte, autòcton: sense penalització). */
+  origen?: Origen
 }
 
 export interface Familia {
