@@ -181,6 +181,12 @@ export interface EventEffect {
   despesaGreu?: number
   /** Marca que aquest efecte és una pujada de sou demanada (cooldown anual). */
   marcaAugmentSou?: boolean
+  /**
+   * Penalització CRÒNICA i duradora de benestar (incapacitat, seqüela permanent):
+   * s'acumula a `GameState.salutCronica` i rebaixa la referència de benestar adult de
+   * manera persistent, a diferència del cop puntual de `benestar`.
+   */
+  salutCronicaDelta?: number
 }
 
 export interface EventChoice {
@@ -287,6 +293,11 @@ export interface GameState {
   anysExperiencia?: number
   /** Ofertes de feina actives mentre es busca feina a la carrera (sou 0 = a l'atur). */
   ofertesFeina?: OfertaFeina[]
+  /**
+   * Penalització crònica de benestar acumulada (incapacitat, seqüeles permanents). Resta
+   * de la referència de benestar adult de manera duradora. Absent o 0 = sense seqüeles.
+   */
+  salutCronica?: number
   historial: LogEntry[]
   acabat: boolean
 }

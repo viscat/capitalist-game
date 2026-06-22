@@ -7,8 +7,8 @@ import type { FamilyClass, GameEvent } from '../types'
 // rar (la seva única amenaça real, ja que res estructural no el fa caure); per al pobre,
 // freqüent (la salut com a càrrega estructural de classe, no com a simple mala sort).
 const EXPOSICIO_SALUT: Record<FamilyClass, number> = {
-  pobra: 1.6,
-  treballadora: 1.3,
+  pobra: 1.4,
+  treballadora: 1.2,
   mitjana: 1,
   alta: 0.8,
   rica: 0.6,
@@ -346,6 +346,18 @@ export const CARRERA_EVENTS: GameEvent[] = [
     // benestar, però molt més freqüent com més baixa és la classe.
     weight: (f) => 0.7 * EXPOSICIO_SALUT[f.classe],
     effect: { benestar: -10 },
+  },
+  {
+    id: 'incapacitat',
+    category: 'salut',
+    titleKey: 'event.incapacitat.title',
+    descKey: 'event.incapacitat.desc',
+    params: { cost: 9000 },
+    // Molt rara, però et canvia la vida: despesa greu + cop fort + SEQÜELA permanent
+    // (penalització crònica de benestar que la deriva no recupera). És l'única via que pot
+    // enfonsar un ric fins a números clarament baixos: pura mala sort, res estructural.
+    weight: (f) => 0.18 * EXPOSICIO_SALUT[f.classe],
+    effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22 },
   },
   {
     id: 'ajudar_familia_adult',

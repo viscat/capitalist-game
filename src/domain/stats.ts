@@ -225,6 +225,8 @@ export function adultBaselineBenestar(state: GameState): number {
   if (incomeM === 0) base -= 12
   // Viure endeutat rebaixa la referència de benestar (no només via el patrimoni net).
   base -= penalitzacioDeute(state.person.patrimoni.deute ?? 0, incomeM * MESOS_PER_ANY)
+  // Seqüeles cròniques (incapacitat): rebaixa duradora, no recuperable amb la deriva.
+  base -= state.salutCronica ?? 0
   return clampBenestar(Math.round(base))
 }
 

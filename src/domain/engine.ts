@@ -546,6 +546,11 @@ function resolveEvent(
     ? person.edatMesos
     : state.ultimAugmentMes
 
+  // Seqüela crònica (incapacitat): s'acumula i perdura, rebaixant la referència adulta.
+  const salutCronica = effect.salutCronicaDelta
+    ? Math.max(0, (state.salutCronica ?? 0) + effect.salutCronicaDelta)
+    : state.salutCronica
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
@@ -553,6 +558,7 @@ function resolveEvent(
     person,
     salari,
     ultimAugmentMes,
+    salutCronica,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],

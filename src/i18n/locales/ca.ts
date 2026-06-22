@@ -747,6 +747,9 @@ export const ca: Record<string, string> = {
   'event.esgotament.title': 'Esgotament',
   'event.esgotament.desc':
     'Massa hores, massa pressió, poc descans. El cos i el cap passen factura.',
+  'event.incapacitat.title': 'Una incapacitat',
+  'event.incapacitat.desc':
+    'Un accident o una malaltia greu et deixen seqüeles permanents. {cost} € de despeses i una vida que ja no torna a ser igual.',
 
   // --- A l'atur durant la carrera (mentre busques feina) ---
   'event.subsidi_atur.title': 'Cobres l’atur',
