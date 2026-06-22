@@ -27,11 +27,24 @@ export function GameOver() {
   // Quina part del patrimoni ha vingut d'haver invertit (no de tenir-ho parat).
   const pctInvertit = total > 0 ? Math.round((invertit / total) * 100) : 0
 
+  const vincles = state.vinclesSocials ?? 0
+  const sequela = state.salutCronica ?? 0
+  // Tipus de final, amb la mateixa dignitat: una vida PLENA no-monetària (poc patrimoni
+  // però benestar i vincles forts) val tant com una de patrimoni sòlid.
+  const finalTipus: 'plena' | 'solid' | 'precaria' =
+    benestar >= 55 && vincles >= 0.45 && total < 100_000
+      ? 'plena'
+      : total >= 150_000 || benestar >= 65
+        ? 'solid'
+        : 'precaria'
+
   return (
     <div className="flex min-h-full items-center justify-center p-6">
       <div className="max-w-md text-center">
-        <h1 className="text-4xl font-black text-slate-100">{t('gameover.title')}</h1>
-        <p className="mt-3 text-slate-400">{t('gameover.subtitle')}</p>
+        <h1 className="text-4xl font-black text-slate-100">
+          {t(`gameover.final.${finalTipus}.title`)}
+        </h1>
+        <p className="mt-3 text-slate-400">{t(`gameover.final.${finalTipus}.desc`)}</p>
 
         <div className="mt-8 grid grid-cols-2 gap-4">
           <div className="rounded-xl bg-slate-800/70 p-5">
@@ -72,6 +85,18 @@ export function GameOver() {
                 <span className="font-medium text-red-400">
                   −{formatEuros(deuteConsum)}
                 </span>
+              </div>
+            )}
+          </div>
+          <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-3">
+            <Line
+              label={`🤝 ${t('stat.vincles')}`}
+              value={`${Math.round(vincles * 100)}%`}
+            />
+            {sequela > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-red-300">🩹 {t('stat.sequela')}</span>
+                <span className="font-medium text-red-400">−{Math.round(sequela)}</span>
               </div>
             )}
           </div>

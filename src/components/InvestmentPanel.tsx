@@ -7,6 +7,7 @@ import {
   PAS_PLA,
 } from '../domain/constants'
 import {
+  ajutPublicMax,
   aportacioFamiliarCarrera,
   benestarNivellVida,
   benestarOciAnual,
@@ -17,6 +18,7 @@ import {
   ingressosAnualsCarrera,
   minimOciAnual,
   netMensual,
+  patrimoniTotal,
   repartDeficit,
 } from '../domain/stats'
 import { costHabitatgeAnual } from '../domain/housing'
@@ -42,7 +44,7 @@ const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 
 export function InvestmentPanel() {
   const { t } = useT()
-  const { state, setPla, setNivellVida, nextTurn } = useGame()
+  const { state, setPla, setNivellVida, setVidaSenzilla, nextTurn } = useGame()
   if (!state) return null
 
   // El model treballa en anual; el panell ho presenta tot en mensual.
@@ -74,12 +76,20 @@ export function InvestmentPanel() {
     Math.max(0, obligatori + pla.oci - (efectiu + income)),
     estalvi,
     state.familia,
+    ajutPublicMax(patrimoniTotal(state.person), income),
   )
 
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
   const desgravacio = desgravacioPensions(pla.fonsPensions)
-  const benNivell = benestarNivellVida(nivell)
+  const benNivell = benestarNivellVida(nivell, state.vidaSenzilla)
+  // Petjada ecològica (indicador cosmètic): com més consum/patrimoni material, més alta.
+  const petjada =
+    nivell === 'alt' || state.person.patrimoni.cases.length > 0
+      ? 'alta'
+      : nivell === 'mig'
+        ? 'mitjana'
+        : 'baixa'
 
   const set = (k: keyof PlaInversio, delta: number) => {
     // Pots assignar per sobre del sou mentre ho cobreixin els teus estalvis.
@@ -140,6 +150,22 @@ export function InvestmentPanel() {
               </button>
             ))}
           </div>
+          {nivell === 'minim' && (
+            <button
+              onClick={() => setVidaSenzilla(!state.vidaSenzilla)}
+              className={`mt-2 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition ${
+                state.vidaSenzilla
+                  ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+              }`}
+            >
+              <span>🌱 {t('pla.vidaSenzilla')}</span>
+              <span>{state.vidaSenzilla ? '✓' : ''}</span>
+            </button>
+          )}
+          {nivell === 'minim' && state.vidaSenzilla && (
+            <p className="mt-1 text-xs text-emerald-300/80">{t('pla.vidaSenzilla.nota')}</p>
+          )}
           {benNivell !== 0 && (
             <p className="mt-2 text-xs text-slate-400">
               {t('nivellVida.benestar')}: {benNivell > 0 ? '+' : ''}
@@ -275,7 +301,22 @@ export function InvestmentPanel() {
         )}
       </div>
 
-      <p className="mt-4 text-xs text-slate-500">{t('pla.nota')}</p>
+      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+        <span>🌍 {t('pla.petjada')}</span>
+        <span
+          className={
+            petjada === 'alta'
+              ? 'text-amber-400/90'
+              : petjada === 'mitjana'
+                ? 'text-slate-400'
+                : 'text-emerald-300/80'
+          }
+        >
+          {t(`pla.petjada.${petjada}`)}
+        </span>
+      </div>
+
+      <p className="mt-3 text-xs text-slate-500">{t('pla.nota')}</p>
       <button
         onClick={() => nextTurn()}
         className="mt-2 w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
