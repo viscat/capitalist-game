@@ -115,6 +115,13 @@ export const ca: Record<string, string> = {
   'create.bornOn': 'Naixeràs el {data}',
   'create.person': 'Tu',
   'create.nom': 'Nom',
+  'create.genere': 'Gènere',
+  'create.origen': 'Origen',
+  'genere.dona': 'Dona',
+  'genere.home': 'Home',
+  'genere.no_binari': 'No binari',
+  'origen.autocton': 'Autòcton',
+  'origen.migrant': 'Migrant',
   'create.cognoms': 'Cognoms',
   'create.fullName': 'Et diràs',
   'create.pare': 'Pare',
@@ -288,6 +295,8 @@ export const ca: Record<string, string> = {
   'jobsearch.prestacio': 'Cobres {amount}/mes de prestació d’atur (has cotitzat).',
   'jobsearch.sensePrestacio':
     'Sense prou cotització, no tens dret a prestació d’atur: vius dels estalvis.',
+  'jobsearch.bretxa':
+    'La discriminació (gènere/origen) et rebaixa les ofertes ~{pct}% respecte d’algú altre amb el mateix currículum.',
   'jobsearch.net': 'net',
   'jobsearch.accept': 'Acceptar',
   'jobsearch.seguir': 'Segueix buscant un any →',

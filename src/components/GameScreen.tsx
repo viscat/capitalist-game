@@ -1,6 +1,7 @@
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { edatAnys } from '../domain/time'
+import { patrimoniTotal } from '../domain/stats'
 import { nomComplet } from '../domain/identitat'
 import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
@@ -35,6 +36,7 @@ export function GameScreen() {
   const aLatur =
     (lifeStage === 'laboral' && itinerari === 'treball' && !salari) || esCercaFeina
   const nom = state.identitat?.nom
+  const net = patrimoniTotal(person) - (state.habitatge?.hipoteca?.deute ?? 0)
 
   // A les fases adultes prevalen l'etiqueta de fase per damunt de l'itinerari dels 16.
   const subtitol = aLatur
@@ -48,7 +50,7 @@ export function GameScreen() {
       <SummaryBar
         nom={nom}
         benestar={person.stats.benestar}
-        efectiu={person.patrimoni.efectiu}
+        net={net}
         edatMesos={person.edatMesos}
         dataNaixement={state.dataNaixement}
       />
@@ -80,7 +82,7 @@ export function GameScreen() {
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr_18rem]">
-        <aside className="space-y-4">
+        <aside className="order-2 space-y-4 lg:order-1">
           <StatBar
             benestar={person.stats.benestar}
             vincles={state.vinclesSocials}
@@ -97,7 +99,7 @@ export function GameScreen() {
           />
         </aside>
 
-        <main className="space-y-4">
+        <main className="order-1 space-y-4 lg:order-2">
           <EventCard
             pending={pendingEvent}
             lastEntry={lastEntry}
@@ -120,7 +122,7 @@ export function GameScreen() {
           )}
         </main>
 
-        <aside>
+        <aside className="order-3 lg:order-3">
           <TurnLog historial={historial} />
         </aside>
       </div>

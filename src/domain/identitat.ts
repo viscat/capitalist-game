@@ -1,4 +1,4 @@
-import type { Identitat, Progenitor } from './types'
+import type { Genere, Identitat, Origen, Progenitor } from './types'
 
 // Conjunts de noms per a la generació aleatòria de la identitat.
 const NOMS = [
@@ -41,5 +41,15 @@ export function nomComplet(identitat: Identitat): string {
 export function randomIdentitat(): Identitat {
   const pare: Progenitor = { nom: pick(NOMS_PARE), cognoms: dosCognoms() }
   const mare: Progenitor = { nom: pick(NOMS_MARE), cognoms: dosCognoms() }
-  return { nom: pick(NOMS), cognoms: cognomsPersona(pare, mare), pare, mare }
+  // Gènere i origen també formen part del "punt de sortida": aleatoris, però presents.
+  const genere: Genere = pick<Genere>(['dona', 'home'])
+  const origen: Origen = Math.random() < 0.25 ? 'migrant' : 'autocton'
+  return {
+    nom: pick(NOMS),
+    cognoms: cognomsPersona(pare, mare),
+    pare,
+    mare,
+    genere,
+    origen,
+  }
 }

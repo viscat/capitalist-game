@@ -39,6 +39,7 @@ import {
   defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
+  factorSalariPersonal,
   familyBaselineBenestar,
   herenciaVida,
   ingressosAnualsCarrera,
@@ -607,7 +608,9 @@ export function applyMilestoneChoice(
     pendingMilestone: undefined,
   }
   if (option.itinerari === 'treball') {
-    next.salari = next.salariBase = salariInicial(state.familia)
+    // El sou de partida porta la bretxa de gènere/origen (discriminació d'accés).
+    const sou = Math.round(salariInicial(state.familia) * factorSalariPersonal(state.identitat))
+    next.salari = next.salariBase = sou
   }
   if (option.lifeStage === 'laboral') {
     const income = ingressosMensuals16(next)

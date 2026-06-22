@@ -49,6 +49,21 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
       console.log(`\n=== Política «${name}» (${N} llavors/classe) ===\n${lines.join('\n')}`)
     }
 
+    // Discriminació (gènere/origen): mateixa classe i política, identitats diferents.
+    const idBase = { nom: 'X', cognoms: 'Y', pare: { nom: 'P', cognoms: 'Y' }, mare: { nom: 'M', cognoms: 'Z' } }
+    const privilegiat = { ...idBase, genere: 'home' as const, origen: 'autocton' as const }
+    const discriminat = { ...idBase, genere: 'dona' as const, origen: 'migrant' as const }
+    for (const cls of ['mitjana', 'pobra'] as const) {
+      const p = summarize(simulateClass(cls, N, POLICIES.estudis, privilegiat))
+      const d = summarize(simulateClass(cls, N, POLICIES.estudis, discriminat))
+      console.log(
+        `\n=== Discriminació (${cls}, estudis) ===\n` +
+          `${row('home/autòcton', p)}\n${row('dona/migrant', d)}`,
+      )
+      // El privilegi (home/autòcton) acaba, de mediana, igual o per sobre.
+      expect(p.patrimoniMediana).toBeGreaterThanOrEqual(d.patrimoniMediana - 5000)
+    }
+
     // Invariants (robustos, no de balanceig fi):
     for (const name of Object.keys(POLICIES)) {
       for (const cls of FAMILY_PRESET_ORDER) {

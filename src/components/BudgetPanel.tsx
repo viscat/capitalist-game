@@ -86,7 +86,7 @@ export function BudgetPanel() {
               <button
                 onClick={() => set(k, -PAS_PRESSUPOST)}
                 disabled={budget[k] <= minOf(k)}
-                className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 −
               </button>
@@ -96,7 +96,7 @@ export function BudgetPanel() {
               <button
                 onClick={() => set(k, PAS_PRESSUPOST)}
                 disabled={total + PAS_PRESSUPOST > assignable}
-                className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 +
               </button>
