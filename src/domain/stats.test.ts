@@ -357,12 +357,13 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
     expect(after.patrimoni.efectiu).toBe(0)
   })
 
-  it('applyCareerYear: la família cobreix part del dèficit (menys penalització que sense)', () => {
+  it('applyCareerYear: la família solvent cobreix el dèficit i evita el deute; sense xarxa, s’acumula deute', () => {
     const ambFamilia = applyCareerYear(adult(0, 0), plaZero, 0, 0, 6000, 0, FAMILY_PRESETS.rica.familia)
     const senseFamilia = applyCareerYear(adult(0, 0), plaZero, 0, 0, 6000, 0)
-    expect(ambFamilia.stats.benestar).toBeGreaterThan(senseFamilia.stats.benestar)
-    // Sense estalvis ni família suficient, el descobert resta benestar.
-    expect(senseFamilia.stats.benestar).toBeLessThan(60)
+    // Amb una família solvent, el matalàs cobreix el dèficit i no genera deute.
+    expect(ambFamilia.patrimoni.deute ?? 0).toBe(0)
+    // Sense xarxa familiar, el que no es pot pagar es converteix en deute (P1).
+    expect(senseFamilia.patrimoni.deute ?? 0).toBeGreaterThan(0)
     expect(senseFamilia.patrimoni.efectiu).toBe(0)
   })
 
@@ -385,9 +386,10 @@ describe('costVidaPropi (cobertura familiar mentre vius amb els pares)', () => {
   const ambPares = { tipus: 'amb_pares' as const }
   const llogat = { tipus: 'pis_lloguer' as const, lloguerAnual: 10_800 }
 
-  it('amb pares pobres pagues tot el cost de vida; amb pares rics no en pagues res', () => {
+  it('amb pares pobres pagues tot el cost de vida (i un sobrecost: la pobresa surt cara); amb pares rics no en pagues res', () => {
     const total = costVidaAnual()
-    expect(costVidaPropi(FAMILY_PRESETS.pobra.familia, ambPares)).toBe(total)
+    // Pobra: no rep cap cobertura i, a sobre, paga un sobrecost per la mateixa cistella.
+    expect(costVidaPropi(FAMILY_PRESETS.pobra.familia, ambPares)).toBeGreaterThan(total)
     expect(costVidaPropi(FAMILY_PRESETS.rica.familia, ambPares)).toBe(0)
     expect(costVidaPropi(FAMILY_PRESETS.super_rica.familia, ambPares)).toBe(0)
   })

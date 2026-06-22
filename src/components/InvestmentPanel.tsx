@@ -1,11 +1,13 @@
 import {
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
+  INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
   PAS_PLA,
 } from '../domain/constants'
 import {
+  aportacioFamiliarCarrera,
   benestarNivellVida,
   benestarOciAnual,
   cobreixVidaFamiliar,
@@ -14,7 +16,7 @@ import {
   desgravacioPensions,
   ingressosAnualsCarrera,
   minimOciAnual,
-  penalitzacioDescobert,
+  netMensual,
   repartDeficit,
 } from '../domain/stats'
 import { costHabitatgeAnual } from '../domain/housing'
@@ -50,24 +52,29 @@ export function InvestmentPanel() {
   const costVida = costVidaPropi(state.familia, state.habitatge, nivell)
   const cobertFamilia = cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
   const costHab = costHabitatgeAnual(state.habitatge)
-  const obligatori = costVida + costHab
+  // Aportació obligatòria a la família d'origen (les classes baixes sostenen la llar).
+  const aportacioFam = aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0))
+  const obligatori = costVida + costHab + aportacioFam
   const efectiu = state.person.patrimoni.efectiu
   const estalvi = state.person.patrimoni.estalvi
   // Pots repartir el sou + els teus estalvis (efectiu + estalvi), per damunt del sou.
   const assignable = Math.max(0, income + efectiu + estalvi - obligatori)
+  // Deute de consum pendent: compon i bloqueja la inversió fins saldar-lo.
+  const deuteActual = state.person.patrimoni.deute ?? 0
+  const interesDeutePct = Math.round(INTERES_DEUTE * 100)
 
   const pla = state.plaInversio ?? defaultPlaInversio(income)
   const total = CATEGORIES.reduce((sum, k) => sum + pla[k], 0)
 
   // Balanç del mes: ingrés − obligatori − pla. Pot ser negatiu (tires d'estalvis).
   const balancMes = perMes(income - obligatori - total)
-  // Descobert: quan les necessitats (obligatori + oci) superen sou + estalvis + família.
+  // Dèficit: quan les necessitats (obligatori + oci) superen sou + estalvis + família.
+  // El que ningú cobreix es converteix en DEUTE (no és un xoc puntual de benestar).
   const deficit = repartDeficit(
     Math.max(0, obligatori + pla.oci - (efectiu + income)),
     estalvi,
     state.familia,
   )
-  const benestarDescobert = penalitzacioDescobert(deficit.descobert)
 
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
@@ -88,6 +95,23 @@ export function InvestmentPanel() {
           {t('pla.income')}: {formatEuros(perMes(income))}/mes
         </span>
       </div>
+
+      {deuteActual > 0 && (
+        <div className="mb-3 rounded-lg border border-red-500/40 bg-red-950/30 p-3">
+          <div className="flex justify-between text-sm">
+            <span className="font-semibold text-red-300">{t('pla.deute')}</span>
+            <span className="font-mono font-bold text-red-400">
+              −{formatEuros(deuteActual)}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-red-300/80">
+            {t('pla.deute.nota', {
+              amount: formatEuros(deuteActual),
+              pct: interesDeutePct,
+            })}
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         {/* Cost de vida: tries el nivell (mínim/mig/alt); l'import no és lliure. */}
@@ -144,6 +168,26 @@ export function InvestmentPanel() {
               </span>
               <span className="w-20 text-right font-mono text-sm text-amber-300/90">
                 {formatEuros(perMes(costHab))}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Aportació a la família d'origen: obligatòria per a les classes baixes. */}
+        {aportacioFam > 0 && (
+          <div className="flex items-center justify-between gap-3 opacity-90">
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-slate-300">
+                {t('pla.aportacioFamilia')}
+              </div>
+              <div className="text-xs text-slate-500">{t('pla.aportacioFamilia.desc')}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500" aria-hidden>
+                🔒
+              </span>
+              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+                {formatEuros(perMes(aportacioFam))}
               </span>
             </div>
           </div>
@@ -224,9 +268,8 @@ export function InvestmentPanel() {
         )}
         {deficit.descobert > 0 && (
           <p className="text-xs text-red-400">
-            {t('pla.balanc.descobert', {
+            {t('pla.balanc.deute', {
               amount: formatEuros(perMes(deficit.descobert)),
-              punts: benestarDescobert,
             })}
           </p>
         )}

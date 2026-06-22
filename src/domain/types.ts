@@ -115,6 +115,12 @@ export interface Patrimoni {
   fonsPensions: number
   /** Valor de cada casa en propietat. */
   cases: number[]
+  /**
+   * Deute de consum pendent (import positiu del que es deu). A diferència dels altres
+   * comptes (que mai són negatius), aquesta línia modela el saldo deutor que compon i
+   * resta del patrimoni net. Absent o 0 = sense deute.
+   */
+  deute?: number
 }
 
 export interface Progenitor {

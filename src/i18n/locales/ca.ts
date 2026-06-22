@@ -77,7 +77,8 @@ export const ca: Record<string, string> = {
   'patrimoni.fonsIndexat': 'Fons indexat',
   'patrimoni.fonsPensions': 'Pla de pensions',
   'patrimoni.cases': 'Cases',
-  'patrimoni.total': 'Total',
+  'patrimoni.deute': 'Deute',
+  'patrimoni.total': 'Patrimoni net',
 
   'context.title': 'Context familiar',
   'context.ingressos': 'Ingressos de la llar',
@@ -254,10 +255,16 @@ export const ca: Record<string, string> = {
   'pla.notaPensions': 'Desgravació fiscal: et tornen {amount} a efectiu.',
   'pla.costHabitatge': 'Habitatge',
   'pla.costHabitatge.desc': 'Lloguer o hipoteca. Obligatori, no es pot modificar.',
+  'pla.aportacioFamilia': 'Ajuda a la família',
+  'pla.aportacioFamilia.desc':
+    'Una part del sou se’n va a casa. Obligatori mentre la família et necessiti.',
   'pla.balanc': 'Balanç del mes',
   'pla.balanc.estalvis': 'Gastes més del que ingresses: tires d’estalvis.',
-  'pla.balanc.descobert':
-    'No cobreixes {amount}/mes ni amb estalvis ni amb la família → −{punts} benestar.',
+  'pla.balanc.deute':
+    'No cobreixes {amount}/mes ni amb estalvis ni amb la família: es convertirà en deute.',
+  'pla.deute': 'Deute pendent',
+  'pla.deute.nota':
+    'Deus {amount}. Compon al {pct}% l’any i el teu marge va a pagar-lo: no pots invertir fins a saldar-lo.',
   'pla.nota':
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',

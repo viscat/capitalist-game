@@ -1,5 +1,6 @@
 import {
-  DERIVA_BENESTAR,
+  DERIVA_BAIXA,
+  DERIVA_PUJADA,
   EDAT_FI_ADOLESCENCIA,
   EDAT_FI_CARRERA,
   EDAT_FI_INFANCIA,
@@ -26,6 +27,7 @@ import { FAMILY_PRESETS } from './family/presets'
 import { MILESTONES } from './milestones'
 import { rng, seedFromTime } from './rng'
 import {
+  aportacioFamiliarCarrera,
   aportacioMinima,
   applyBudgetYear,
   applyCareerYear,
@@ -41,6 +43,7 @@ import {
   ingressosAnualsCarrera,
   ingressosMensuals16,
   netAnual,
+  netMensual,
   pagaMensual,
   rendimentIndexAnual,
   resolveDespesaGreu,
@@ -306,13 +309,14 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     (state.salari ?? 0) > 0
   const anysExperiencia = (state.anysExperiencia ?? 0) + (haTreballat ? 1 : 0)
 
-  // Deriva del benestar cap a la referència de l'entorn.
+  // Deriva ASIMÈTRICA del benestar cap a la referència de l'entorn (P9): és més fàcil
+  // caure que pujar. Per sota de la referència, la recuperació és lenta; per sobre, la
+  // caiguda és ràpida (un cop dolent costa de remuntar; l'estructura t'hi torna).
   const baseline = baselineBenestar(state)
+  const gap = baseline - state.person.stats.benestar
+  const derivaFactor = gap >= 0 ? DERIVA_PUJADA : DERIVA_BAIXA
   const benestar = clampBenestar(
-    Math.round(
-      state.person.stats.benestar +
-        (baseline - state.person.stats.benestar) * DERIVA_BENESTAR,
-    ),
+    Math.round(state.person.stats.benestar + gap * derivaFactor),
   )
   let person: Person = {
     ...state.person,
@@ -369,6 +373,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       costVidaPropi(state.familia, habitatge, state.nivellVida),
       costHabitatgeAnual(habitatge),
       state.familia,
+      aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0)),
     )
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi

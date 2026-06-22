@@ -43,6 +43,22 @@ export const PAS_PLA = 300
 /** Fracció del desfasament cap al benestar de referència que es recupera per torn. */
 export const DERIVA_BENESTAR = 0.25
 
+// Deriva ASIMÈTRICA del benestar (P9): és més fàcil caure que pujar. Quan el benestar
+// està per sobre de la referència (cal baixar), la caiguda és ràpida; quan està per sota
+// (cal pujar), la recuperació és lenta. Reforça que un cop dolent costa de remuntar i que
+// l'estructura t'arrossega cap a la teva referència de classe.
+export const DERIVA_PUJADA = 0.18
+export const DERIVA_BAIXA = 0.32
+
+/**
+ * Interès anual del deute de consum (P1). Quan ni l'ingrés, ni els estalvis propis, ni la
+ * xarxa familiar cobreixen les necessitats de l'any, el dèficit no desapareix: es
+ * converteix en DEUTE que compon a aquest tipus i bloqueja qualsevol inversió fins que
+ * s'extingeix. És el mecanisme estructural que reprodueix la pobresa malgrat bones
+ * decisions (la trampa del deute, no una penalització per etiqueta de classe).
+ */
+export const INTERES_DEUTE = 0.18
+
 // --- Rendiments anuals de la inversió (fase de carrera) ---
 
 /** Rendiment anual del compte d'estalvi (gairebé nul: la inflació se'l menja). */

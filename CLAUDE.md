@@ -131,9 +131,15 @@ Punts clau perquè res no es bloquegi:
 - **Determinisme**: tota aleatorietat passa pel RNG i actualitza `rngState`. No facis
   servir `Math.random()` dins de la lògica de torn (sí que es pot per a coses no
   jugables com la generació de noms a `identitat.ts`).
-- **Sense deute**: els comptes (`efectiu`, `estalvi`, `inversions`) mai baixen de zero;
-  el que no es pot pagar es modela com a *descobert* (penalització de benestar via el
-  matalàs familiar), no com a saldo negatiu.
+- **Comptes mai negatius**: `efectiu`, `estalvi`, `inversions`, `fonsIndexat` i
+  `fonsPensions` mai baixen de zero. El **deute** sí que es modela, però com una **línia
+  pròpia i positiva** (`patrimoni.deute`, l'import que es deu): a la **carrera**, el dèficit
+  que ni els estalvis ni el matalàs familiar cobreixen es converteix en deute que **compon**
+  (`INTERES_DEUTE`), **bloqueja la inversió** fins extingir-se i té un sostre (~2,5× ingrés;
+  l'excés és descobert puntual). `patrimoniTotal` el resta, així que el patrimoni net pot ser
+  negatiu. És la trampa estructural de la pobresa (vegeu DESIGN.md §8). A les fases prèvies
+  (infància, laboral) el que no es pot pagar encara es modela com a *descobert* puntual
+  (`penalitzacioDescobert`), no com a deute acumulat.
 - **El benestar sempre 0..100** (`clampBenestar`).
 
 ## Model econòmic i de benestar (la “física” del joc)
@@ -275,6 +281,10 @@ Duplica `src/i18n/locales/ca.ts`, tradueix els valors, registra'l a `LOCALES` i 
   llavor i partides completes fins als 18).
 - `App.test.tsx` és un smoke test del flux de pantalles.
 - `i18n/coverage.test.ts` blinda la cobertura de claus.
+- `domain/sim/harness.ts` + `harness.test.ts` són el **harness de simulació**: juguen
+  centenars de partides completes (0→35) per classe i n'imprimeixen la distribució
+  d'outcomes (benestar/patrimoni als 35). És l'eina per validar la **corba objectiu** de
+  DESIGN.md §8.4 amb dades, no amb arguments, en tocar el balanceig de `stats.ts`.
 
 ## Desplegament
 

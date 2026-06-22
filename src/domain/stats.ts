@@ -6,6 +6,7 @@ import {
   DESGRAVACIO_PENSIONS,
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
+  INTERES_DEUTE,
   LIMIT_DESGRAVACIO_PENSIONS,
   MATRICULA_ANUAL,
   MESOS_PER_ANY,
@@ -143,9 +144,9 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
   return { ...person, stats, patrimoni }
 }
 
-/** Patrimoni net total de la persona. */
+/** Patrimoni net total de la persona (actius menys el deute de consum pendent). */
 export function patrimoniTotal(person: Person): number {
-  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
+  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases, deute } =
     person.patrimoni
   return (
     efectiu +
@@ -153,7 +154,8 @@ export function patrimoniTotal(person: Person): number {
     inversions +
     fonsIndexat +
     fonsPensions +
-    cases.reduce((a, b) => a + b, 0)
+    cases.reduce((a, b) => a + b, 0) -
+    (deute ?? 0)
   )
 }
 
@@ -216,9 +218,13 @@ export function adultBaselineBenestar(state: GameState): number {
   // La seguretat econòmica depèn del que es cobra de veritat (net), no del brut.
   const incomeM = netMensual(state.salari ?? 0)
   const econ = clamp(incomeM / 3500, 0, 1)
+  // El patrimoni net ja descompta el deute; pesa menys que abans (P7: 16→10), perquè
+  // la riquesa acumulada no és el factor dominant del benestar a la vida adulta.
   const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
-  let base = 38 + econ * 30 + wealth * 16 + benestarNivellVida(state.nivellVida)
+  let base = 38 + econ * 30 + wealth * 10 + benestarNivellVida(state.nivellVida)
   if (incomeM === 0) base -= 12
+  // Viure endeutat rebaixa la referència de benestar (no només via el patrimoni net).
+  base -= penalitzacioDeute(state.person.patrimoni.deute ?? 0, incomeM * MESOS_PER_ANY)
   return clampBenestar(Math.round(base))
 }
 
@@ -361,6 +367,17 @@ export function penalitzacioDescobert(descobert: number): number {
   return descobert > 0 ? Math.min(15, Math.ceil(descobert / 250)) : 0
 }
 
+/**
+ * Estrès de benestar per carregar deute (P1): escala amb el deute relatiu a l'ingrés
+ * anual (no és el mateix deure 5.000 € guanyant-ne 60.000 que guanyant-ne 15.000) i està
+ * acotat. És el cost continu de viure endeutat, no un xoc puntual.
+ */
+export function penalitzacioDeute(deute: number, annualIncome: number): number {
+  if (deute <= 0) return 0
+  const ref = Math.max(annualIncome, 6000)
+  return clamp(Math.round((deute / ref) * 24), 0, 30)
+}
+
 export interface DespesaGreuResult {
   person: Person
   donacio: number
@@ -429,6 +446,28 @@ export function aportacioMinima(familia: Familia, income: number): number {
   if (income <= 0) return 0
   const min = Math.min(FACTOR_APORTACIO[familia.classe] * income, APORTACIO_MAX)
   return Math.round(min / 5) * 5
+}
+
+// A la vida adulta (carrera), els fills de famílies amb pocs recursos continuen
+// sostenint la llar d'origen: una part del sou net se'n va a casa. És la solidaritat
+// familiar asimètrica que ja modela la fase laboral, però que no s'atura als 18 quan la
+// família segueix necessitant la teva renda. Per a les classes acomodades és 0 (no han de
+// mantenir ningú; els pares, fins i tot, els donen un coixí). Drena el marge d'estalvi del
+// pobre adult i és una de les vies per les quals no pot acumular.
+const APORTACIO_CARRERA: Record<FamilyClass, number> = {
+  pobra: 0.35,
+  treballadora: 0.2,
+  mitjana: 0.05,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
+/** Aportació ANUAL a la família d'origen durant la carrera, a partir del net mensual. */
+export function aportacioFamiliarCarrera(familia: Familia, netMensual: number): number {
+  if (netMensual <= 0) return 0
+  const mensual = Math.min(APORTACIO_CARRERA[familia.classe] * netMensual, APORTACIO_MAX)
+  return Math.round(mensual) * MESOS_PER_ANY
 }
 
 /** Pressupost mensual per defecte; respecta l'aportació mínima obligatòria a casa. */
@@ -599,29 +638,45 @@ const COBERTURA_VIDA_FAMILIAR: Record<FamilyClass, number> = {
   super_rica: 1,
 }
 
+// «La pobresa surt cara» (P2): per la mateixa cistella de consum, les classes baixes
+// paguen MÉS (habitatge precari sense poder negociar, productes pitjors que s'espatllen,
+// energia del mercat lliure, crèdit de consum, transport mal connectat). És un multiplicador
+// sobre el cost base COMPARTIT, no un cost independent per classe: el mercat extreu renda
+// a qui no pot negociar. Mitjana i amunt no paguen sobrecost.
+const COST_VIDA_FACTOR_CLASSE: Record<FamilyClass, number> = {
+  pobra: 1.25,
+  treballadora: 1.12,
+  mitjana: 1,
+  alta: 1,
+  rica: 1,
+  super_rica: 1,
+}
+
 /**
  * Cost de vida que paga la persona. Si viu amb els pares, la família en cobreix una
- * fracció segons la seva classe; si viu pel seu compte, el paga sencer.
+ * fracció segons la seva classe; si viu pel seu compte, el paga sencer. A sobre,
+ * les classes baixes paguen un sobrecost («la pobresa surt cara», P2).
  */
 export function costVidaPropi(
   familia: Familia,
   habitatge?: Habitatge,
   nivell: NivellVida = NIVELL_VIDA_DEFAULT,
 ): number {
-  const total = costVidaAnual(nivell)
-  if (habitatge?.tipus === 'amb_pares') {
-    return Math.round(total * (1 - COBERTURA_VIDA_FAMILIAR[familia.classe]))
-  }
-  return total
+  const factor = COST_VIDA_FACTOR_CLASSE[familia.classe]
+  const base =
+    habitatge?.tipus === 'amb_pares'
+      ? costVidaAnual(nivell) * (1 - COBERTURA_VIDA_FAMILIAR[familia.classe])
+      : costVidaAnual(nivell)
+  return Math.round(base * factor)
 }
 
-/** Part del cost de vida que cobreixen els pares (0 si no vius amb ells). */
+/** Part del cost de vida que cobreixen els pares (0 si no vius amb ells o si en pagues de més). */
 export function cobreixVidaFamiliar(
   familia: Familia,
   habitatge?: Habitatge,
   nivell: NivellVida = NIVELL_VIDA_DEFAULT,
 ): number {
-  return costVidaAnual(nivell) - costVidaPropi(familia, habitatge, nivell)
+  return Math.max(0, costVidaAnual(nivell) - costVidaPropi(familia, habitatge, nivell))
 }
 
 /** Rendiment anual del fons indexat a partir d'un valor aleatori [0,1): volàtil. */
@@ -698,39 +753,68 @@ export function applyCareerYear(
   costVida = costVidaAnual(),
   costHabitatge = 0,
   familia?: Familia,
+  aportacioFamilia = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
-  // Necessitats de l'any (consum, cobertes pel matalàs familiar si cal) i caixa.
-  const necessitats = costVida + costHabitatge + pla.oci
+  // Sostre del deute: cap entitat presta sense fre. Es pot deure fins a ~2,5 anys
+  // d'ingrés (o un mínim si no hi ha sou); l'excés no es pot finançar i és un descobert
+  // dur (vas sense, no t'endeutes més). El deute compon al seu interès, capat al sostre.
+  const maxDeute = Math.max(annualIncome * 2.5, 15000)
+  let deute = Math.min(
+    Math.round((patrimoni.deute ?? 0) * (1 + INTERES_DEUTE)),
+    maxDeute,
+  )
+  // Necessitats de l'any: consum + habitatge + oci + aportació a la família d'origen.
+  const necessitats = costVida + costHabitatge + pla.oci + aportacioFamilia
   const caixa = patrimoni.efectiu + annualIncome
   let estalvi = patrimoni.estalvi
-  let descobert = 0
+  let nouDescobert = 0
 
   if (caixa >= necessitats) {
-    // Sobra: reparteix entre aportacions (capades al sobrant) i efectiu.
     let rem = caixa - necessitats
-    const aIndex = Math.min(pla.fonsIndexat, rem)
-    rem -= aIndex
-    const aPensions = Math.min(pla.fonsPensions, rem)
-    rem -= aPensions
-    const aEstalvi = Math.min(pla.estalvi, rem)
-    rem -= aEstalvi
-    estalvi += aEstalvi
-    patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
-    patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
-    // La desgravació fiscal de l'aportació a pensions torna a efectiu.
-    patrimoni.efectiu = Math.round(rem + desgravacioPensions(aPensions))
+    // El deute es paga ABANS d'invertir: bloqueja l'estalvi i la inversió fins extingir-se.
+    const pagaDeute = Math.min(rem, deute)
+    deute -= pagaDeute
+    rem -= pagaDeute
+    if (deute > 0) {
+      // Encara endeutat: tot el marge ha anat a deute, no es pot invertir res.
+      patrimoni.efectiu = Math.round(rem)
+    } else {
+      // Sense deute: reparteix entre aportacions (capades al sobrant) i efectiu.
+      const aIndex = Math.min(pla.fonsIndexat, rem)
+      rem -= aIndex
+      const aPensions = Math.min(pla.fonsPensions, rem)
+      rem -= aPensions
+      const aEstalvi = Math.min(pla.estalvi, rem)
+      rem -= aEstalvi
+      estalvi += aEstalvi
+      patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
+      patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
+      // La desgravació fiscal de l'aportació a pensions torna a efectiu.
+      patrimoni.efectiu = Math.round(rem + desgravacioPensions(aPensions))
+    }
   } else {
-    // Dèficit: tira d'estalvis propis → xarxa familiar → descobert. Sense aportar.
+    // Dèficit: tira d'estalvis propis → xarxa familiar → el que ningú cobreix es
+    // converteix en DEUTE (s'acumula i compon). El que no es pot ni finançar (per sobre
+    // del sostre) és descobert dur: un xoc puntual de benestar (vas sense).
     const r = repartDeficit(necessitats - caixa, estalvi, familia)
     estalvi -= r.propi
-    descobert = r.descobert
+    deute += r.descobert
+    if (deute > maxDeute) {
+      nouDescobert = deute - maxDeute
+      deute = maxDeute
+    }
     patrimoni.efectiu = 0
   }
   patrimoni.estalvi = Math.round(estalvi)
+  patrimoni.deute = deute > 0 ? Math.round(deute) : undefined
 
+  // El benestar d'aquest any reflecteix l'estil de vida (oci) i el XOC d'un dèficit nou
+  // no finançable. L'estrès CRÒNIC de viure endeutat NO es resta aquí (seria doble
+  // comptabilitat): ja rebaixa la referència a `adultBaselineBenestar`, cap a la qual
+  // deriva el benestar.
   const deltaBenestar =
-    benestarOciAnual(pla.oci, annualIncome) - penalitzacioDescobert(descobert)
+    benestarOciAnual(pla.oci, annualIncome) - penalitzacioDescobert(nouDescobert)
   const stats = {
     ...person.stats,
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),
