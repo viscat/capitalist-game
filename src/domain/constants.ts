@@ -1,4 +1,5 @@
 // Constants de joc.
+import type { NivellVida } from './types'
 
 export const BENESTAR_MIN = 0
 export const BENESTAR_MAX = 100
@@ -67,9 +68,17 @@ export const LIMIT_DESGRAVACIO_PENSIONS = 1500
 
 // --- Universitat i cost de vida adult ---
 
-/** Cost de vida anual a la fase de carrera: base + fracció de l'ingrés (estil de vida). */
-export const COST_VIDA_BASE = 8000
-export const COST_VIDA_FACTOR = 0.2
+/**
+ * Cost de vida anual a la fase adulta (supermercat + subministraments): el dia a dia.
+ * Valor fix per nivell de vida que tria el jugador (mínim / mig / alt).
+ */
+export const COST_VIDA_NIVELLS: Record<NivellVida, number> = {
+  minim: 6_000, // 500 €/mes
+  mig: 8_400, // 700 €/mes
+  alt: 9_600, // 800 €/mes
+}
+/** Nivell de vida per defecte en entrar a la vida adulta. */
+export const NIVELL_VIDA_DEFAULT: NivellVida = 'mig'
 
 /** Cost anual de matrícula i material universitari. */
 export const MATRICULA_ANUAL = 2000

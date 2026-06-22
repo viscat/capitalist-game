@@ -24,6 +24,9 @@ export type LifeStage =
 /** Itinerari triat al fork dels 16 anys. */
 export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
 
+/** Nivell de vida (cost del dia a dia) que tria la persona a la fase adulta. */
+export type NivellVida = 'minim' | 'mig' | 'alt'
+
 /** Fites de la vida que obren una pantalla de decisió. */
 export type MilestoneId =
   | 'institut'
@@ -247,6 +250,8 @@ export interface GameState {
   pressupost?: Budget
   /** Pla d'estalvi i inversió anual actiu (fase de carrera). */
   plaInversio?: PlaInversio
+  /** Nivell de vida triat (cost del dia a dia) a la fase adulta. Per defecte, mitjà. */
+  nivellVida?: NivellVida
   /** Situació d'habitatge (a partir dels 18). Per defecte, viure amb els pares. */
   habitatge?: Habitatge
   /** Marca si la persona té un títol universitari (premi de sou a la carrera). */

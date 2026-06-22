@@ -1,8 +1,8 @@
 import {
   BENESTAR_MAX,
   BENESTAR_MIN,
-  COST_VIDA_BASE,
-  COST_VIDA_FACTOR,
+  COST_VIDA_NIVELLS,
+  NIVELL_VIDA_DEFAULT,
   DESGRAVACIO_PENSIONS,
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
@@ -25,6 +25,7 @@ import type {
   GameState,
   Habitatge,
   Itinerari,
+  NivellVida,
   Patrimoni,
   Person,
   PlaInversio,
@@ -215,7 +216,7 @@ export function adultBaselineBenestar(state: GameState): number {
   const incomeM = netMensual(state.salari ?? 0)
   const econ = clamp(incomeM / 3500, 0, 1)
   const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
-  let base = 38 + econ * 30 + wealth * 16
+  let base = 38 + econ * 30 + wealth * 16 + benestarNivellVida(state.nivellVida)
   if (incomeM === 0) base -= 12
   return clampBenestar(Math.round(base))
 }
@@ -522,9 +523,22 @@ export function ingressosAnualsCarrera(state: GameState): number {
   return netAnual((state.salari ?? 0) * 12)
 }
 
-/** Cost de vida anual: base + fracció de l'ingrés (l'estil de vida creix amb el sou). */
-export function costVidaAnual(annualIncome: number): number {
-  return Math.round(COST_VIDA_BASE + annualIncome * COST_VIDA_FACTOR)
+/** Cost de vida anual a la fase adulta segons el nivell de vida triat. */
+export function costVidaAnual(nivell: NivellVida = NIVELL_VIDA_DEFAULT): number {
+  return COST_VIDA_NIVELLS[nivell]
+}
+
+// Un nivell de vida més alt (millor menjar, més confort) dóna una mica de benestar;
+// un de mínim, en treu. És el contrapès de gastar més o menys en el dia a dia.
+const COST_VIDA_BENESTAR: Record<NivellVida, number> = {
+  minim: -3,
+  mig: 0,
+  alt: 3,
+}
+
+/** Efecte del nivell de vida sobre el benestar de referència adult. */
+export function benestarNivellVida(nivell: NivellVida = NIVELL_VIDA_DEFAULT): number {
+  return COST_VIDA_BENESTAR[nivell]
 }
 
 // Mentre vius amb els pares, el cost de vida és la teva aportació a la llar, però la
@@ -544,11 +558,11 @@ const COBERTURA_VIDA_FAMILIAR: Record<FamilyClass, number> = {
  * fracció segons la seva classe; si viu pel seu compte, el paga sencer.
  */
 export function costVidaPropi(
-  annualIncome: number,
   familia: Familia,
   habitatge?: Habitatge,
+  nivell: NivellVida = NIVELL_VIDA_DEFAULT,
 ): number {
-  const total = costVidaAnual(annualIncome)
+  const total = costVidaAnual(nivell)
   if (habitatge?.tipus === 'amb_pares') {
     return Math.round(total * (1 - COBERTURA_VIDA_FAMILIAR[familia.classe]))
   }
@@ -557,11 +571,11 @@ export function costVidaPropi(
 
 /** Part del cost de vida que cobreixen els pares (0 si no vius amb ells). */
 export function cobreixVidaFamiliar(
-  annualIncome: number,
   familia: Familia,
   habitatge?: Habitatge,
+  nivell: NivellVida = NIVELL_VIDA_DEFAULT,
 ): number {
-  return costVidaAnual(annualIncome) - costVidaPropi(annualIncome, familia, habitatge)
+  return costVidaAnual(nivell) - costVidaPropi(familia, habitatge, nivell)
 }
 
 /** Rendiment anual del fons indexat a partir d'un valor aleatori [0,1): volàtil. */
@@ -613,7 +627,7 @@ export function benestarOciAnual(oci: number, annualIncome: number): number {
 /** Pla d'inversió anual per defecte (prioritza fons indexat i una mica de pensions). */
 export function defaultPlaInversio(annualIncome: number): PlaInversio {
   const round = (n: number) => Math.max(0, Math.round(n / PAS_PLA) * PAS_PLA)
-  const rest = Math.max(0, annualIncome - costVidaAnual(annualIncome))
+  const rest = Math.max(0, annualIncome - costVidaAnual())
   return {
     oci: round(rest * 0.35),
     estalvi: round(rest * 0.15),
@@ -634,7 +648,7 @@ export function applyCareerYear(
   pla: PlaInversio,
   annualIncome: number,
   indexReturn: number,
-  costVida = costVidaAnual(annualIncome),
+  costVida = costVidaAnual(),
   costHabitatge = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)

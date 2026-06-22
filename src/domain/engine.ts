@@ -7,6 +7,7 @@ import {
   EDAT_FI_UNIVERSITAT,
   MESOS_PER_ANY,
   MESOS_PER_ESTACIO,
+  NIVELL_VIDA_DEFAULT,
   REVALORACIO_HABITATGE,
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
@@ -148,6 +149,7 @@ export function newGameAtCarrera(
     salari,
     salariBase: salari,
     plaInversio: defaultPlaInversio(netAnual(salari * 12)),
+    nivellVida: NIVELL_VIDA_DEFAULT,
     habitatge: { tipus: 'amb_pares' },
     historial: [],
     acabat: false,
@@ -341,7 +343,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       pla,
       income,
       rendimentIndexAnual(draw.value),
-      costVidaPropi(income, state.familia, habitatge),
+      costVidaPropi(state.familia, habitatge, state.nivellVida),
       costHabitatgeAnual(habitatge),
     )
   } else {
@@ -561,6 +563,7 @@ export function applyMilestoneChoice(
     next.teDiploma = teDiploma
     next.salari = next.salariBase = salari
     next.plaInversio = defaultPlaInversio(netAnual(salari * 12))
+    next.nivellVida = NIVELL_VIDA_DEFAULT
   }
   // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
   // es decideix llogar o comprar.
