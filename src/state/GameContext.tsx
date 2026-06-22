@@ -18,6 +18,7 @@ import type {
   FamilyClass,
   GameState,
   Identitat,
+  NivellVida,
   PlaInversio,
 } from '../domain/types'
 
@@ -52,6 +53,8 @@ interface GameContextValue {
   setBudget: (budget: Budget) => void
   /** Desa el pla d'inversió anual (fase de carrera). */
   setPla: (pla: PlaInversio) => void
+  /** Tria el nivell de vida (cost del dia a dia) a la fase adulta. */
+  setNivellVida: (nivell: NivellVida) => void
   /** Lloga una habitació o un pis. */
   llogar: (tipus: OpcioLloguer['tipus']) => void
   /** Compra un habitatge amb hipoteca (a `anys` anys). */
@@ -103,6 +106,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
       setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
+      setNivellVida: (nivell) =>
+        setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
       llogar: (tipus) => setState((s) => (s ? llogar(s, tipus) : s)),
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),

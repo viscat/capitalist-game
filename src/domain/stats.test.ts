@@ -8,6 +8,7 @@ import {
   augmentSou,
   balancUniversitatAnual,
   benestarEstilDeVida,
+  benestarNivellVida,
   clampBenestar,
   cobreixVidaFamiliar,
   costVidaAnual,
@@ -348,21 +349,33 @@ describe('costVidaPropi (cobertura familiar mentre vius amb els pares)', () => {
     expect(alta).toBeLessThan(mitjana)
   })
 
-  it('el cost de vida és un valor fix, no depèn de l’ingrés', () => {
-    expect(costVidaAnual()).toBe(12_000)
+  it('el cost de vida és un valor fix per nivell (no depèn de l’ingrés)', () => {
+    expect(costVidaAnual('minim')).toBe(6_000)
+    expect(costVidaAnual('mig')).toBe(8_400)
+    expect(costVidaAnual('alt')).toBe(9_600)
+    expect(costVidaAnual('minim')).toBeLessThan(costVidaAnual('mig'))
+    expect(costVidaAnual('mig')).toBeLessThan(costVidaAnual('alt'))
+  })
+
+  it('un nivell de vida més alt costa més però dóna més benestar', () => {
+    expect(benestarNivellVida('minim')).toBeLessThan(benestarNivellVida('mig'))
+    expect(benestarNivellVida('mig')).toBeLessThan(benestarNivellVida('alt'))
+    expect(costVidaPropi(FAMILY_PRESETS.pobra.familia, llogat, 'alt')).toBeGreaterThan(
+      costVidaPropi(FAMILY_PRESETS.pobra.familia, llogat, 'minim'),
+    )
   })
 
   it('si vius pel teu compte pagues tot el cost de vida sigui quina sigui la família', () => {
-    const total = costVidaAnual()
-    expect(costVidaPropi(FAMILY_PRESETS.rica.familia, llogat)).toBe(total)
-    expect(cobreixVidaFamiliar(FAMILY_PRESETS.rica.familia, llogat)).toBe(0)
+    const total = costVidaAnual('mig')
+    expect(costVidaPropi(FAMILY_PRESETS.rica.familia, llogat, 'mig')).toBe(total)
+    expect(cobreixVidaFamiliar(FAMILY_PRESETS.rica.familia, llogat, 'mig')).toBe(0)
   })
 
   it('la part coberta + la part pròpia sumen el cost de vida total', () => {
     const f = FAMILY_PRESETS.alta.familia
-    const propi = costVidaPropi(f, ambPares)
-    const cobert = cobreixVidaFamiliar(f, ambPares)
-    expect(propi + cobert).toBe(costVidaAnual())
+    const propi = costVidaPropi(f, ambPares, 'alt')
+    const cobert = cobreixVidaFamiliar(f, ambPares, 'alt')
+    expect(propi + cobert).toBe(costVidaAnual('alt'))
     expect(cobert).toBeGreaterThan(0)
   })
 })
