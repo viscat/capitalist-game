@@ -740,6 +740,17 @@ export const ca: Record<string, string> = {
   'event.ajudar_familia_adult.choice.ajudar': 'Ajudar-los',
   'event.ajudar_familia_adult.choice.no_puc': 'No puc permetre-m’ho',
 
+  // --- Salut (catàstrofe per al ric, erosió estructural per al pobre) ---
+  'event.malaltia_greu.title': 'Una malaltia greu',
+  'event.malaltia_greu.desc':
+    'Un problema de salut seriós t’estira amunt: tractaments, baixa i una despesa de {cost} €. La família en cobreix el que pot; la resta, la pateixes tu.',
+  'event.esgotament.title': 'Esgotament',
+  'event.esgotament.desc':
+    'Massa hores, massa pressió, poc descans. El cos i el cap passen factura.',
+  'event.incapacitat.title': 'Una incapacitat',
+  'event.incapacitat.desc':
+    'Un accident o una malaltia greu et deixen seqüeles permanents. {cost} € de despeses i una vida que ja no torna a ser igual.',
+
   // --- A l'atur durant la carrera (mentre busques feina) ---
   'event.subsidi_atur.title': 'Cobres l’atur',
   'event.subsidi_atur.desc':

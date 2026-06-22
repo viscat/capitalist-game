@@ -478,6 +478,7 @@ sobre de 60 de benestar). La física no produïa la corba objectiu.
 | Obligació familiar a la carrera (drena el marge del pobre adult) | ✅ | `stats.ts` `aportacioFamiliarCarrera` |
 | P7 (parcial) `wealth` 16→10 + estrès de deute al benestar adult | ✅ | `stats.ts` `adultBaselineBenestar`, `penalitzacioDeute` |
 | P9 Deriva asimètrica (cau ràpid, puja lent) | ✅ | `constants.ts` `DERIVA_PUJADA/BAIXA`, `engine.ts` |
+| P5 Salut: malaltia greu + esgotament + incapacitat (seqüela crònica), ponderats per `EXPOSICIO_SALUT` (classe) | ✅ | `events/adult.ts`, `salutCronica` a `types.ts`/`engine.ts`/`stats.ts` |
 
 **Corba mesurada (després)** — 400 llavors/classe:
 
@@ -495,10 +496,27 @@ obligació familiar + deriva asimètrica), no per cap penalització indexada a l
 exactament el gir de §8.1. L'única via d'escapada del pobre passa per l'**educació**
 (estudis: 3,3% escapen; treball: 0%), com volia l'innegociable socialdemòcrata.
 
+**P5 (salut) — implementat i mesurat:** tres esdeveniments a la carrera amb pes escalat
+per `EXPOSICIO_SALUT` (classe): `malaltia_greu` (despesaGreu + −24 benestar), `esgotament`
+(−10 benestar) i `incapacitat` (rara: despesaGreu + −18 benestar + **seqüela crònica**
+duradora via `salutCronica`, que rebaixa la referència adulta de manera permanent i la
+deriva no recupera). Com que el cap d'`econ` a `adultBaselineBenestar` fa el ric insensible
+als xocs d'ingrés, la **seqüela crònica** és el mecanisme que permet que la mala sort
+l'enfonsi de debò. Resultat mesurat: el **ric** manté la mediana alta (~72-76) — prospera
+per defecte — però la mala sort li obre una **cua real a la baixa** (p10 ≈ 55 via estudis,
+≈ 44 via treball; els pitjors casos, clarament baixos), i ve **només** de salut + crac, res
+estructural. El **pobre** hi està més exposat (salut com a càrrega de classe, via
+probabilitat, no etiqueta).
+
+> **Nota de calibratge (deute pendent per a P4).** La cua de mobilitat del pobre via
+> estudis ha baixat de ~3,3% (increment 1) a ~2% en afegir el risc de salut — lleugerament
+> per sota de l'objectiu 3–5% de §8.4. No és la salut qui la limita (l'escapada està
+> gated per la trampa del deute), sinó que el marge era ja estret; restaurar-la cap al
+> 3–5% pertany a la propera passada P4 (reduir `PRECARIETAT_BENESTAR` i/o el reforç de
+> l'educació pública que demanava la lent socialdemòcrata).
+
 **Pendent (properes iteracions):** P3 (variança de la cura a la infància), P4 (reduir
-`PRECARIETAT_BENESTAR` ara que els mecanismes carreguen el pes — encara és 14/8), P5
-(esdeveniments de salut: catastròfics per al ric + erosió estructural per al pobre — és el
-que falta perquè el ric «només caigui per mala sort»; ara mai cau), P6 (herència), P8 (capa
-pública), i tota la **superfície a la UI** (mostrar el deute, pantalla de victòria
+`PRECARIETAT_BENESTAR` ara que els mecanismes carreguen el pes — encara és 14/8), P6
+(herència), P8 (capa pública), i tota la **superfície a la UI** (pantalla de victòria
 no-monetària, frugalitat declarada). El residu de calibratge de §8.5 (P7 no-monetari) no
 s'ha tocat encara.

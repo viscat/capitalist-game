@@ -1,5 +1,19 @@
 import { augmentSou } from '../stats'
-import type { GameEvent } from '../types'
+import type { FamilyClass, GameEvent } from '../types'
+
+// Exposició a xocs de salut segons la classe d'origen (P5). La precarietat —pitjor
+// feina, més estrès físic, menys prevenció, pitjor entorn— hi exposa MÉS. No és una
+// penalització plana per etiqueta: és més PROBABILITAT de patir el xoc. Per al ric és
+// rar (la seva única amenaça real, ja que res estructural no el fa caure); per al pobre,
+// freqüent (la salut com a càrrega estructural de classe, no com a simple mala sort).
+const EXPOSICIO_SALUT: Record<FamilyClass, number> = {
+  pobra: 1.4,
+  treballadora: 1.2,
+  mitjana: 1,
+  alta: 0.8,
+  rica: 0.6,
+  super_rica: 0.5,
+}
 
 // Esdeveniments de la vida adulta (torns anuals).
 //
@@ -309,6 +323,41 @@ export const CARRERA_EVENTS: GameEvent[] = [
     params: { amount: 8000 },
     weight: () => 0.4,
     effect: { estalvi: 8000, benestar: -4 },
+  },
+  // --- Salut (P5): catàstrofe per al ric, erosió estructural per al pobre ---
+  {
+    id: 'malaltia_greu',
+    category: 'salut',
+    titleKey: 'event.malaltia_greu.title',
+    descKey: 'event.malaltia_greu.desc',
+    params: { cost: 6000 },
+    // Despesa greu (passa pel matalàs familiar) + cop fort de benestar. El ric ho cobreix
+    // amb el matalàs però igualment se'n ressent; el pobre, sense matalàs, hi suma el
+    // descobert. Pes baix però escalat per l'exposició de classe.
+    weight: (f) => 0.5 * EXPOSICIO_SALUT[f.classe],
+    effect: { despesaGreu: 6000, benestar: -24 },
+  },
+  {
+    id: 'esgotament',
+    category: 'salut',
+    titleKey: 'event.esgotament.title',
+    descKey: 'event.esgotament.desc',
+    // Esgotament/salut mental per condicions de feina precàries i estrès crònic: només
+    // benestar, però molt més freqüent com més baixa és la classe.
+    weight: (f) => 0.7 * EXPOSICIO_SALUT[f.classe],
+    effect: { benestar: -10 },
+  },
+  {
+    id: 'incapacitat',
+    category: 'salut',
+    titleKey: 'event.incapacitat.title',
+    descKey: 'event.incapacitat.desc',
+    params: { cost: 9000 },
+    // Molt rara, però et canvia la vida: despesa greu + cop fort + SEQÜELA permanent
+    // (penalització crònica de benestar que la deriva no recupera). És l'única via que pot
+    // enfonsar un ric fins a números clarament baixos: pura mala sort, res estructural.
+    weight: (f) => 0.18 * EXPOSICIO_SALUT[f.classe],
+    effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22 },
   },
   {
     id: 'ajudar_familia_adult',
