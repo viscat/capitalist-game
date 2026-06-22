@@ -9,6 +9,9 @@ import {
   balancUniversitatAnual,
   benestarEstilDeVida,
   clampBenestar,
+  cobreixVidaFamiliar,
+  costVidaAnual,
+  costVidaPropi,
   creixementInversions,
   desglosNominaAnual,
   desglosNominaMensual,
@@ -323,6 +326,40 @@ describe('applyCareerYear', () => {
     const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
     const after = applyCareerYear(pobre, pla, 12000, 0.05)
     expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('costVidaPropi (cobertura familiar mentre vius amb els pares)', () => {
+  const ambPares = { tipus: 'amb_pares' as const }
+  const llogat = { tipus: 'pis_lloguer' as const, lloguerAnual: 10_800 }
+
+  it('amb pares pobres pagues tot el cost de vida; amb pares rics no en pagues res', () => {
+    const total = costVidaAnual(20_000)
+    expect(costVidaPropi(20_000, FAMILY_PRESETS.pobra.familia, ambPares)).toBe(total)
+    expect(costVidaPropi(20_000, FAMILY_PRESETS.rica.familia, ambPares)).toBe(0)
+    expect(costVidaPropi(20_000, FAMILY_PRESETS.super_rica.familia, ambPares)).toBe(0)
+  })
+
+  it('com més acomodada la família, menys cost de vida pagues vivint amb ells', () => {
+    const pobra = costVidaPropi(20_000, FAMILY_PRESETS.pobra.familia, ambPares)
+    const mitjana = costVidaPropi(20_000, FAMILY_PRESETS.mitjana.familia, ambPares)
+    const alta = costVidaPropi(20_000, FAMILY_PRESETS.alta.familia, ambPares)
+    expect(mitjana).toBeLessThan(pobra)
+    expect(alta).toBeLessThan(mitjana)
+  })
+
+  it('si vius pel teu compte pagues tot el cost de vida sigui quina sigui la família', () => {
+    const total = costVidaAnual(20_000)
+    expect(costVidaPropi(20_000, FAMILY_PRESETS.rica.familia, llogat)).toBe(total)
+    expect(cobreixVidaFamiliar(20_000, FAMILY_PRESETS.rica.familia, llogat)).toBe(0)
+  })
+
+  it('la part coberta + la part pròpia sumen el cost de vida total', () => {
+    const f = FAMILY_PRESETS.alta.familia
+    const propi = costVidaPropi(20_000, f, ambPares)
+    const cobert = cobreixVidaFamiliar(20_000, f, ambPares)
+    expect(propi + cobert).toBe(costVidaAnual(20_000))
+    expect(cobert).toBeGreaterThan(0)
   })
 })
 

@@ -527,6 +527,43 @@ export function costVidaAnual(annualIncome: number): number {
   return Math.round(COST_VIDA_BASE + annualIncome * COST_VIDA_FACTOR)
 }
 
+// Mentre vius amb els pares, el cost de vida és la teva aportació a la llar, però la
+// família te'n cobreix una part segons la seva classe: la pobra no pot cobrir res
+// (pagues tot el teu cost de vida), les riques i superriques t'ho cobreixen tot.
+const COBERTURA_VIDA_FAMILIAR: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0.25,
+  mitjana: 0.5,
+  alta: 0.8,
+  rica: 1,
+  super_rica: 1,
+}
+
+/**
+ * Cost de vida que paga la persona. Si viu amb els pares, la família en cobreix una
+ * fracció segons la seva classe; si viu pel seu compte, el paga sencer.
+ */
+export function costVidaPropi(
+  annualIncome: number,
+  familia: Familia,
+  habitatge?: Habitatge,
+): number {
+  const total = costVidaAnual(annualIncome)
+  if (habitatge?.tipus === 'amb_pares') {
+    return Math.round(total * (1 - COBERTURA_VIDA_FAMILIAR[familia.classe]))
+  }
+  return total
+}
+
+/** Part del cost de vida que cobreixen els pares (0 si no vius amb ells). */
+export function cobreixVidaFamiliar(
+  annualIncome: number,
+  familia: Familia,
+  habitatge?: Habitatge,
+): number {
+  return costVidaAnual(annualIncome) - costVidaPropi(annualIncome, familia, habitatge)
+}
+
 /** Rendiment anual del fons indexat a partir d'un valor aleatori [0,1): volàtil. */
 export function rendimentIndexAnual(rngValue: number): number {
   return INDEX_RENDIMENT_MIN + rngValue * INDEX_RENDIMENT_RANG
@@ -597,6 +634,7 @@ export function applyCareerYear(
   pla: PlaInversio,
   annualIncome: number,
   indexReturn: number,
+  costVida = costVidaAnual(annualIncome),
   costHabitatge = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
@@ -608,8 +646,8 @@ export function applyCareerYear(
     return real
   }
 
-  // Despeses obligatòries: cost de vida i habitatge (lloguer o hipoteca).
-  gasta(costVidaAnual(annualIncome))
+  // Despeses obligatòries: cost de vida (o la teva part) i habitatge (lloguer o hipoteca).
+  gasta(costVida)
   gasta(costHabitatge)
   const oci = gasta(pla.oci)
   const aEstalvi = gasta(pla.estalvi)
