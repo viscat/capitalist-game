@@ -59,6 +59,19 @@ export const DERIVA_BAIXA = 0.32
  */
 export const INTERES_DEUTE = 0.18
 
+// --- Capa pública del benestar (P8): existeix però és insuficient i arriba tard ---
+
+/** Renda mínima anual (tipus IMV): terra públic per a qui cau (≈650 €/mes). */
+export const IMV_ANUAL = 7_800
+/**
+ * Taxa efectiva d'accés a l'IMV (1 − no-take-up). A la realitat, una gran part de qui hi
+ * té dret no el cobra (desconeixement, burocràcia, estigma): modelem aquesta degradació
+ * com una cobertura parcial del dèficit, no com un rescat complet.
+ */
+export const IMV_COBERTURA = 0.3
+/** Fracció del net que cobreix la prestació d'atur (depèn d'haver cotitzat). */
+export const PRESTACIO_ATUR_FRACCIO = 0.6
+
 // --- Rendiments anuals de la inversió (fase de carrera) ---
 
 /** Rendiment anual del compte d'estalvi (gairebé nul: la inflació se'l menja). */

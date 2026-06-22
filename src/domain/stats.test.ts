@@ -98,8 +98,11 @@ describe('familyBaselineBenestar', () => {
     expect(mitjana).toBeLessThanOrEqual(alta)
     expect(pobra).toBeGreaterThanOrEqual(0)
     expect(alta).toBeLessThanOrEqual(100)
-    // Les classes baixes ho tenen clarament més difícil.
-    expect(pobra).toBeLessThanOrEqual(45)
+    // Les classes baixes ho tenen clarament més difícil (per sota de la franja mitjana).
+    // El desavantatge del pobre ja no es decreta amb una gran penalització d'etiqueta a la
+    // infància (P4: residu petit), sinó que emergeix dels mecanismes de la vida adulta.
+    expect(pobra).toBeLessThanOrEqual(50)
+    expect(pobra).toBeLessThan(mitjana)
   })
 })
 

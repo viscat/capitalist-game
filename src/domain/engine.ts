@@ -40,11 +40,13 @@ import {
   defaultPlaInversio,
   estalviAnualCriatura,
   familyBaselineBenestar,
+  herenciaVida,
   ingressosAnualsCarrera,
   ingressosMensuals16,
   netAnual,
   netMensual,
   pagaMensual,
+  prestacioAturAnual,
   rendimentIndexAnual,
   resolveDespesaGreu,
   salariAdultInicial,
@@ -363,7 +365,11 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     // Any de carrera: el fons indexat rendeix segons l'atzar del mercat.
     const draw = rng(rngState)
     rngState = draw.state
-    const income = ingressosAnualsCarrera(state)
+    // A l'atur (sou 0), l'ingrés és la prestació d'atur (si has cotitzat); amb sou, el net.
+    const income =
+      (state.salari ?? 0) > 0
+        ? ingressosAnualsCarrera(state)
+        : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     person = applyCareerYear(
       person,
@@ -551,6 +557,20 @@ function resolveEvent(
     ? Math.max(0, (state.salutCronica ?? 0) + effect.salutCronicaDelta)
     : state.salutCronica
 
+  // Vincles socials (0..1): es construeixen i s'erosionen amb la vida; font de benestar
+  // no monetària (P7). Calibratge clau (§8.5): qui va endeutat amb prou feines pot
+  // cultivar-los (temps i energia esgotats per la precarietat), així que els guanys es
+  // redueixen molt si hi ha deute. Per això la "vida plena" amb poc patrimoni queda
+  // reservada a qui s'escapa de la trampa del deute, no a tothom.
+  let vinclesDelta = effect.vinclesDelta
+  if (vinclesDelta !== undefined && vinclesDelta > 0 && (person.patrimoni.deute ?? 0) > 0) {
+    vinclesDelta *= 0.3
+  }
+  const vinclesSocials =
+    vinclesDelta !== undefined
+      ? Math.max(0, Math.min(1, (state.vinclesSocials ?? 0) + vinclesDelta))
+      : state.vinclesSocials
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
@@ -559,6 +579,7 @@ function resolveEvent(
     salari,
     ultimAugmentMes,
     salutCronica,
+    vinclesSocials,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],
@@ -601,6 +622,18 @@ export function applyMilestoneChoice(
     next.teDiploma = option.teDiploma ?? state.teDiploma ?? false
     next.salari = next.salariBase = 0
     next.nivellVida = NIVELL_VIDA_DEFAULT
+    // Herència en vida (P6): el capital es transmet, no es guanya. El ric arrenca la vida
+    // adulta amb un coixí; el pobre, amb zero. Reproducció de classe directa.
+    const herencia = herenciaVida(state.familia)
+    if (herencia > 0) {
+      next.person = {
+        ...next.person,
+        patrimoni: {
+          ...next.person.patrimoni,
+          estalvi: next.person.patrimoni.estalvi + herencia,
+        },
+      }
+    }
   }
   // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
   // es decideix llogar o comprar.

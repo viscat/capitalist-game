@@ -125,7 +125,26 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     titleKey: 'event.bon_amic.title',
     descKey: 'event.bon_amic.desc',
     weight: () => 2.5,
-    effect: { benestar: 7 },
+    effect: { benestar: 7, vinclesDelta: 0.04 },
+  },
+  // P3 — La cura sota precarietat no val MENYS, val INESTABLE: més variança (pics de
+  // connexió profunda i episodis de desbordament), no una mitjana més baixa. Les dues
+  // cares pesen igual i són més probables com més justa és l'economia familiar.
+  {
+    id: 'connexio_profunda',
+    category: 'familia',
+    titleKey: 'event.connexio_profunda.title',
+    descKey: 'event.connexio_profunda.desc',
+    weight: (f) => 1 + (1 - econSecurity(f)) * 3,
+    effect: { benestar: 10, vinclesDelta: 0.03 },
+  },
+  {
+    id: 'tensio_llar',
+    category: 'familia',
+    titleKey: 'event.tensio_llar.title',
+    descKey: 'event.tensio_llar.desc',
+    weight: (f) => 1 + (1 - econSecurity(f)) * 3,
+    effect: { benestar: -10 },
   },
   {
     id: 'assetjament',

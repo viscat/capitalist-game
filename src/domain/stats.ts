@@ -4,9 +4,12 @@ import {
   COST_VIDA_NIVELLS,
   NIVELL_VIDA_DEFAULT,
   DESGRAVACIO_PENSIONS,
+  IMV_ANUAL,
+  IMV_COBERTURA,
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
   INTERES_DEUTE,
+  PRESTACIO_ATUR_FRACCIO,
   LIMIT_DESGRAVACIO_PENSIONS,
   MATRICULA_ANUAL,
   MESOS_PER_ANY,
@@ -66,9 +69,14 @@ export function wealthComfort(familia: Familia): number {
 // Penalització de benestar per precarietat de classe: viure amb pocs recursos
 // desgasta (inestabilitat, estrès, menys oportunitats) més enllà del que capturen
 // els indicadors generals. Fa que les classes baixes ho tinguin clarament més difícil.
+// Residu d'estrès/estigma de classe (P4). Abans era el pes principal del desavantatge
+// (14/8); ara que el desavantatge adult emergeix de mecanismes (deute, cost diferencial,
+// obligació familiar, exposició a la salut), aquí només en queda un RESIDU petit: l'estrès
+// crònic de la inestabilitat que els indicadors econòmics no capturen del tot. Així el
+// model deixa de "decretar" el destí per etiqueta i el fa emergir.
 const PRECARIETAT_BENESTAR: Record<FamilyClass, number> = {
-  pobra: 14,
-  treballadora: 8,
+  pobra: 6,
+  treballadora: 3,
   mitjana: 0,
   alta: 0,
   rica: 0,
@@ -221,8 +229,14 @@ export function adultBaselineBenestar(state: GameState): number {
   // El patrimoni net ja descompta el deute; pesa menys que abans (P7: 16→10), perquè
   // la riquesa acumulada no és el factor dominant del benestar a la vida adulta.
   const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
-  let base = 38 + econ * 30 + wealth * 10 + benestarNivellVida(state.nivellVida)
+  let base =
+    38 + econ * 30 + wealth * 10 + benestarNivellVida(state.nivellVida, state.vidaSenzilla)
   if (incomeM === 0) base -= 12
+  // Factor NO monetari (P7): vincles, temps, comunitat, sentit. És SUBSTITUTIU, no additiu,
+  // per als rics: qui ja té molt patrimoni no acumula benestar per duplicat (el seu wealth
+  // ja en cobreix part). Per al pobre, en canvi, és una font de benestar plena —i una via
+  // de "vida plena" amb poc patrimoni— però costa de construir quan vas desbordat.
+  base += (state.vinclesSocials ?? 0) * 18 * (1 - wealth * 0.5)
   // Viure endeutat rebaixa la referència de benestar (no només via el patrimoni net).
   base -= penalitzacioDeute(state.person.patrimoni.deute ?? 0, incomeM * MESOS_PER_ANY)
   // Seqüeles cròniques (incapacitat): rebaixa duradora, no recuperable amb la deriva.
@@ -340,25 +354,73 @@ export interface RepartDeficit {
   propi: number
   /** Part coberta per la xarxa familiar (fins a `ajutFamiliarMax`). */
   donacio: number
-  /** Part que ningú ha pogut cobrir (resta benestar). */
+  /** Part coberta per la xarxa pública (IMV/prestacions, degradada — P8). */
+  ajutPublic: number
+  /** Part que ningú ha pogut cobrir (resta benestar / es torna deute). */
   descobert: number
 }
 
 /**
- * Reparteix un dèficit anual: primer es cobreix amb els estalvis propis
- * (`reservaPropia` = efectiu + estalvi), després amb la xarxa familiar (fins al
- * matalàs) i la resta queda com a descobert. Sense `familia`, no hi ha ajut familiar.
+ * Reparteix un dèficit anual: estalvis propis (`reservaPropia` = efectiu + estalvi) →
+ * xarxa familiar (fins al matalàs) → xarxa pública (`ajutPublicMax`, p. ex. IMV degradat)
+ * → la resta queda com a descobert. Sense `familia`, no hi ha ajut familiar; amb
+ * `ajutPublicMax = 0` (per defecte), no hi ha xarxa pública.
  */
 export function repartDeficit(
   deficit: number,
   reservaPropia: number,
   familia?: Familia,
+  ajutPublicMax = 0,
 ): RepartDeficit {
-  if (deficit <= 0) return { propi: 0, donacio: 0, descobert: 0 }
+  if (deficit <= 0) return { propi: 0, donacio: 0, ajutPublic: 0, descobert: 0 }
   const propi = Math.min(deficit, Math.max(0, reservaPropia))
-  const falta = deficit - propi
+  let falta = deficit - propi
   const donacio = familia ? Math.min(falta, ajutFamiliarMax(familia)) : 0
-  return { propi, donacio, descobert: falta - donacio }
+  falta -= donacio
+  const ajutPublic = Math.min(falta, Math.max(0, ajutPublicMax))
+  falta -= ajutPublic
+  return { propi, donacio, ajutPublic, descobert: falta }
+}
+
+/**
+ * Ajut públic màxim (IMV degradat) disponible per cobrir un dèficit. És un terra de
+ * DARRERA INSTÀNCIA: només arriba a qui té poc patrimoni *i* ingressos molt baixos (atur o
+ * quasi), no al treballador pobre amb feina (la pobresa en actiu no en queda exclosa a la
+ * realitat, i aquí tampoc no el rescata: segueix atrapat). I és PARCIAL (no-take-up:
+ * burocràcia, estigma). No aixeca el sostre; només evita la destitució absoluta.
+ */
+export function ajutPublicMax(patrimoniNet: number, annualIncome: number): number {
+  if (patrimoniNet >= 20_000) return 0
+  if (annualIncome >= 12_000) return 0
+  return Math.round(IMV_ANUAL * IMV_COBERTURA)
+}
+
+/**
+ * Prestació d'atur ANUAL durant la cerca de feina (carrera, sou 0). Lligada a haver
+ * cotitzat: sense experiència no hi ha dret (queda l'IMV). És el retorn de les
+ * cotitzacions que es paguen a cada nòmina.
+ */
+export function prestacioAturAnual(salariBase: number, anysExperiencia: number): number {
+  if (anysExperiencia < 1) return 0
+  return Math.round(netMensual(salariBase) * PRESTACIO_ATUR_FRACCIO) * MESOS_PER_ANY
+}
+
+// Transmissió de capital en entrar a la vida adulta (P6): herència en vida (ajut per a
+// l'entrada d'un pis, finançar un projecte, un coixí) que NO es guanya, es rep. Fracció
+// del patrimoni familiar; nul·la per a les classes baixes. És el mecanisme de reproducció
+// de classe més directe: el ric arrenca la vida adulta amb un matalàs que el pobre no té.
+const FACTOR_HERENCIA_VIDA: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0,
+  mitjana: 0.005,
+  alta: 0.015,
+  rica: 0.03,
+  super_rica: 0.025,
+}
+
+/** Capital que es rep en entrar a la carrera (herència en vida), segons l'origen. */
+export function herenciaVida(familia: Familia): number {
+  return Math.round((familia.patrimoni * FACTOR_HERENCIA_VIDA[familia.classe]) / 100) * 100
 }
 
 /**
@@ -538,8 +600,13 @@ export function applyBudgetYear(
     rem -= aEstalvi
     patrimoni.efectiu = Math.round(rem)
   } else {
-    // Dèficit: tira d'estalvis propis → xarxa familiar → descobert. Sense estalviar.
-    const r = repartDeficit(necessitats - caixa, estalvi, familia)
+    // Dèficit: estalvis propis → xarxa familiar → xarxa pública (IMV) → descobert.
+    const r = repartDeficit(
+      necessitats - caixa,
+      estalvi,
+      familia,
+      ajutPublicMax(patrimoniTotal(person), income * MESOS_PER_ANY),
+    )
     estalvi -= r.propi
     descobert = r.descobert
     patrimoni.efectiu = 0
@@ -623,8 +690,16 @@ const COST_VIDA_BENESTAR: Record<NivellVida, number> = {
   alt: 3,
 }
 
-/** Efecte del nivell de vida sobre el benestar de referència adult. */
-export function benestarNivellVida(nivell: NivellVida = NIVELL_VIDA_DEFAULT): number {
+/**
+ * Efecte del nivell de vida sobre el benestar de referència adult. Si s'ha triat una
+ * «vida senzilla» (frugalitat per elecció), viure amb el mínim deixa de penalitzar: no és
+ * privació, és una tria legítima.
+ */
+export function benestarNivellVida(
+  nivell: NivellVida = NIVELL_VIDA_DEFAULT,
+  vidaSenzilla = false,
+): number {
+  if (vidaSenzilla && nivell === 'minim') return 0
   return COST_VIDA_BENESTAR[nivell]
 }
 
@@ -796,10 +871,15 @@ export function applyCareerYear(
       patrimoni.efectiu = Math.round(rem + desgravacioPensions(aPensions))
     }
   } else {
-    // Dèficit: tira d'estalvis propis → xarxa familiar → el que ningú cobreix es
-    // converteix en DEUTE (s'acumula i compon). El que no es pot ni finançar (per sobre
-    // del sostre) és descobert dur: un xoc puntual de benestar (vas sense).
-    const r = repartDeficit(necessitats - caixa, estalvi, familia)
+    // Dèficit: estalvis propis → xarxa familiar → xarxa pública (IMV degradat) → el que
+    // ningú cobreix es converteix en DEUTE (s'acumula i compon). El que no es pot ni
+    // finançar (per sobre del sostre) és descobert dur: un xoc puntual de benestar.
+    const r = repartDeficit(
+      necessitats - caixa,
+      estalvi,
+      familia,
+      ajutPublicMax(patrimoniTotal(person), annualIncome),
+    )
     estalvi -= r.propi
     deute += r.descobert
     if (deute > maxDeute) {
