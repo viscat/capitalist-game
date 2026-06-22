@@ -22,6 +22,7 @@ export function GameOver() {
     state.person.patrimoni
   const invertit = inversions + fonsIndexat + fonsPensions
   const deuteHipoteca = state.habitatge?.hipoteca?.deute ?? 0
+  const deuteConsum = state.person.patrimoni.deute ?? 0
   const total = patrimoniTotal(state.person) - deuteHipoteca
   // Quina part del patrimoni ha vingut d'haver invertit (no de tenir-ho parat).
   const pctInvertit = total > 0 ? Math.round((invertit / total) * 100) : 0
@@ -40,7 +41,11 @@ export function GameOver() {
           </div>
           <div className="rounded-xl bg-slate-800/70 p-5">
             <div className="text-sm text-slate-400">{t('gameover.patrimoniFinal')}</div>
-            <div className="mt-1 text-3xl font-bold text-emerald-300">
+            <div
+              className={`mt-1 text-3xl font-bold ${
+                total < 0 ? 'text-red-400' : 'text-emerald-300'
+              }`}
+            >
               {formatEuros(total)}
             </div>
           </div>
@@ -60,6 +65,14 @@ export function GameOver() {
             )}
             {cases.length > 0 && (
               <Line label={t('patrimoni.cases')} value={String(cases.length)} />
+            )}
+            {deuteConsum > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-red-300">{t('patrimoni.deute')}</span>
+                <span className="font-medium text-red-400">
+                  −{formatEuros(deuteConsum)}
+                </span>
+              </div>
             )}
           </div>
           <p className="mt-3 text-xs leading-relaxed text-sky-300/90">

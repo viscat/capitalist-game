@@ -73,6 +73,8 @@ export function PatrimoniPanel({
   const esAdult = stage === 'universitat' || stage === 'carrera'
   const valorCases = cases.reduce((a, b) => a + b, 0)
   const deuteHipoteca = habitatge?.hipoteca?.deute ?? 0
+  const deuteConsum = person.patrimoni.deute ?? 0
+  // patrimoniTotal ja descompta el deute de consum; aquí restem també la hipoteca.
   const net = patrimoniTotal(person) - deuteHipoteca
 
   return (
@@ -96,6 +98,14 @@ export function PatrimoniPanel({
           {cases.length > 0 && (
             <Row label={t('patrimoni.cases')} value={formatEuros(valorCases)} />
           )}
+          {deuteConsum > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-red-300">{t('patrimoni.deute')}</span>
+              <span className="font-medium text-red-400">
+                −{formatEuros(deuteConsum)}
+              </span>
+            </div>
+          )}
           {deuteHipoteca > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-slate-400">{t('habitatge.deute')}</span>
@@ -109,7 +119,9 @@ export function PatrimoniPanel({
             <span className="font-semibold text-slate-200">
               {t('patrimoni.total')}
             </span>
-            <span className="font-bold text-emerald-300">{formatEuros(net)}</span>
+            <span className={`font-bold ${net < 0 ? 'text-red-400' : 'text-emerald-300'}`}>
+              {formatEuros(net)}
+            </span>
           </div>
         </div>
       </div>
