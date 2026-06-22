@@ -6,9 +6,6 @@ export const BENESTAR_MAX = 100
 
 export const MESOS_PER_ANY = 12
 
-/** Durada d'un torn estacional (un trimestre). */
-export const MESOS_PER_ESTACIO = 3
-
 /** Edat (en anys) a la qual la infància dóna pas a l'adolescència (institut). */
 export const EDAT_FI_INFANCIA = 12
 

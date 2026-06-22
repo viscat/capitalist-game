@@ -223,7 +223,9 @@ export const ca: Record<string, string> = {
   'budget.lliure': 'Sense assignar (a efectiu)',
   'budget.benestar': 'Benestar (oci + compres)',
   'budget.benestar.min': 'Gasta almenys {min} en oci/compres per no perdre benestar.',
-  'budget.nextMonth': 'Següent mes →',
+  'budget.nota':
+    'Decideixes un pressupost mensual; en passar de torn el joc l’aplica els 12 mesos de l’any de cop.',
+  'budget.nextYear': 'Viu un any →',
 
   // Pla d'inversió anual (fase de carrera)
   'pla.title': 'On poses els teus diners?',
@@ -250,7 +252,9 @@ export const ca: Record<string, string> = {
   'pla.costHabitatge': 'Habitatge',
   'pla.costHabitatge.desc': 'Lloguer o hipoteca. Obligatori, no es pot modificar.',
   'pla.lliure': 'Sense assignar (a efectiu)',
-  'pla.nextYear': 'Següent any →',
+  'pla.nota':
+    'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
+  'pla.nextYear': 'Viu un any →',
 
   // Habitatge (a partir dels 18)
   'habitatge.title': 'El teu habitatge',
@@ -281,19 +285,14 @@ export const ca: Record<string, string> = {
   'propietat.pis': 'Pis ampli',
   'propietat.casa': 'Casa amb jardí',
 
-  // Estacions
-  'season.tardor': 'Tardor',
-  'season.hivern': 'Hivern',
-  'season.primavera': 'Primavera',
-  'season.estiu': 'Estiu',
-
-  // Accions (adolescència)
-  'action.title': 'Què fas aquest trimestre?',
+  // Accions (adolescència) — un torn = un any
+  'action.title': 'Què fas aquest any?',
+  'action.nota': 'Tria una cosa per a l’any. En triar-la, avances 12 mesos.',
   'action.sortir_amics.label': 'Sortir amb els amics',
   'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
-  'action.mes_tranquil.label': 'Trimestre tranquil',
+  'action.mes_tranquil.label': 'Any tranquil',
   'action.mes_tranquil.desc':
-    'Deixes passar el trimestre sense complicar-te. Una mica d’avorriment.',
+    'Deixes passar l’any sense complicar-te. Una mica d’avorriment.',
   'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
   'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
   'action.caprici.label': 'Donar-te un caprici',
@@ -304,7 +303,6 @@ export const ca: Record<string, string> = {
   // Motius pels quals una acció està bloquejada
   'action.locked.diners': 'No tens prou diners',
   'action.locked.benestar': 'No tens prou ànims',
-  'action.locked.estiu': 'Només a l’estiu',
 
   // Pantalla de transició infància → adolescència
   'transition.kicker': 'Fi de la infància',
@@ -326,7 +324,7 @@ export const ca: Record<string, string> = {
   'transition.lore1':
     'S’acaba la infància i comença l’ESO. El món se t’obre: amics nous, primers amors, primeres responsabilitats... i les primeres decisions de debò.',
   'transition.lore2':
-    'A partir d’ara reps una paga i ets tu qui decideix, trimestre a trimestre, si la gastes, l’estalvies o busques la manera de guanyar-ne més. Cada decisió compta.',
+    'A partir d’ara reps una paga i ets tu qui decideix, any rere any, si la gastes, l’estalvies o busques la manera de guanyar-ne més. Cada decisió compta.',
   'transition.continue': 'Començar l’institut →',
 
   'log.title': 'Història',
@@ -451,7 +449,7 @@ export const ca: Record<string, string> = {
 
   'event.feina_caps_setmana.title': 'Feina de caps de setmana',
   'event.feina_caps_setmana.desc':
-    'T’ofereixen feina els caps de setmana ({amount} € el trimestre). L’acceptes?',
+    'T’ofereixen feina els caps de setmana ({amount} € l’any). L’acceptes?',
   'event.feina_caps_setmana.choice.acceptar': 'Acceptar la feina',
   'event.feina_caps_setmana.choice.rebutjar': 'Rebutjar-la i tenir temps lliure',
 

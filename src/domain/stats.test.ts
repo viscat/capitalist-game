@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ajutFamiliarMax,
   aportacioMinima,
-  applyBudgetMonth,
+  applyBudgetYear,
   applyCareerYear,
   applyEffect,
   augmentSou,
@@ -136,7 +136,7 @@ describe('augmentSou', () => {
   })
 })
 
-describe('applyBudgetMonth — benestar segons la despesa', () => {
+describe('applyBudgetYear — benestar segons la despesa', () => {
   const base = {
     ...person,
     stats: { benestar: 50 },
@@ -157,14 +157,14 @@ describe('applyBudgetMonth — benestar segons la despesa', () => {
   })
 
   it('gastar més en oci i compres puja més el benestar', () => {
-    const poc = applyBudgetMonth(base, budget(20, 0), 1000).stats.benestar
-    const molt = applyBudgetMonth(base, budget(300, 100), 1000).stats.benestar
+    const poc = applyBudgetYear(base, budget(20, 0), 1000).stats.benestar
+    const molt = applyBudgetYear(base, budget(300, 100), 1000).stats.benestar
     expect(molt).toBeGreaterThan(poc)
     expect(molt).toBeGreaterThan(50)
   })
 
   it('no permetre’s res baixa el benestar', () => {
-    expect(applyBudgetMonth(base, budget(0, 0), 1000).stats.benestar).toBeLessThan(
+    expect(applyBudgetYear(base, budget(0, 0), 1000).stats.benestar).toBeLessThan(
       50,
     )
   })

@@ -131,7 +131,7 @@ describe('inici ràpid als 16', () => {
 describe('fork dels 16', () => {
   const fork = () => newGameAt16('mitjana', 7)
 
-  it('triar batxillerat porta a estudis trimestrals', () => {
+  it('triar batxillerat porta a estudis postobligatoris (acció per any)', () => {
     const s = applyMilestoneChoice(fork(), 'batxillerat')
     expect(s.lifeStage).toBe('estudis_post')
     expect(s.itinerari).toBe('batxillerat')
@@ -207,11 +207,11 @@ describe('aportació obligatòria a casa', () => {
 })
 
 describe('fase laboral i pressupost', () => {
-  it('cada mes avança 1 mes, ingressa i estalvia segons el pressupost', () => {
+  it('cada torn avança 1 any, ingressa i estalvia segons el pressupost mensual', () => {
     const s = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
     const estalviAbans = s.person.patrimoni.estalvi
     const after = advanceTurn(s)
-    expect(after.person.edatMesos).toBe(s.person.edatMesos + 1)
+    expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
     expect(after.person.patrimoni.estalvi).toBeGreaterThan(estalviAbans)
     expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })

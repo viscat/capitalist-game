@@ -22,9 +22,10 @@ import type {
   PlaInversio,
 } from '../domain/types'
 
-// Versió de l'esquema desat. La fase adulta hi va afegir camps al patrimoni
-// (fons indexat, pla de pensions): pugem la versió per no carregar partides velles.
-const STORAGE_KEY = 'capitalist-game/save/v4'
+// Versió de l'esquema desat. Pugem la versió quan canvia de manera incompatible:
+// v5 unifica tots els torns a 1 any, així que les partides velles (amb edats no
+// alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
+const STORAGE_KEY = 'capitalist-game/save/v5'
 
 function loadSave(): GameState | null {
   try {

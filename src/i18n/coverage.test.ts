@@ -17,7 +17,6 @@ import { CHILDHOOD_EVENTS } from '../domain/events/pool'
 import { PROPIETATS } from '../domain/housing'
 import { FAMILY_PRESETS } from '../domain/family/presets'
 import { MILESTONES } from '../domain/milestones'
-import { ESTACIONS } from '../domain/time'
 import type {
   EventCategory,
   FamilyClass,
@@ -136,7 +135,6 @@ describe('cobertura i18n (català)', () => {
         `itinerari.${i}.desc`,
       ]),
       ...BENESTAR_BUCKETS.map((b) => `benestar.${b}`),
-      ...ESTACIONS.map((s) => `season.${s}`),
       ...Array.from({ length: 12 }, (_, i) => `mes.${i}`),
       ...['estalvi', 'oci', 'compres', 'casa'].flatMap((k) => [
         `budget.${k}`,

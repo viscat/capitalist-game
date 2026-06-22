@@ -1,6 +1,6 @@
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
-import { edatAnys, estacioFromEdat } from '../domain/time'
+import { edatAnys } from '../domain/time'
 import { nomComplet } from '../domain/identitat'
 import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
@@ -21,7 +21,7 @@ export function GameScreen() {
     state
   const anys = edatAnys(person.edatMesos)
   const lastEntry = historial[historial.length - 1]
-  const esEstacional = lifeStage === 'adolescencia' || lifeStage === 'estudis_post'
+  const esAccions = lifeStage === 'adolescencia' || lifeStage === 'estudis_post'
   const esLaboral = lifeStage === 'laboral'
   const esInfancia = lifeStage === 'infancia'
   const esUniversitat = lifeStage === 'universitat'
@@ -70,10 +70,7 @@ export function GameScreen() {
             {anys === 0 ? t('game.ageZero') : t('game.age', { anys })}
           </div>
           <div className="text-sm text-slate-500">
-            {subtitol}
-            {esEstacional &&
-              ` · ${t(`season.${estacioFromEdat(person.edatMesos)}`)}`}{' '}
-            · {t('game.turn', { torn: state.torn })}
+            {subtitol} · {t('game.turn', { torn: state.torn })}
           </div>
         </div>
       </header>
@@ -98,7 +95,7 @@ export function GameScreen() {
             lastEntry={lastEntry}
             onChoose={choose}
           />
-          {!pendingEvent && esEstacional && (
+          {!pendingEvent && esAccions && (
             <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
           )}
           {!pendingEvent && esLaboral && <BudgetPanel />}

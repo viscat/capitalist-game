@@ -6,7 +6,6 @@ import {
   EDAT_FI_POSTOBLIGATORI,
   EDAT_FI_UNIVERSITAT,
   MESOS_PER_ANY,
-  MESOS_PER_ESTACIO,
   NIVELL_VIDA_DEFAULT,
   REVALORACIO_HABITATGE,
 } from './constants'
@@ -27,7 +26,7 @@ import { MILESTONES } from './milestones'
 import { rng, seedFromTime } from './rng'
 import {
   aportacioMinima,
-  applyBudgetMonth,
+  applyBudgetYear,
   applyCareerYear,
   applyEffect,
   balancUniversitatAnual,
@@ -60,8 +59,8 @@ import type {
   Person,
 } from './types'
 
-/** Petit ajut mensual de pràctiques per a qui fa un grau mitjà (per trimestre). */
-const ESTIPENDI_GRAU_MIG = 150
+/** Petit ajut MENSUAL de pràctiques per a qui fa un grau mitjà (es prorrateja × 12). */
+const ESTIPENDI_GRAU_MIG_MENSUAL = 50
 
 /** Opcions de personalització en crear una partida. */
 export interface NewGameSetup {
@@ -168,13 +167,12 @@ function emptyPatrimoni(): Person['patrimoni'] {
   }
 }
 
-/** Mesos que avança cada torn segons la fase. */
-function turnMonths(stage: LifeStage): number {
-  if (stage === 'infancia' || stage === 'universitat' || stage === 'carrera') {
-    return MESOS_PER_ANY
-  }
-  if (stage === 'laboral') return 1
-  return MESOS_PER_ESTACIO
+/**
+ * Mesos que avança cada torn. Tota la vida es juga a 1 torn = 1 any per coherència;
+ * els imports (paga, pressupost, sou...) es decideixen en mensual i es prorrategen.
+ */
+function turnMonths(): number {
+  return MESOS_PER_ANY
 }
 
 /** Fases en què el jugador tria una acció de targeta cada torn. */
@@ -240,10 +238,10 @@ export function actionOptions(state: GameState): ActionOption[] {
   ) {
     return []
   }
-  // Caixa prevista després d'ingressar la paga del trimestre (no hi ha deute).
+  // Caixa prevista després d'ingressar la paga de l'any (no hi ha deute).
   const caixaPrevista =
     state.person.patrimoni.efectiu +
-    pagaMensual(state.familia) * MESOS_PER_ESTACIO
+    pagaMensual(state.familia) * MESOS_PER_ANY
   const benestar = state.person.stats.benestar
 
   const options = ADOLESCENCE_ACTIONS.map((action): ActionOption => {
@@ -261,7 +259,7 @@ export function actionOptions(state: GameState): ActionOption[] {
     return { action, disabled: false }
   })
 
-  // Garantia: sempre hi ha d'haver una opció jugable (el trimestre tranquil),
+  // Garantia: sempre hi ha d'haver una opció jugable (l'any tranquil),
   // perquè el torn mai es bloquegi del tot.
   if (options.every((o) => o.disabled)) {
     const fallback = options.find((o) => o.action.id === 'mes_tranquil')
@@ -271,17 +269,19 @@ export function actionOptions(state: GameState): ActionOption[] {
 }
 
 /**
- * Avança un torn segons la fase: infància (any), estudis (trimestre amb paga i
- * acció), laboral (mes amb ingrés + pressupost), universitat (any amb suport i
- * matrícula) o carrera (any amb sou, inversions i interès compost). Després pot
- * saltar un esdeveniment; si requereix decisió, queda pendent fins a `applyChoice`.
+ * Avança un torn. Tota la vida avança 1 any per torn; el que canvia segons la fase
+ * és com es genera el flux econòmic d'aquell any: infància (estalvi familiar),
+ * estudis (paga anual + acció), laboral (pressupost mensual prorratejat tot l'any),
+ * universitat (suport − matrícula) o carrera (sou, inversions i interès compost).
+ * Després pot saltar un esdeveniment; si requereix decisió, queda pendent fins a
+ * `applyChoice`.
  */
 export function advanceTurn(state: GameState, actionId?: string): GameState {
   if (state.acabat || state.pendingEvent || state.pendingMilestone) return state
 
   const stage = state.lifeStage
   const torn = state.torn + 1
-  const edatMesos = state.person.edatMesos + turnMonths(stage)
+  const edatMesos = state.person.edatMesos + turnMonths()
   const anys = edatAnys(edatMesos)
 
   // Deriva del benestar cap a la referència de l'entorn.
@@ -313,11 +313,12 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       },
     }
   } else if (stage === 'laboral') {
+    // El pressupost és mensual; un torn n'aplica un any sencer (× 12).
     const income = ingressosMensuals16(state)
     const budget = state.pressupost ?? defaultBudget(income)
     const minCasa =
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
-    person = applyBudgetMonth(person, budget, income, minCasa)
+    person = applyBudgetYear(person, budget, income, minCasa)
   } else if (stage === 'universitat') {
     // Any d'universitat: suport familiar + beca − matrícula − habitatge (mai deute).
     person = {
@@ -347,9 +348,11 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       costHabitatgeAnual(habitatge),
     )
   } else {
-    const estipendi =
+    // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi
+    // es decideixen en mensual i s'ingressen per tot l'any (× 12).
+    const estipendiMensual =
       stage === 'estudis_post' && state.itinerari === 'grau_mig'
-        ? ESTIPENDI_GRAU_MIG
+        ? ESTIPENDI_GRAU_MIG_MENSUAL
         : 0
     person = {
       ...person,
@@ -357,8 +360,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
         ...person.patrimoni,
         efectiu:
           person.patrimoni.efectiu +
-          pagaMensual(state.familia) * MESOS_PER_ESTACIO +
-          estipendi,
+          (pagaMensual(state.familia) + estipendiMensual) * MESOS_PER_ANY,
       },
     }
   }

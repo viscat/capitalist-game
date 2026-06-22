@@ -1,9 +1,9 @@
-import { estacioFromEdat } from '../time'
 import type { GameAction } from '../types'
 
-// Accions que l'adolescent pot triar cada trimestre. El nucli del joc en aquesta
-// fase és la tensió entre gastar (benestar immediat) i estalviar / ingressar.
-// Els costos i ingressos són per trimestre (3 mesos).
+// Accions que l'adolescent pot triar cada any (un torn = un any). El nucli del joc
+// en aquesta fase és la tensió entre gastar (benestar immediat) i estalviar /
+// ingressar. Cada acció representa la decisió destacada de l'any (no és recurrent
+// mensual), per això els imports són puntuals.
 export const ADOLESCENCE_ACTIONS: GameAction[] = [
   {
     id: 'sortir_amics',
@@ -39,8 +39,6 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     labelKey: 'action.feina_estiu.label',
     descKey: 'action.feina_estiu.desc',
     effect: { efectiu: 700, benestar: -6 },
-    available: (state) => estacioFromEdat(state.person.edatMesos) === 'estiu',
-    lockedReasonKey: 'action.locked.estiu',
   },
 ]
 
