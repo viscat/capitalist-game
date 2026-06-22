@@ -140,7 +140,7 @@ export function InvestmentPanel() {
               <button
                 key={n}
                 onClick={() => setNivellVida(n)}
-                className={`flex-1 rounded-md px-2 py-1.5 text-xs transition ${
+                className={`min-h-9 flex-1 rounded-md px-2 py-2 text-xs transition ${
                   nivell === n
                     ? 'bg-indigo-600 text-white'
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
@@ -230,7 +230,7 @@ export function InvestmentPanel() {
               <button
                 onClick={() => set(k, -PAS_PLA)}
                 disabled={pla[k] <= 0}
-                className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 −
               </button>
@@ -240,7 +240,7 @@ export function InvestmentPanel() {
               <button
                 onClick={() => set(k, PAS_PLA)}
                 disabled={total + PAS_PLA > assignable}
-                className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 +
               </button>
