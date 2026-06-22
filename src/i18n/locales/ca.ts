@@ -163,10 +163,10 @@ export const ca: Record<string, string> = {
     'Quatre anys d’estudis. Costa diners i temps, però un títol obre portes i apuja el sou.',
   'cami.carrera.label': 'Entrar al món laboral',
   'cami.carrera.desc':
-    'Una feina, un sou propi i, per primera vegada, decidir què fas amb els teus diners: gastar o invertir.',
+    'Surts a buscar feina. No te’n regalen cap: el que trobis dependrà dels teus estudis, els contactes i l’experiència. Quan en tinguis, decidiràs què fas amb els teus diners.',
   'cami.carrera_titulat.label': 'Començar la carrera professional',
   'cami.carrera_titulat.desc':
-    'Amb el títol a la mà, entres al mercat laboral amb millor sou.',
+    'Amb el títol a la mà surts a buscar feina: tens més opcions i millors ofertes, però encara l’has de trobar.',
 
   // Fita dels 18 (majoria d'edat)
   'milestone.majoria.kicker': 'Majoria d’edat',
@@ -255,6 +255,24 @@ export const ca: Record<string, string> = {
   'pla.nota':
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',
+
+  // Cerca de feina (carrera a l'atur: entrada al món laboral o després d'un acomiadament)
+  'jobsearch.title': 'Busques feina',
+  'jobsearch.ocupabilitat': 'Les teves opcions de trobar feina són {tram}.',
+  'jobsearch.ocupabilitat.baixa': 'baixes',
+  'jobsearch.ocupabilitat.mitjana': 'mitjanes',
+  'jobsearch.ocupabilitat.alta': 'altes',
+  'jobsearch.experiencia': '{anys} anys d’experiència',
+  'jobsearch.net': 'net',
+  'jobsearch.accept': 'Acceptar',
+  'jobsearch.seguir': 'Segueix buscant un any →',
+  'jobsearch.nota':
+    'Acceptar una oferta no et consumeix l’any. Si segueixes buscant, passa un any: gastes estalvis i l’ànim baixa, però poden sortir ofertes millors.',
+  'jobsearch.found.title': 'Has trobat feina!',
+  'jobsearch.found.desc': 'Comences en una feina nova amb un sou de {sou} € bruts/mes.',
+  'oferta.precaria': 'Feina precària',
+  'oferta.estandard': 'Feina estàndard',
+  'oferta.bona': 'Bona feina',
 
   // Habitatge (a partir dels 18)
   'habitatge.title': 'El teu habitatge',
@@ -709,19 +727,7 @@ export const ca: Record<string, string> = {
   'event.ajudar_familia_adult.choice.ajudar': 'Ajudar-los',
   'event.ajudar_familia_adult.choice.no_puc': 'No puc permetre-m’ho',
 
-  // --- A l'atur durant la carrera ---
-  'event.oferta_carrera.title': 'Una oferta de feina',
-  'event.oferta_carrera.desc':
-    'Després de buscar, surt una bona oferta. Tornes a tenir sou. L’acceptes?',
-  'event.oferta_carrera.choice.acceptar': 'Acceptar la feina',
-  'event.oferta_carrera.choice.esperar': 'Esperar-ne una de millor',
-
-  'event.feina_pont.title': 'Una feina pont',
-  'event.feina_pont.desc':
-    'Una feina temporal i mal pagada per anar fent. Pitjor això que res?',
-  'event.feina_pont.choice.acceptar': 'Acceptar-la mentrestant',
-  'event.feina_pont.choice.rebutjar': 'Seguir buscant',
-
+  // --- A l'atur durant la carrera (mentre busques feina) ---
   'event.subsidi_atur.title': 'Cobres l’atur',
   'event.subsidi_atur.desc':
     'La prestació d’atur t’arriba ({amount} €) i et dóna una mica d’aire.',

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  acceptarOferta,
   actionOptions,
   advanceTurn,
   applyChoice,
@@ -63,6 +64,10 @@ function step(s: GameState, itinerari = 'batxillerat'): GameState {
   }
   if (s.pendingMilestone === 'fi_uni') {
     return applyMilestoneChoice(s, 'comencar_carrera')
+  }
+  // A l'atur a la carrera, accepta la primera oferta (la cerca de feina no es bloqueja).
+  if (s.lifeStage === 'carrera' && (s.salari ?? 0) === 0 && s.ofertesFeina?.length) {
+    return acceptarOferta(s, s.ofertesFeina[0].id)
   }
   if (s.lifeStage === 'adolescencia' || s.lifeStage === 'estudis_post') {
     return advanceTurn(s, firstEnabled(s))
@@ -276,8 +281,15 @@ describe('universitat i carrera', () => {
     const carrera = applyMilestoneChoice(fiUni, 'comencar_carrera')
     expect(carrera.lifeStage).toBe('carrera')
     expect(carrera.teDiploma).toBe(true)
-    expect(carrera.salari).toBeGreaterThan(0)
-    expect(carrera.plaInversio).toBeDefined()
+    // Entra a l'atur: no té sou encara, però hi ha ofertes per acceptar.
+    expect(carrera.salari).toBe(0)
+    expect(carrera.ofertesFeina?.length).toBeGreaterThan(0)
+    expect(carrera.plaInversio).toBeUndefined()
+    // En acceptar una oferta, passa a tenir sou i pla d'inversió.
+    const ambFeina = acceptarOferta(carrera, carrera.ofertesFeina![0].id)
+    expect(ambFeina.salari).toBeGreaterThan(0)
+    expect(ambFeina.plaInversio).toBeDefined()
+    expect(ambFeina.ofertesFeina).toBeUndefined()
   })
 
   it('un any de carrera avança 1 any, inverteix i deixa els comptes no negatius', () => {
@@ -303,6 +315,45 @@ describe('universitat i carrera', () => {
     for (let i = 1; i < fons.length; i++) {
       expect(fons[i]).toBeGreaterThan(fons[i - 1])
     }
+  })
+
+  it('un any treballat a la carrera suma experiència', () => {
+    const s = newGameAtCarrera('mitjana', 7)
+    expect(s.anysExperiencia ?? 0).toBe(0)
+    const after = advanceTurn(s)
+    expect(after.anysExperiencia).toBe(1)
+  })
+})
+
+describe('cerca de feina', () => {
+  it('entrar a la carrera deixa a l’atur amb ofertes; acceptar-ne una dóna sou', () => {
+    const fork = playUntil(
+      newGameAt16('mitjana', 7),
+      (s) => s.pendingMilestone === 'majoria',
+      'treball',
+    )
+    const carrera = applyMilestoneChoice(fork, 'carrera')
+    expect(carrera.lifeStage).toBe('carrera')
+    expect(carrera.salari).toBe(0)
+    expect(carrera.ofertesFeina?.length).toBeGreaterThan(0)
+    const ambFeina = acceptarOferta(carrera, carrera.ofertesFeina![0].id)
+    expect(ambFeina.salari).toBeGreaterThan(0)
+    expect(ambFeina.ofertesFeina).toBeUndefined()
+  })
+
+  it('seguir buscant un any regenera ofertes i no es bloqueja', () => {
+    const fork = playUntil(
+      newGameAt16('treballadora', 5),
+      (s) => s.pendingMilestone === 'majoria',
+      'treball',
+    )
+    let s = applyMilestoneChoice(fork, 'carrera')
+    expect(s.salari).toBe(0)
+    // Segueix buscant: avança un any (pot saltar un esdeveniment d'atur) i torna a tenir ofertes.
+    s = advanceTurn(s)
+    if (s.pendingEvent) s = applyChoice(s, s.pendingEvent.choices![0].id)
+    expect(s.salari).toBe(0)
+    expect(s.ofertesFeina?.length).toBeGreaterThan(0)
   })
 })
 

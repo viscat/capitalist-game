@@ -1,4 +1,4 @@
-import { augmentSou, salariAdultInicial } from '../stats'
+import { augmentSou } from '../stats'
 import type { GameEvent } from '../types'
 
 // Esdeveniments de la vida adulta (torns anuals).
@@ -333,58 +333,11 @@ export const CARRERA_EVENTS: GameEvent[] = [
 ]
 
 /**
- * A l'atur durant la carrera (sou 0). Sobretot, vies per tornar a treballar; així
- * un acomiadament no condemna la partida (com a la fase laboral 16-18).
+ * A l'atur durant la carrera (sou 0), mentre es busca feina. Aquí NO s'hi troba
+ * feina (això es fa al panell de cerca, segons l'ocupabilitat): són esdeveniments de
+ * color de la temporada d'atur (un ajut econòmic, el desànim de la cerca llarga).
  */
 export const ATUR_ADULT_EVENTS: GameEvent[] = [
-  {
-    id: 'oferta_carrera',
-    category: 'economia',
-    titleKey: 'event.oferta_carrera.title',
-    descKey: 'event.oferta_carrera.desc',
-    weight: () => 2.5,
-    choices: [
-      {
-        id: 'acceptar',
-        labelKey: 'event.oferta_carrera.choice.acceptar',
-        effect: { benestar: 6 },
-        resolve: (s) => ({
-          salariNou: salariAdultInicial(s.familia, s.teDiploma ?? false),
-          benestar: 6,
-        }),
-      },
-      {
-        id: 'esperar',
-        labelKey: 'event.oferta_carrera.choice.esperar',
-        effect: { benestar: -3 },
-      },
-    ],
-  },
-  {
-    id: 'feina_pont',
-    category: 'economia',
-    titleKey: 'event.feina_pont.title',
-    descKey: 'event.feina_pont.desc',
-    weight: () => 1.8,
-    choices: [
-      {
-        id: 'acceptar',
-        labelKey: 'event.feina_pont.choice.acceptar',
-        effect: { benestar: 1 },
-        resolve: (s) => ({
-          salariNou:
-            Math.round((salariAdultInicial(s.familia, s.teDiploma ?? false) * 0.6) / 25) *
-            25,
-          benestar: 1,
-        }),
-      },
-      {
-        id: 'rebutjar',
-        labelKey: 'event.feina_pont.choice.rebutjar',
-        effect: { benestar: -2 },
-      },
-    ],
-  },
   {
     id: 'subsidi_atur',
     category: 'economia',

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
+  acceptarOferta,
   actionOptions,
   advanceTurn,
   applyChoice,
@@ -25,7 +26,8 @@ import type {
 // Versió de l'esquema desat. Pugem la versió quan canvia de manera incompatible:
 // v5 unifica tots els torns a 1 any, així que les partides velles (amb edats no
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
-const STORAGE_KEY = 'capitalist-game/save/v5'
+// v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
+const STORAGE_KEY = 'capitalist-game/save/v6'
 
 function loadSave(): GameState | null {
   try {
@@ -54,6 +56,8 @@ interface GameContextValue {
   setBudget: (budget: Budget) => void
   /** Desa el pla d'inversió anual (fase de carrera). */
   setPla: (pla: PlaInversio) => void
+  /** Accepta una oferta de feina durant la cerca (fase de carrera a l'atur). */
+  acceptarOferta: (ofertaId: string) => void
   /** Tria el nivell de vida (cost del dia a dia) a la fase adulta. */
   setNivellVida: (nivell: NivellVida) => void
   /** Lloga una habitació o un pis. */
@@ -107,6 +111,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
       setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
+      acceptarOferta: (ofertaId) =>
+        setState((s) => (s ? acceptarOferta(s, ofertaId) : s)),
       setNivellVida: (nivell) =>
         setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
       llogar: (tipus) => setState((s) => (s ? llogar(s, tipus) : s)),

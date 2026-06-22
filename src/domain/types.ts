@@ -27,6 +27,21 @@ export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
 /** Nivell de vida (cost del dia a dia) que tria la persona a la fase adulta. */
 export type NivellVida = 'minim' | 'mig' | 'alt'
 
+/** Qualitat d'una oferta de feina (determina sou i to). */
+export type QualitatOferta = 'precaria' | 'estandard' | 'bona'
+
+/**
+ * Oferta de feina que apareix mentre es busca feina a la vida adulta. El sou és
+ * BRUT mensual (com `salari`). Objecte pla i serialitzable (autosave).
+ */
+export interface OfertaFeina {
+  /** Id estable dins del lot d'ofertes (p. ex. "of0"). */
+  id: string
+  /** Sou BRUT mensual que ofereix. */
+  sou: number
+  qualitat: QualitatOferta
+}
+
 /** Fites de la vida que obren una pantalla de decisió. */
 export type MilestoneId =
   | 'institut'
@@ -262,6 +277,10 @@ export interface GameState {
   salariBase?: number
   /** Edat (mesos) en què es va demanar l'últim augment (cooldown anual). */
   ultimAugmentMes?: number
+  /** Anys de feina acumulats (sou > 0). Millora l'ocupabilitat i el sou de partida. */
+  anysExperiencia?: number
+  /** Ofertes de feina actives mentre es busca feina a la carrera (sou 0 = a l'atur). */
+  ofertesFeina?: OfertaFeina[]
   historial: LogEntry[]
   acabat: boolean
 }
