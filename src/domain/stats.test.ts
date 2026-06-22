@@ -23,6 +23,7 @@ import {
   estalviAnualCriatura,
   familyBaselineBenestar,
   pagaMensual,
+  penalitzacioDescobert,
   resolveDespesaGreu,
   salariAdultInicial,
   salariInicial,
@@ -327,6 +328,56 @@ describe('applyCareerYear', () => {
     const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
     const after = applyCareerYear(pobre, pla, 12000, 0.05)
     expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('penalitzacioDescobert', () => {
+  it('és 0 sense descobert i creix de forma acotada', () => {
+    expect(penalitzacioDescobert(0)).toBe(0)
+    expect(penalitzacioDescobert(500)).toBeGreaterThan(0)
+    expect(penalitzacioDescobert(2000)).toBeGreaterThan(penalitzacioDescobert(500))
+    expect(penalitzacioDescobert(1_000_000)).toBeLessThanOrEqual(15)
+  })
+})
+
+describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
+  const cap = 0
+  const adult = (efectiu: number, estalvi: number, benestar = 60): Person => ({
+    edatMesos: 22 * 12,
+    stats: { benestar },
+    patrimoni: patrimoniAmb({ efectiu, estalvi }),
+  })
+  const plaZero = { oci: cap, estalvi: cap, fonsIndexat: cap, fonsPensions: cap }
+
+  it('applyCareerYear: el dèficit (cost > ingrés) es paga tirant de l’estalvi, sense deute', () => {
+    // Ingrés 0 i cost de vida 6000 → 6000 de dèficit; surt de l’estalvi.
+    const after = applyCareerYear(adult(0, 5000), plaZero, 0, 0, 6000, 0, FAMILY_PRESETS.rica.familia)
+    expect(after.patrimoni.estalvi).toBeLessThan(5000)
+    expect(after.patrimoni.estalvi).toBeGreaterThanOrEqual(0)
+    expect(after.patrimoni.efectiu).toBe(0)
+  })
+
+  it('applyCareerYear: la família cobreix part del dèficit (menys penalització que sense)', () => {
+    const ambFamilia = applyCareerYear(adult(0, 0), plaZero, 0, 0, 6000, 0, FAMILY_PRESETS.rica.familia)
+    const senseFamilia = applyCareerYear(adult(0, 0), plaZero, 0, 0, 6000, 0)
+    expect(ambFamilia.stats.benestar).toBeGreaterThan(senseFamilia.stats.benestar)
+    // Sense estalvis ni família suficient, el descobert resta benestar.
+    expect(senseFamilia.stats.benestar).toBeLessThan(60)
+    expect(senseFamilia.patrimoni.efectiu).toBe(0)
+  })
+
+  it('applyBudgetYear: gastar per sobre del sou tira de l’estalvi (no deute)', () => {
+    const person: Person = {
+      edatMesos: 16 * 12,
+      stats: { benestar: 50 },
+      patrimoni: patrimoniAmb({ efectiu: 0, estalvi: 3000 }),
+    }
+    // Sou 100/mes però 300/mes d’oci → dèficit anual cobert per l’estalvi.
+    const budget = { casa: 0, estalvi: 0, oci: 300, compres: 0 }
+    const after = applyBudgetYear(person, budget, 100, 0, FAMILY_PRESETS.mitjana.familia)
+    expect(after.patrimoni.estalvi).toBeLessThan(3000)
+    expect(after.patrimoni.estalvi).toBeGreaterThanOrEqual(0)
+    expect(after.patrimoni.efectiu).toBe(0)
   })
 })
 

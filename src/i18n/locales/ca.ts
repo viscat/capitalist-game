@@ -220,7 +220,10 @@ export const ca: Record<string, string> = {
   'budget.casa': 'A casa',
   'budget.casa.desc': 'El que aportes a la família.',
   'budget.casa.obligatori': 'Obligatori mentre vius a casa · mín. {min}',
-  'budget.lliure': 'Sense assignar (a efectiu)',
+  'budget.balanc': 'Balanç del mes',
+  'budget.balanc.estalvis': 'Gastes més del que ingresses: tires d’estalvis.',
+  'budget.balanc.descobert':
+    'No cobreixes {amount}/mes ni amb estalvis ni amb la família → −{punts} benestar.',
   'budget.benestar': 'Benestar (oci + compres)',
   'budget.benestar.min': 'Gasta almenys {min} en oci/compres per no perdre benestar.',
   'budget.nota':
@@ -251,7 +254,10 @@ export const ca: Record<string, string> = {
   'pla.notaPensions': 'Desgravació fiscal: et tornen {amount} a efectiu.',
   'pla.costHabitatge': 'Habitatge',
   'pla.costHabitatge.desc': 'Lloguer o hipoteca. Obligatori, no es pot modificar.',
-  'pla.lliure': 'Sense assignar (a efectiu)',
+  'pla.balanc': 'Balanç del mes',
+  'pla.balanc.estalvis': 'Gastes més del que ingresses: tires d’estalvis.',
+  'pla.balanc.descobert':
+    'No cobreixes {amount}/mes ni amb estalvis ni amb la família → −{punts} benestar.',
   'pla.nota':
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',

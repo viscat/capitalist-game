@@ -340,7 +340,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     const budget = state.pressupost ?? defaultBudget(income)
     const minCasa =
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
-    person = applyBudgetYear(person, budget, income, minCasa)
+    person = applyBudgetYear(person, budget, income, minCasa, state.familia)
   } else if (stage === 'universitat') {
     // Any d'universitat: suport familiar + beca − matrícula − habitatge (mai deute).
     person = {
@@ -368,6 +368,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       rendimentIndexAnual(draw.value),
       costVidaPropi(state.familia, habitatge, state.nivellVida),
       costHabitatgeAnual(habitatge),
+      state.familia,
     )
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi

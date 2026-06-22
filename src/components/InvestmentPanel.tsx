@@ -14,6 +14,8 @@ import {
   desgravacioPensions,
   ingressosAnualsCarrera,
   minimOciAnual,
+  penalitzacioDescobert,
+  repartDeficit,
 } from '../domain/stats'
 import { costHabitatgeAnual } from '../domain/housing'
 import type { NivellVida, PlaInversio } from '../domain/types'
@@ -48,13 +50,24 @@ export function InvestmentPanel() {
   const costVida = costVidaPropi(state.familia, state.habitatge, nivell)
   const cobertFamilia = cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
   const costHab = costHabitatgeAnual(state.habitatge)
+  const obligatori = costVida + costHab
   const efectiu = state.person.patrimoni.efectiu
-  // El que es pot repartir: efectiu acumulat + sou − despeses obligatòries.
-  const disponible = Math.max(0, efectiu + income - costVida - costHab)
+  const estalvi = state.person.patrimoni.estalvi
+  // Pots repartir el sou + els teus estalvis (efectiu + estalvi), per damunt del sou.
+  const assignable = Math.max(0, income + efectiu + estalvi - obligatori)
 
   const pla = state.plaInversio ?? defaultPlaInversio(income)
   const total = CATEGORIES.reduce((sum, k) => sum + pla[k], 0)
-  const lliure = Math.max(0, disponible - total)
+
+  // Balanç del mes: ingrés − obligatori − pla. Pot ser negatiu (tires d'estalvis).
+  const balancMes = perMes(income - obligatori - total)
+  // Descobert: quan les necessitats (obligatori + oci) superen sou + estalvis + família.
+  const deficit = repartDeficit(
+    Math.max(0, obligatori + pla.oci - (efectiu + income)),
+    estalvi,
+    state.familia,
+  )
+  const benestarDescobert = penalitzacioDescobert(deficit.descobert)
 
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
@@ -62,7 +75,8 @@ export function InvestmentPanel() {
   const benNivell = benestarNivellVida(nivell)
 
   const set = (k: keyof PlaInversio, delta: number) => {
-    if (delta > 0 && total + delta > disponible) return // no assignis més del que tens
+    // Pots assignar per sobre del sou mentre ho cobreixin els teus estalvis.
+    if (delta > 0 && total + delta > assignable) return
     setPla({ ...pla, [k]: Math.max(0, pla[k] + delta) })
   }
 
@@ -155,7 +169,7 @@ export function InvestmentPanel() {
               </span>
               <button
                 onClick={() => set(k, PAS_PLA)}
-                disabled={total + PAS_PLA > disponible}
+                disabled={total + PAS_PLA > assignable}
                 className="h-7 w-7 rounded-md bg-slate-700 text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
               >
                 +
@@ -195,11 +209,27 @@ export function InvestmentPanel() {
           </p>
         )}
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('pla.lliure')}</span>
-          <span className="font-medium text-emerald-300">
-            {formatEuros(perMes(lliure))}/mes
+          <span className="text-slate-400">{t('pla.balanc')}</span>
+          <span
+            className={`font-semibold ${
+              balancMes < 0 ? 'text-amber-400' : 'text-emerald-300'
+            }`}
+          >
+            {balancMes >= 0 ? '+' : ''}
+            {formatEuros(balancMes)}/mes
           </span>
         </div>
+        {balancMes < 0 && deficit.descobert <= 0 && (
+          <p className="text-xs text-amber-400/80">{t('pla.balanc.estalvis')}</p>
+        )}
+        {deficit.descobert > 0 && (
+          <p className="text-xs text-red-400">
+            {t('pla.balanc.descobert', {
+              amount: formatEuros(perMes(deficit.descobert)),
+              punts: benestarDescobert,
+            })}
+          </p>
+        )}
       </div>
 
       <p className="mt-4 text-xs text-slate-500">{t('pla.nota')}</p>
