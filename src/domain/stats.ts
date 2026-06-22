@@ -8,6 +8,7 @@ import {
   INDEX_RENDIMENT_RANG,
   LIMIT_DESGRAVACIO_PENSIONS,
   MATRICULA_ANUAL,
+  MESOS_PER_ANY,
   PAS_PLA,
   PREMI_DIPLOMA,
   RENDIMENT_ESTALVI,
@@ -431,20 +432,23 @@ export function benestarEstilDeVida(
 }
 
 /**
- * Aplica un mes a la fase laboral: ingressa, paga l'aportació obligatòria a casa,
- * mou l'estalvi al patrimoni, gasta oci/compres i deixa el sobrant a efectiu (mai
- * negatiu). El benestar reacciona a la despesa discrecional (oci + compres): cal
- * gastar un mínim per no perdre'n i, per sobre, se'n guanya (rendiments decreixents).
+ * Aplica un ANY sencer de la fase laboral a partir d'un pressupost MENSUAL. Un torn
+ * avança 12 mesos de cop, però el jugador decideix imports mensuals: aquí es
+ * prorrategen (× 12) per ingressar, pagar l'aportació obligatòria a casa, moure
+ * l'estalvi al patrimoni i gastar oci/compres, deixant el sobrant a efectiu (mai
+ * negatiu). El benestar reacciona a la despesa discrecional MENSUAL (oci + compres
+ * respecte al mínim) un sol cop l'any, igual que la fase de carrera: cal gastar un
+ * mínim per no perdre'n i, per sobre, se'n guanya (rendiments decreixents).
  */
-export function applyBudgetMonth(
+export function applyBudgetYear(
   person: Person,
   budget: Budget,
   income: number,
   minCasa = 0,
 ): Person {
   const patrimoni = { ...person.patrimoni }
-  // Caixa disponible aquest mes (ingrés + el que ja hi havia).
-  let disponible = patrimoni.efectiu + income
+  // Caixa disponible tot l'any (ingrés mensual × 12 + el que ja hi havia).
+  let disponible = patrimoni.efectiu + income * MESOS_PER_ANY
 
   const gasta = (n: number) => {
     const real = Math.max(0, Math.min(n, disponible))
@@ -452,16 +456,17 @@ export function applyBudgetMonth(
     return real
   }
   // L'aportació a la família és obligatòria: es paga primer i mai per sota del mínim.
-  gasta(Math.max(budget.casa, minCasa))
-  const aEstalvi = gasta(budget.estalvi)
-  const oci = gasta(budget.oci)
-  const compres = gasta(budget.compres)
+  gasta(Math.max(budget.casa, minCasa) * MESOS_PER_ANY)
+  const aEstalvi = gasta(budget.estalvi * MESOS_PER_ANY)
+  gasta(budget.oci * MESOS_PER_ANY)
+  gasta(budget.compres * MESOS_PER_ANY)
 
   patrimoni.estalvi = Math.round(patrimoni.estalvi + aEstalvi)
   patrimoni.efectiu = Math.round(disponible)
 
-  // El benestar depèn de la despesa en oci+compres respecte al mínim de manteniment.
-  const deltaBenestar = benestarEstilDeVida(oci, compres, income)
+  // El benestar depèn de la despesa MENSUAL en oci+compres respecte al mínim de
+  // manteniment (s'aplica un cop l'any, no acumulat mes a mes).
+  const deltaBenestar = benestarEstilDeVida(budget.oci, budget.compres, income)
 
   const stats = {
     ...person.stats,

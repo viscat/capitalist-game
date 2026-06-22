@@ -12,9 +12,10 @@ export function ActionPanel({
   const { t } = useT()
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-      <h3 className="mb-3 text-sm font-semibold text-slate-300">
+      <h3 className="text-sm font-semibold text-slate-300">
         {t('action.title')}
       </h3>
+      <p className="mb-3 text-xs text-slate-500">{t('action.nota')}</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {actions.map(({ action, disabled, reasonKey }) => (
           <button
