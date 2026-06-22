@@ -10,6 +10,7 @@ import {
   REVALORACIO_HABITATGE,
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
+import { generaOfertes } from './jobs'
 import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
@@ -180,6 +181,21 @@ function isActionStage(stage: LifeStage): boolean {
   return stage === 'adolescencia' || stage === 'estudis_post'
 }
 
+/**
+ * Manté les ofertes de feina coherents amb l'estat. A `carrera` sense sou (a l'atur,
+ * sigui en entrar al món laboral o després d'un acomiadament) (re)genera el lot
+ * d'ofertes consumint el RNG; amb sou, esborra les ofertes. Centralitza la cerca de
+ * feina perquè aparegui automàticament a tots els punts on s'acaba un torn a l'atur.
+ */
+function ambOfertes(state: GameState): GameState {
+  if (state.lifeStage === 'carrera' && (state.salari ?? 0) === 0) {
+    const { ofertes, rngState } = generaOfertes(state, state.rngState)
+    return { ...state, ofertesFeina: ofertes, rngState }
+  }
+  if (state.ofertesFeina) return { ...state, ofertesFeina: undefined }
+  return state
+}
+
 /** Pool d'esdeveniments corresponent a la fase (i situació) actual. */
 function eventPool(state: GameState): GameEvent[] {
   switch (state.lifeStage) {
@@ -283,6 +299,12 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
   const torn = state.torn + 1
   const edatMesos = state.person.edatMesos + turnMonths()
   const anys = edatAnys(edatMesos)
+
+  // Experiència laboral: cada any amb sou (carrera o feina dels 16-18) suma.
+  const haTreballat =
+    (stage === 'carrera' || (stage === 'laboral' && state.itinerari === 'treball')) &&
+    (state.salari ?? 0) > 0
+  const anysExperiencia = (state.anysExperiencia ?? 0) + (haTreballat ? 1 : 0)
 
   // Deriva del benestar cap a la referència de l'entorn.
   const baseline = baselineBenestar(state)
@@ -415,6 +437,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     torn,
     person,
     habitatge,
+    anysExperiencia,
     rngState: nextRng,
     ultimEventId: event.id,
     historial: [...state.historial, ...entries],
@@ -517,7 +540,9 @@ function resolveEvent(
     ? person.edatMesos
     : state.ultimAugmentMes
 
-  return {
+  // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
+  // automàticament les ofertes de cerca de feina.
+  return ambOfertes({
     ...state,
     person,
     salari,
@@ -526,7 +551,7 @@ function resolveEvent(
     pendingMilestone,
     historial: [...state.historial, entry],
     acabat,
-  }
+  })
 }
 
 /**
@@ -557,14 +582,12 @@ export function applyMilestoneChoice(
       next.itinerari === 'treball' ? aportacioMinima(next.familia, income) : 0
     next.pressupost = defaultBudget(income, minCasa)
   }
-  // Entrada a la vida adulta amb inversions: sou adult (amb premi si hi ha títol)
-  // i pla d'inversió inicial.
+  // Entrada a la vida adulta: NO et regalen feina. Comences a l'atur (sou 0) i has
+  // de buscar-la; les ofertes les genera `ambOfertes` al final. El pla d'inversió es
+  // fixa en acceptar una oferta (quan ja hi ha sou).
   if (option.lifeStage === 'carrera') {
-    const teDiploma = option.teDiploma ?? state.teDiploma ?? false
-    const salari = salariAdultInicial(next.familia, teDiploma)
-    next.teDiploma = teDiploma
-    next.salari = next.salariBase = salari
-    next.plaInversio = defaultPlaInversio(netAnual(salari * 12))
+    next.teDiploma = option.teDiploma ?? state.teDiploma ?? false
+    next.salari = next.salariBase = 0
     next.nivellVida = NIVELL_VIDA_DEFAULT
   }
   // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
@@ -586,5 +609,36 @@ export function applyMilestoneChoice(
     effect: {},
   }
   next.historial = [...state.historial, entry]
-  return next
+  // En entrar a la carrera a l'atur, genera el primer lot d'ofertes de feina.
+  return ambOfertes(next)
+}
+
+/**
+ * Accepta una oferta de feina (durant la cerca a la carrera): fixa el sou, inicialitza
+ * el pla d'inversió si encara no n'hi ha, esborra les ofertes i deixa constància. NO
+ * avança el torn: trobes feina i vius l'any treballant (el panell d'inversió).
+ */
+export function acceptarOferta(state: GameState, ofertaId: string): GameState {
+  const oferta = state.ofertesFeina?.find((o) => o.id === ofertaId)
+  if (!oferta) return state
+  const salari = oferta.sou
+  const entry: LogEntry = {
+    torn: state.torn,
+    edatAnys: edatAnys(state.person.edatMesos),
+    eventId: `oferta_${oferta.qualitat}`,
+    titleKey: 'jobsearch.found.title',
+    descKey: 'jobsearch.found.desc',
+    params: { sou: salari },
+    category: 'economia',
+    kind: 'event',
+    effect: { salariNou: salari },
+  }
+  return {
+    ...state,
+    salari,
+    salariBase: salari,
+    plaInversio: state.plaInversio ?? defaultPlaInversio(netAnual(salari * 12)),
+    ofertesFeina: undefined,
+    historial: [...state.historial, entry],
+  }
 }

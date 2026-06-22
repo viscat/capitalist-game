@@ -23,6 +23,7 @@ import type {
   GameEvent,
   Itinerari,
   LifeStage,
+  QualitatOferta,
 } from '../domain/types'
 
 // Una clau i18n absent NO peta: `translate` retorna la pròpia clau, així que es
@@ -63,6 +64,7 @@ const STAGES: LifeStage[] = [
 const ITINERARIS: Itinerari[] = ['batxillerat', 'grau_mig', 'treball', 'nini']
 const CLASSES: FamilyClass[] = Object.keys(FAMILY_PRESETS) as FamilyClass[]
 const BENESTAR_BUCKETS = ['molt_baix', 'baix', 'mig', 'alt', 'molt_alt']
+const QUALITATS_OFERTA: QualitatOferta[] = ['precaria', 'estandard', 'bona']
 
 describe('cobertura i18n (català)', () => {
   it('tots els esdeveniments tenen títol, descripció i etiquetes d’opció', () => {
@@ -144,6 +146,7 @@ describe('cobertura i18n (català)', () => {
         (k) => [`pla.${k}`, `pla.${k}.desc`],
       ),
       ...['minim', 'mig', 'alt'].map((n) => `nivellVida.${n}`),
+      ...QUALITATS_OFERTA.map((q) => `oferta.${q}`),
       ...['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'].map(
         (f) => `patrimoni.${f}`,
       ),

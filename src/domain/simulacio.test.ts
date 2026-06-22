@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  acceptarOferta,
   actionOptions,
   advanceTurn,
   applyChoice,
@@ -80,6 +81,13 @@ function jugaPartida(s0: GameState, estrategia: Estrategia): {
       // Un esdeveniment pendent sempre té opcions (els altres es resolen sols).
       expect(choices && choices.length, `event ${s.pendingEvent.id} sense opcions`).toBeTruthy()
       s = applyChoice(s, choices![0].id)
+    } else if (
+      s.lifeStage === 'carrera' &&
+      (s.salari ?? 0) === 0 &&
+      s.ofertesFeina?.length
+    ) {
+      // A l'atur a la carrera: accepta la primera oferta (la cerca sempre ofereix una).
+      s = acceptarOferta(s, s.ofertesFeina[0].id)
     } else {
       const opcions = actionOptions(s)
       if (opcions.length > 0) {

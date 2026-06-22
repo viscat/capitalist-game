@@ -6,6 +6,7 @@ import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
 import { HabitatgePanel } from './HabitatgePanel'
 import { InvestmentPanel } from './InvestmentPanel'
+import { JobSearchPanel } from './JobSearchPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
@@ -26,10 +27,13 @@ export function GameScreen() {
   const esInfancia = lifeStage === 'infancia'
   const esUniversitat = lifeStage === 'universitat'
   const esCarrera = lifeStage === 'carrera'
+  // A la carrera sense sou s'està buscant feina (a l'entrada o després d'un acomiadament).
+  const esCercaFeina = esCarrera && !salari
   const esAdult = esUniversitat || esCarrera
   // El botó simple de «Següent any» val per a infància i universitat.
   const esAnual = esInfancia || esUniversitat
-  const aLatur = lifeStage === 'laboral' && itinerari === 'treball' && !salari
+  const aLatur =
+    (lifeStage === 'laboral' && itinerari === 'treball' && !salari) || esCercaFeina
   const nom = state.identitat?.nom
 
   // A les fases adultes prevalen l'etiqueta de fase per damunt de l'itinerari dels 16.
@@ -99,8 +103,9 @@ export function GameScreen() {
             <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
           )}
           {!pendingEvent && esLaboral && <BudgetPanel />}
-          {!pendingEvent && esAdult && <HabitatgePanel />}
-          {!pendingEvent && esCarrera && <InvestmentPanel />}
+          {!pendingEvent && esCercaFeina && <JobSearchPanel />}
+          {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
+          {!pendingEvent && esCarrera && !esCercaFeina && <InvestmentPanel />}
           {!pendingEvent && esAnual && (
             <button
               onClick={() => nextTurn()}

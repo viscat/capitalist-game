@@ -119,6 +119,7 @@ Punts clau perquè res no es bloquegi:
   `GameState.rngState`, així les partides són reproduïbles (clau per als tests).
 - **`time.ts`** — Conversió mesos↔anys i data de calendari.
 - **`events/`** — Catàlegs d'esdeveniments per situació + selecció ponderada (`engine.ts`).
+- **`jobs.ts`** — Cerca de feina a la vida adulta: ocupabilitat i generació d'ofertes.
 - **`actions/adolescencia.ts`** — Accions de targeta de les fases d'estudi.
 - **`family/presets.ts`** — Les 6 famílies inicials.
 - **`milestones.ts`** — Definició de les fites i les seves opcions.
@@ -156,6 +157,28 @@ Si toques aquests números, els tests de `stats.test.ts` i `engine.test.ts` codi
 les **relacions** esperades (p. ex. “més recursos ⇒ més paga”, “les classes baixes ho
 tenen més difícil”), no valors exactes. Mantén-les vàlides o actualitza-les amb
 intenció.
+
+### Cerca de feina (entrada a la vida adulta i atur)
+
+Entrar a `carrera` (als 18 o 22) **no et regala feina**: hi entres **a l'atur**
+(`salari = 0`) i has de **buscar-la**. No s'afegeix cap `LifeStage`: l'estat de cerca
+és `carrera` + `salari 0` + `state.ofertesFeina` (el motor ja tractava `carrera` amb
+`salari 0` com a atur per a `eventPool` i `adultBaselineBenestar`).
+
+- **`domain/jobs.ts`** — `ocupabilitat(state)` (0..1) a partir d'estudis (`teDiploma`/
+  itinerari), contactes (patrimoni de la família), **experiència** (`anysExperiencia`),
+  ànim i una petita penalització per edat; `salariBaseOferta` (sou de partida millorat
+  per experiència); `generaOfertes(state, rngState)` deterministe (sempre ≥1 oferta ⇒
+  mai bloqueja; més ocupabilitat ⇒ més ofertes i millors).
+- **Helper `ambOfertes`** (`engine.ts`) centralitza-ho: si acabes un torn a `carrera`
+  sense sou, (re)genera ofertes; amb sou, les esborra. Es crida des d'`applyMilestoneChoice`
+  (entrada), `resolveEvent` (acomiadament a mig camí) i — via aquests — cada any de cerca.
+- **`acceptarOferta(state, id)`** fixa el sou i el pla d'inversió i **no** consumeix el
+  torn; «Segueix buscant» (`advanceTurn`) sí: passa un any (gastes estalvis, baixa
+  l'ànim) i regenera ofertes. L'atur ja no dóna feina per esdeveniment aleatori
+  (`ATUR_ADULT_EVENTS` només són color: subsidi i desànim).
+- **Experiència**: `advanceTurn` suma `anysExperiencia` cada any amb sou (carrera o
+  feina dels 16-18). UI: `components/JobSearchPanel.tsx`.
 
 ### Inversions (fase de carrera, el missatge financer)
 
