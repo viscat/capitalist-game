@@ -81,7 +81,11 @@ export function GameScreen() {
 
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr_18rem]">
         <aside className="space-y-4">
-          <StatBar benestar={person.stats.benestar} />
+          <StatBar
+            benestar={person.stats.benestar}
+            vincles={state.vinclesSocials}
+            sequela={state.salutCronica}
+          />
           <PatrimoniPanel
             person={person}
             familia={familia}

@@ -60,6 +60,8 @@ interface GameContextValue {
   acceptarOferta: (ofertaId: string) => void
   /** Tria el nivell de vida (cost del dia a dia) a la fase adulta. */
   setNivellVida: (nivell: NivellVida) => void
+  /** Activa/desactiva la «vida senzilla» (frugalitat per elecció: el mínim no penalitza). */
+  setVidaSenzilla: (vidaSenzilla: boolean) => void
   /** Lloga una habitació o un pis. */
   llogar: (tipus: OpcioLloguer['tipus']) => void
   /** Compra un habitatge amb hipoteca (a `anys` anys). */
@@ -115,6 +117,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setState((s) => (s ? acceptarOferta(s, ofertaId) : s)),
       setNivellVida: (nivell) =>
         setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
+      setVidaSenzilla: (vidaSenzilla) =>
+        setState((s) => (s ? { ...s, vidaSenzilla } : s)),
       llogar: (tipus) => setState((s) => (s ? llogar(s, tipus) : s)),
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),

@@ -187,6 +187,12 @@ export interface EventEffect {
    * manera persistent, a diferència del cop puntual de `benestar`.
    */
   salutCronicaDelta?: number
+  /**
+   * Variació dels vincles socials (0..1 a `GameState.vinclesSocials`): amistats, parella,
+   * comunitat, sentit. Font de benestar NO monetària (P7); difícil de construir quan
+   * s'està desbordat per la precarietat.
+   */
+  vinclesDelta?: number
 }
 
 export interface EventChoice {
@@ -298,6 +304,16 @@ export interface GameState {
    * de la referència de benestar adult de manera duradora. Absent o 0 = sense seqüeles.
    */
   salutCronica?: number
+  /**
+   * Vincles socials (0..1): amistats, parella, comunitat, sentit. Font de benestar NO
+   * monetària (P7) que pot sostenir una vida plena amb poc patrimoni. Absent = 0.
+   */
+  vinclesSocials?: number
+  /**
+   * El jugador ha triat explícitament una «vida senzilla» (frugalitat per elecció): viure
+   * amb el mínim deixa de penalitzar el benestar (no és privació, és tria). Absent = false.
+   */
+  vidaSenzilla?: boolean
   historial: LogEntry[]
   acabat: boolean
 }

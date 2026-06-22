@@ -359,6 +359,31 @@ export const CARRERA_EVENTS: GameEvent[] = [
     weight: (f) => 0.18 * EXPOSICIO_SALUT[f.classe],
     effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22 },
   },
+  // --- Vincles (P7): la via de benestar NO monetària (amistats, parella, comunitat) ---
+  {
+    id: 'parella_estable',
+    category: 'familia',
+    titleKey: 'event.parella_estable.title',
+    descKey: 'event.parella_estable.desc',
+    weight: () => 1,
+    effect: { benestar: 6, vinclesDelta: 0.18 },
+  },
+  {
+    id: 'arrelar_comunitat',
+    category: 'familia',
+    titleKey: 'event.arrelar_comunitat.title',
+    descKey: 'event.arrelar_comunitat.desc',
+    weight: () => 1.1,
+    effect: { benestar: 3, vinclesDelta: 0.12 },
+  },
+  {
+    id: 'aillament',
+    category: 'salut',
+    titleKey: 'event.aillament.title',
+    descKey: 'event.aillament.desc',
+    weight: () => 0.9,
+    effect: { benestar: -5, vinclesDelta: -0.1 },
+  },
   {
     id: 'ajudar_familia_adult',
     category: 'familia',

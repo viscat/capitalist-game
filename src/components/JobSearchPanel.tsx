@@ -1,5 +1,6 @@
+import { MESOS_PER_ANY } from '../domain/constants'
 import { anysExperiencia, ocupabilitat } from '../domain/jobs'
-import { netMensual } from '../domain/stats'
+import { netMensual, prestacioAturAnual } from '../domain/stats'
 import type { QualitatOferta } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -27,6 +28,10 @@ export function JobSearchPanel() {
   const ofertes = state.ofertesFeina ?? []
   const occ = ocupabilitat(state)
   const anys = anysExperiencia(state)
+  // Prestació d'atur mentre busques (el retorn d'haver cotitzat). Sense cotització, 0.
+  const prestacioMes = Math.round(
+    prestacioAturAnual(state.salariBase ?? 0, anys) / MESOS_PER_ANY,
+  )
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -36,6 +41,11 @@ export function JobSearchPanel() {
           tram: t(`jobsearch.ocupabilitat.${tramOcupabilitat(occ)}`),
         })}
         {anys > 0 && ` · ${t('jobsearch.experiencia', { anys })}`}
+      </p>
+      <p className="mt-1 text-xs text-emerald-300/80">
+        {prestacioMes > 0
+          ? `🛟 ${t('jobsearch.prestacio', { amount: formatEuros(prestacioMes) })}`
+          : `🛟 ${t('jobsearch.sensePrestacio')}`}
       </p>
 
       <div className="mt-3 space-y-2">

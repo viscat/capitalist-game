@@ -64,6 +64,8 @@ export const ca: Record<string, string> = {
     'Comences la teva vida en aquesta família. Prem «Següent any» per créixer.',
 
   'stat.benestar': 'Benestar',
+  'stat.vincles': 'Vincles',
+  'stat.sequela': 'Seqüeles',
   'benestar.molt_baix': 'En la misèria',
   'benestar.baix': 'Malament',
   'benestar.mig': 'Regular',
@@ -258,6 +260,13 @@ export const ca: Record<string, string> = {
   'pla.aportacioFamilia': 'Ajuda a la família',
   'pla.aportacioFamilia.desc':
     'Una part del sou se’n va a casa. Obligatori mentre la família et necessiti.',
+  'pla.vidaSenzilla': 'Vida senzilla per elecció',
+  'pla.vidaSenzilla.nota':
+    'Has triat viure amb poc: la frugalitat ja no et resta benestar (és tria, no privació).',
+  'pla.petjada': 'Petjada ecològica',
+  'pla.petjada.baixa': 'baixa',
+  'pla.petjada.mitjana': 'mitjana',
+  'pla.petjada.alta': 'alta',
   'pla.balanc': 'Balanç del mes',
   'pla.balanc.estalvis': 'Gastes més del que ingresses: tires d’estalvis.',
   'pla.balanc.deute':
@@ -276,6 +285,9 @@ export const ca: Record<string, string> = {
   'jobsearch.ocupabilitat.mitjana': 'mitjanes',
   'jobsearch.ocupabilitat.alta': 'altes',
   'jobsearch.experiencia': '{anys} anys d’experiència',
+  'jobsearch.prestacio': 'Cobres {amount}/mes de prestació d’atur (has cotitzat).',
+  'jobsearch.sensePrestacio':
+    'Sense prou cotització, no tens dret a prestació d’atur: vius dels estalvis.',
   'jobsearch.net': 'net',
   'jobsearch.accept': 'Acceptar',
   'jobsearch.seguir': 'Segueix buscant un any →',
@@ -372,6 +384,15 @@ export const ca: Record<string, string> = {
   'gameover.title': 'Fas 35 anys',
   'gameover.subtitle':
     'Ja ets una persona adulta amb una vida feta. És moment de mirar enrere i veure on t’han portat les teves decisions.',
+  'gameover.final.solid.title': 'Fas 35 anys',
+  'gameover.final.solid.desc':
+    'Arribes a la vida adulta amb una base sòlida. El camí ha donat fruits: tens marge i tranquil·litat.',
+  'gameover.final.plena.title': 'Una vida plena',
+  'gameover.final.plena.desc':
+    'No has acumulat gaire patrimoni, però tens el que de debò sosté una vida: vincles, salut i sentit. La llibertat no sempre es compra.',
+  'gameover.final.precaria.title': 'Fas 35 anys',
+  'gameover.final.precaria.desc':
+    'Han estat anys durs i el marge segueix sent escàs. L’origen ha pesat, i remar a contracorrent esgota.',
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',
@@ -434,6 +455,13 @@ export const ca: Record<string, string> = {
   'event.bon_amic.title': 'Un bon amic',
   'event.bon_amic.desc':
     'Has fet un amic inseparable a l’escola. Us ho passeu d’allò més bé.',
+
+  'event.connexio_profunda.title': 'Un moment que recordaràs',
+  'event.connexio_profunda.desc':
+    'Malgrat tot, un moment de connexió profunda a casa: una conversa, un riure, sentir-te acompanyat.',
+  'event.tensio_llar.title': 'Tensió a casa',
+  'event.tensio_llar.desc':
+    'L’angoixa i el cansament esclaten en una mala temporada a casa. Et toca de prop.',
 
   'event.assetjament.title': 'Ho passes malament a l’escola',
   'event.assetjament.desc':
@@ -750,6 +778,15 @@ export const ca: Record<string, string> = {
   'event.incapacitat.title': 'Una incapacitat',
   'event.incapacitat.desc':
     'Un accident o una malaltia greu et deixen seqüeles permanents. {cost} € de despeses i una vida que ja no torna a ser igual.',
+  'event.parella_estable.title': 'Una relació que arrela',
+  'event.parella_estable.desc':
+    'Trobes algú amb qui compartir la vida. No ho compra el sou: és de les coses que més pesen al benestar.',
+  'event.arrelar_comunitat.title': 'Fer comunitat',
+  'event.arrelar_comunitat.desc':
+    'T’impliques al barri, al club, a un grup: gent amb qui comptar. Els vincles teixeixen una xarxa que sosté.',
+  'event.aillament.title': 'Aïllament',
+  'event.aillament.desc':
+    'Entre la feina i les obligacions, t’has anat aïllant. La soledat pesa.',
 
   // --- A l'atur durant la carrera (mentre busques feina) ---
   'event.subsidi_atur.title': 'Cobres l’atur',

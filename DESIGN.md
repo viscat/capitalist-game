@@ -469,54 +469,55 @@ canvi de balanceig s'accepta sense veure'n l'efecte sobre la corba.
 **pobra** acabava *còmoda* (benestar mediana **62**, patrimoni **+130.000 €**, 64% per
 sobre de 60 de benestar). La física no produïa la corba objectiu.
 
-**Implementat en aquesta primera iteració** (domini; encara sense superfície a la UI):
+**Roadmap implementat (totes les palanques de §8.3 + §8.4):**
 
 | Palanca | Estat | Fitxer |
 |---------|-------|--------|
 | P1 Deute acumulatiu (compon, bloqueja inversió, sostre ~2,5× ingrés) | ✅ | `stats.ts` `applyCareerYear`, `constants.ts` `INTERES_DEUTE` |
 | P2 Cost de vida diferencial per classe | ✅ | `stats.ts` `COST_VIDA_FACTOR_CLASSE`, `costVidaPropi` |
-| Obligació familiar a la carrera (drena el marge del pobre adult) | ✅ | `stats.ts` `aportacioFamiliarCarrera` |
-| P7 (parcial) `wealth` 16→10 + estrès de deute al benestar adult | ✅ | `stats.ts` `adultBaselineBenestar`, `penalitzacioDeute` |
+| Obligació familiar a la carrera | ✅ | `stats.ts` `aportacioFamiliarCarrera` |
+| P3 Cura com a **variança** a la infància (no mitjana més baixa) | ✅ | `events/pool.ts` (`connexio_profunda`/`tensio_llar`) |
+| P4 Reduir `PRECARIETAT_BENESTAR` a un residu (14/8 → **6/3**) | ✅ | `stats.ts` `PRECARIETAT_BENESTAR` |
+| P5 Salut: malaltia greu + esgotament + incapacitat (seqüela crònica) | ✅ | `events/adult.ts`, `salutCronica` |
+| P6 Herència/transmissió de capital en entrar a la carrera | ✅ | `stats.ts` `herenciaVida`, `engine.ts` |
+| P7 No-monetari: `vinclesSocials` (substitutiu, gated pel deute) + `wealth` 16→10 | ✅ | `stats.ts` `adultBaselineBenestar`, `engine.ts` |
+| P8 Capa pública: IMV de darrera instància + prestació d'atur | ✅ | `stats.ts` `ajutPublicMax`/`prestacioAturAnual`, `constants.ts` |
 | P9 Deriva asimètrica (cau ràpid, puja lent) | ✅ | `constants.ts` `DERIVA_PUJADA/BAIXA`, `engine.ts` |
-| P5 Salut: malaltia greu + esgotament + incapacitat (seqüela crònica), ponderats per `EXPOSICIO_SALUT` (classe) | ✅ | `events/adult.ts`, `salutCronica` a `types.ts`/`engine.ts`/`stats.ts` |
+| Victòria no-monetària (final «vida plena») | ✅ | `components/GameOver.tsx` |
+| Frugalitat declarada (`vidaSenzilla`) | ✅ | `stats.ts` `benestarNivellVida`, UI |
+| Indicador ecològic (cosmètic) | ✅ | `components/InvestmentPanel.tsx` |
 
-**Corba mesurada (després)** — 400 llavors/classe:
+**Corba mesurada final** — 400 llavors/classe:
 
 | Classe | benestar (mediana) | patrimoni | cua ≥60 | objectiu §8.4 |
 |--------|--------------------|-----------|---------|----------------|
-| **pobra (via estudis)** | **18** | **−30.000 €** | **3,3%** | ≤20 / ~0 / 3–5% ✅ |
-| pobra (via treball, sense títol) | 3 | −42.000 € | 0% | enfonsada, sense via d'escapada ✅ |
-| treballadora | 48–57 | ~90.000 € | — | moderat |
-| mitjana | 52–63 | ~200.000 € | — | franja mitjana |
-| rica | 64–73 | ~440.000 € | 74–94% | alt ✅ |
-| super-rica | 69–77 | ~1,3 M€ | 86–99% | alt ✅ |
+| **pobra (via estudis)** | **12** | **−35.000 €** | **3,0%** | ≤20 / ~0 / 3–5% ✅ |
+| pobra (via treball, sense títol) | 3 | −39.000 € | 0% | enfonsada, sense via d'escapada ✅ |
+| treballadora | 45–54 | ~90.000 € | — | moderat |
+| mitjana | 51–62 | ~195.000 € | — | franja mitjana |
+| rica | 66–75 | ~500.000 € | 69–90% (p10 49–60) | alt + cua de mala sort ✅ |
+| super-rica | 68–78 | ~2,0 M€ (amb herència) | 78–92% | alt ✅ |
 
-La corba del pobre es compleix de manera **emergent** (deute + cost diferencial +
-obligació familiar + deriva asimètrica), no per cap penalització indexada a l'etiqueta —
-exactament el gir de §8.1. L'única via d'escapada del pobre passa per l'**educació**
-(estudis: 3,3% escapen; treball: 0%), com volia l'innegociable socialdemòcrata.
+**Com encaixa tot (claus de calibratge):**
+- El desavantatge del pobre és **emergent** (deute + cost diferencial + obligació familiar
+  + deriva asimètrica), no per etiqueta — el gir de §8.1. `PRECARIETAT_BENESTAR` queda com a
+  residu petit (P4): la corba no canvia, el model és més honest.
+- **La capa pública (P8) no aixeca el sostre.** L'IMV és un terra de *darrera instància*:
+  només per a qui té poc patrimoni **i** ingressos molt baixos (atur), no per al treballador
+  pobre (que segueix atrapat). La prestació d'atur depèn d'haver cotitzat. Així el retorn
+  públic existeix i és visible, però és insuficient — coherent amb la lent socialdemòcrata.
+- **El factor no-monetari (P7) no trenca el ≤20.** Els `vinclesSocials` són *substitutius*
+  (el ric no els acumula per duplicat) i el seu creixement es **redueix al 30% mentre hi ha
+  deute**: com el pobre viu endeutat, amb prou feines els cultiva. La «vida plena» queda
+  reservada a qui s'escapa de la trampa — exactament el supòsit de §8.5, ara mecànic.
+- **El ric només cau per mala sort** (P5): la seqüela crònica de la `incapacitat` és l'únic
+  mecanisme durador que l'enfonsa; la mediana es manté alta.
 
-**P5 (salut) — implementat i mesurat:** tres esdeveniments a la carrera amb pes escalat
-per `EXPOSICIO_SALUT` (classe): `malaltia_greu` (despesaGreu + −24 benestar), `esgotament`
-(−10 benestar) i `incapacitat` (rara: despesaGreu + −18 benestar + **seqüela crònica**
-duradora via `salutCronica`, que rebaixa la referència adulta de manera permanent i la
-deriva no recupera). Com que el cap d'`econ` a `adultBaselineBenestar` fa el ric insensible
-als xocs d'ingrés, la **seqüela crònica** és el mecanisme que permet que la mala sort
-l'enfonsi de debò. Resultat mesurat: el **ric** manté la mediana alta (~72-76) — prospera
-per defecte — però la mala sort li obre una **cua real a la baixa** (p10 ≈ 55 via estudis,
-≈ 44 via treball; els pitjors casos, clarament baixos), i ve **només** de salut + crac, res
-estructural. El **pobre** hi està més exposat (salut com a càrrega de classe, via
-probabilitat, no etiqueta).
+**Superfície a la UI:** deute i patrimoni net negatiu (`PatrimoniPanel`/`GameOver`),
+seqüela crònica i vincles (`StatBar`/`GameOver`), prestació d'atur (`JobSearchPanel`),
+frugalitat declarada i petjada ecològica (`InvestmentPanel`), i tres finals amb la mateixa
+dignitat —sòlid, **vida plena** (no-monetari) i precari— (`GameOver`).
 
-> **Nota de calibratge (deute pendent per a P4).** La cua de mobilitat del pobre via
-> estudis ha baixat de ~3,3% (increment 1) a ~2% en afegir el risc de salut — lleugerament
-> per sota de l'objectiu 3–5% de §8.4. No és la salut qui la limita (l'escapada està
-> gated per la trampa del deute), sinó que el marge era ja estret; restaurar-la cap al
-> 3–5% pertany a la propera passada P4 (reduir `PRECARIETAT_BENESTAR` i/o el reforç de
-> l'educació pública que demanava la lent socialdemòcrata).
-
-**Pendent (properes iteracions):** P3 (variança de la cura a la infància), P4 (reduir
-`PRECARIETAT_BENESTAR` ara que els mecanismes carreguen el pes — encara és 14/8), P6
-(herència), P8 (capa pública), i tota la **superfície a la UI** (pantalla de victòria
-no-monetària, frugalitat declarada). El residu de calibratge de §8.5 (P7 no-monetari) no
-s'ha tocat encara.
+**Pendent / futures iteracions:** impost de successions sobre l'herència (knob de tuning),
+cost ecològic amb efecte mecànic (ara només indicador), discriminació de gènere/origen
+(fora d'abast). La corba es valida contínuament amb `domain/sim/harness.test.ts`.
