@@ -478,6 +478,7 @@ sobre de 60 de benestar). La física no produïa la corba objectiu.
 | Obligació familiar a la carrera (drena el marge del pobre adult) | ✅ | `stats.ts` `aportacioFamiliarCarrera` |
 | P7 (parcial) `wealth` 16→10 + estrès de deute al benestar adult | ✅ | `stats.ts` `adultBaselineBenestar`, `penalitzacioDeute` |
 | P9 Deriva asimètrica (cau ràpid, puja lent) | ✅ | `constants.ts` `DERIVA_PUJADA/BAIXA`, `engine.ts` |
+| P5 Salut: malaltia greu + esgotament, ponderats per `EXPOSICIO_SALUT` (classe) | ✅ | `events/adult.ts` |
 
 **Corba mesurada (després)** — 400 llavors/classe:
 
@@ -495,10 +496,18 @@ obligació familiar + deriva asimètrica), no per cap penalització indexada a l
 exactament el gir de §8.1. L'única via d'escapada del pobre passa per l'**educació**
 (estudis: 3,3% escapen; treball: 0%), com volia l'innegociable socialdemòcrata.
 
+**P5 (salut) — implementat i mesurat:** dos esdeveniments a la carrera (`malaltia_greu`:
+despesaGreu + −24 benestar; `esgotament`: −10 benestar) amb pes escalat per
+`EXPOSICIO_SALUT` (classe). Resultat: el **ric** ja té una **cua a la baixa** (≈9% acaben
+per sota de 60 de benestar) que prové **només de la mala sort** (salut + crac de mercat),
+res estructural no el toca — just la premissa «el ric només cau per mala sort». Per al
+**pobre**, l'exposició més alta afegeix erosió contínua (la salut com a càrrega de classe,
+via probabilitat, no etiqueta). Nota: el cap d'`econ` a `adultBaselineBenestar` fa que el
+ric sigui insensible als xocs d'ingrés, així que la seva única via avall és el benestar
+transitori d'aquests esdeveniments — per disseny, la caiguda és real però **rara**.
+
 **Pendent (properes iteracions):** P3 (variança de la cura a la infància), P4 (reduir
-`PRECARIETAT_BENESTAR` ara que els mecanismes carreguen el pes — encara és 14/8), P5
-(esdeveniments de salut: catastròfics per al ric + erosió estructural per al pobre — és el
-que falta perquè el ric «només caigui per mala sort»; ara mai cau), P6 (herència), P8 (capa
-pública), i tota la **superfície a la UI** (mostrar el deute, pantalla de victòria
+`PRECARIETAT_BENESTAR` ara que els mecanismes carreguen el pes — encara és 14/8), P6
+(herència), P8 (capa pública), i tota la **superfície a la UI** (pantalla de victòria
 no-monetària, frugalitat declarada). El residu de calibratge de §8.5 (P7 no-monetari) no
 s'ha tocat encara.
