@@ -67,9 +67,8 @@ export const LIMIT_DESGRAVACIO_PENSIONS = 1500
 
 // --- Universitat i cost de vida adult ---
 
-/** Cost de vida anual a la fase de carrera: base + fracció de l'ingrés (estil de vida). */
-export const COST_VIDA_BASE = 8000
-export const COST_VIDA_FACTOR = 0.2
+/** Cost de vida anual a la fase adulta: el dia a dia. Valor fix (~1.000 €/mes). */
+export const COST_VIDA_ANUAL = 12_000
 
 /** Cost anual de matrícula i material universitari. */
 export const MATRICULA_ANUAL = 2000
