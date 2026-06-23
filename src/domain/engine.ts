@@ -6,8 +6,10 @@ import {
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
   EDAT_FI_UNIVERSITAT,
+  INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
+  RENDIMENT_PENSIONS,
   REVALORACIO_HABITATGE,
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
@@ -29,7 +31,7 @@ import { MILESTONES } from './milestones'
 import { rng, seedFromTime } from './rng'
 import {
   ajudaCasaBenestar,
-  aportacioFamiliarCarrera,
+  ajutPublicMax,
   aportacioMinima,
   applyBudgetYear,
   applyCareerYear,
@@ -38,6 +40,8 @@ import {
   baselineBenestar,
   benestarNivellVida,
   clampBenestar,
+  contribucioLlar,
+  costVidaAnual,
   costVidaPropi,
   defaultBudget,
   defaultPlaInversio,
@@ -47,11 +51,12 @@ import {
   herenciaVida,
   ingressosAnualsCarrera,
   ingressosMensuals16,
-  netAnual,
   netMensual,
   pagaMensual,
+  patrimoniTotal,
   prestacioAturAnual,
   rendimentIndexAnual,
+  repartDeficit,
   resolveDespesaGreu,
   salariAdultInicial,
   salariInicial,
@@ -158,7 +163,8 @@ export function newGameAtCarrera(
     teDiploma,
     salari,
     salariBase: salari,
-    plaInversio: defaultPlaInversio(netAnual(salari * 12)),
+    // Pla buit: el jugador el reparteix des de zero (coherent amb l'entrada normal).
+    plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
     nivellVida: NIVELL_VIDA_DEFAULT,
     habitatge: { tipus: 'amb_pares' },
     historial: [],
@@ -346,19 +352,48 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
     person = applyBudgetYear(person, budget, income, minCasa, state.familia)
   } else if (stage === 'universitat') {
-    // Any d'universitat: suport familiar + beca − matrícula − habitatge (mai deute).
+    // Any d'universitat: suport familiar + beca − matrícula, menys habitatge i (si vius
+    // sol) un cost de vida frugal d'estudiant. El dèficit que ni els estalvis ni la xarxa
+    // cobreixen es torna DEUTE que compon (com a la carrera): estudiar sense suport
+    // familiar es paga amb anys de deute. La família pobra, a més, no et pot mantenir
+    // (suport 0) i et necessita aportant a casa: estudiar de l'origen humil és dur.
+    const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
+    const costHab = ambPares ? 0 : costHabitatgeAnual(habitatge)
+    const costVidaUni = ambPares ? 0 : costVidaAnual('minim')
+    const fluxNet = balancUniversitatAnual(state.familia) - costHab - costVidaUni
+    let efectiu = person.patrimoni.efectiu
+    let estalvi = person.patrimoni.estalvi
+    let deute = Math.round((person.patrimoni.deute ?? 0) * (1 + INTERES_DEUTE))
+    if (fluxNet >= 0) {
+      efectiu += fluxNet
+      const pagaDeute = Math.min(efectiu, deute)
+      efectiu -= pagaDeute
+      deute -= pagaDeute
+    } else {
+      const deficit = -fluxNet
+      const fromEfectiu = Math.min(efectiu, deficit)
+      efectiu -= fromEfectiu
+      const r = repartDeficit(
+        deficit - fromEfectiu,
+        estalvi,
+        state.familia,
+        ajutPublicMax(patrimoniTotal(person), 0),
+      )
+      estalvi -= r.propi
+      deute += r.descobert
+    }
     person = {
       ...person,
       patrimoni: {
         ...person.patrimoni,
-        efectiu: Math.max(
-          0,
-          person.patrimoni.efectiu +
-            balancUniversitatAnual(state.familia) -
-            costHabitatgeAnual(habitatge),
-        ),
+        efectiu: Math.max(0, Math.round(efectiu)),
+        estalvi: Math.max(0, Math.round(estalvi)),
+        deute: deute > 0 ? Math.round(deute) : undefined,
       },
     }
+    // Pressió familiar de l'origen humil: mentre estudies, la família segueix necessitant
+    // que aportis (cost de benestar modest, com a les fases joves).
+    person = applyEffect(person, { benestar: ajudaCasaBenestar(state.familia) })
   } else if (stage === 'carrera') {
     // Any de carrera: el fons indexat rendeix segons l'atzar del mercat.
     const draw = rng(rngState)
@@ -369,17 +404,36 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         ? ingressosAnualsCarrera(state)
         : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
+    // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
+    // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
+    // sol: cost de vida sencer (segons el nivell que tries) + habitatge, i s'atura l'ajuda.
+    const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
+    const net = netMensual(state.salari ?? 0)
+    const costVida = ambPares
+      ? contribucioLlar(state.familia, net)
+      : costVidaPropi(state.familia, habitatge, state.nivellVida)
+    const indexReturn = rendimentIndexAnual(draw.value)
+    // Valors invertits ABANS d'aplicar l'any (per derivar les aportacions reals d'enguany).
+    const prevIndex = person.patrimoni.fonsIndexat
+    const prevPensions = person.patrimoni.fonsPensions
     person = applyCareerYear(
       person,
       pla,
       income,
-      rendimentIndexAnual(draw.value),
-      costVidaPropi(state.familia, habitatge, state.nivellVida),
-      costHabitatgeAnual(habitatge),
+      indexReturn,
+      costVida,
+      ambPares ? 0 : costHabitatgeAnual(habitatge),
       state.familia,
-      aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0)),
-      benestarNivellVida(state.nivellVida, state.vidaSenzilla),
+      0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
+      ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
     )
+    // Aportació REAL d'enguany al fons indexat + pensions = valor nou − valor crescut (el
+    // que ha pujat pel rendiment no és aportació). Acumulada, és el «que has posat» que es
+    // compara amb el valor actual al gràfic.
+    const aportatAny =
+      Math.max(0, person.patrimoni.fonsIndexat - Math.round(prevIndex * (1 + indexReturn))) +
+      Math.max(0, person.patrimoni.fonsPensions - Math.round(prevPensions * (1 + RENDIMENT_PENSIONS)))
+    const aportatAcum = (state.patrimoniHist?.at(-1)?.aportat ?? 0) + aportatAny
     // Instantània anual del patrimoni invertit, per al gràfic de rendiment.
     patrimoniHist = [
       ...(state.patrimoniHist ?? []),
@@ -388,6 +442,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         fonsIndexat: person.patrimoni.fonsIndexat,
         fonsPensions: person.patrimoni.fonsPensions,
         estalvi: person.patrimoni.estalvi,
+        aportat: aportatAcum,
       },
     ]
   } else {
@@ -732,7 +787,9 @@ export function acceptarOferta(state: GameState, ofertaId: string): GameState {
     ...state,
     salari,
     salariBase: salari,
-    plaInversio: state.plaInversio ?? defaultPlaInversio(netAnual(salari * 12)),
+    // El pla d'inversió comença BUIT: el jugador reparteix des de zero (cap categoria
+    // opcional pre-omplerta). Les obligacions (cost de vida/habitatge) ja les calcula el motor.
+    plaInversio: state.plaInversio ?? { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
     ofertesFeina: undefined,
     historial: [...state.historial, entry],
   }

@@ -278,6 +278,11 @@ export const ca: Record<string, string> = {
   'pla.aportacioFamilia': 'Ajuda a la família',
   'pla.aportacioFamilia.desc':
     'Una part del sou se’n va a casa. Obligatori mentre la família et necessiti.',
+  'pla.contribucioLlar': 'Contribució a la llar',
+  'pla.contribucioLlar.desc':
+    'Vius amb els pares: la teva manutenció i l’ajuda a casa, en un sol import. No pagues el cost de vida a part.',
+  'pla.contribucioLlar.humil':
+    'La teva família necessita una part gran del teu sou: viure-hi t’absorbeix gairebé tot el marge.',
   'pla.vidaSenzilla': 'Vida senzilla per elecció',
   'pla.vidaSenzilla.nota':
     'Has triat viure amb poc: la frugalitat ja no et resta benestar (és tria, no privació).',
@@ -299,6 +304,8 @@ export const ca: Record<string, string> = {
   'pla.nextYear': 'Viu un any →',
 
   'chart.title': 'Evolució de les teves inversions',
+  'chart.valor': 'Valor de la cartera',
+  'chart.aportat': 'Aportat (sense rendiment)',
 
   // Dedicació de l'any d'universitat
   'uni.title': 'Com vius aquest curs?',

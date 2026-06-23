@@ -6,34 +6,39 @@ const W = 320
 const H = 150
 const PAD = 28
 
-type SerieKey = 'fonsIndexat' | 'fonsPensions' | 'estalvi'
-const SERIES: { key: SerieKey; color: string; labelKey: string }[] = [
-  { key: 'fonsIndexat', color: '#34d399', labelKey: 'patrimoni.fonsIndexat' },
-  { key: 'fonsPensions', color: '#38bdf8', labelKey: 'patrimoni.fonsPensions' },
-  { key: 'estalvi', color: '#94a3b8', labelKey: 'patrimoni.estalvi' },
+// Dues sèries: el que has APORTAT (de la teva butxaca) i el VALOR actual de la cartera
+// (fons indexat + pla de pensions, ja amb els rendiments). La distància entre les dues
+// és el que han crescut (o encongit) les inversions pel rendiment compost.
+type Punt = { edat: number; aportat: number; valor: number }
+const SERIES: { key: 'valor' | 'aportat'; color: string; labelKey: string }[] = [
+  { key: 'valor', color: '#34d399', labelKey: 'chart.valor' },
+  { key: 'aportat', color: '#94a3b8', labelKey: 'chart.aportat' },
 ]
 
 /**
- * Gràfic de línies (SVG pur, sense dependències) de l'evolució del patrimoni invertit al
- * llarg de la carrera: fons indexat, pla de pensions i estalvi. Fa visible l'interès
- * compost i la volatilitat del fons indexat.
+ * Gràfic de línies (SVG pur, sense dependències) de l'evolució de les inversions al llarg
+ * de la carrera. Compara el que has aportat amb el valor actual de la cartera, fent visible
+ * l'interès compost (i els sotracs del fons indexat).
  */
 export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
   const { t } = useT()
   if (hist.length < 2) return null
 
-  const maxVal = Math.max(
-    1,
-    ...hist.flatMap((s) => [s.fonsIndexat, s.fonsPensions, s.estalvi]),
-  )
-  const x = (i: number) => PAD + (i / (hist.length - 1)) * (W - 2 * PAD)
+  const punts: Punt[] = hist.map((s) => ({
+    edat: s.edat,
+    aportat: s.aportat,
+    valor: s.fonsIndexat + s.fonsPensions,
+  }))
+
+  const maxVal = Math.max(1, ...punts.flatMap((p) => [p.aportat, p.valor]))
+  const x = (i: number) => PAD + (i / (punts.length - 1)) * (W - 2 * PAD)
   const y = (v: number) => H - PAD - (v / maxVal) * (H - 2 * PAD)
 
-  const punts = (key: SerieKey) =>
-    hist.map((s, i) => `${x(i).toFixed(1)},${y(s[key]).toFixed(1)}`).join(' ')
+  const linia = (key: 'valor' | 'aportat') =>
+    punts.map((p, i) => `${x(i).toFixed(1)},${y(p[key]).toFixed(1)}`).join(' ')
 
-  const edatMin = hist[0].edat
-  const edatMax = hist[hist.length - 1].edat
+  const edatMin = punts[0].edat
+  const edatMax = punts[punts.length - 1].edat
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -65,10 +70,11 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
         {SERIES.map((s) => (
           <polyline
             key={s.key}
-            points={punts(s.key)}
+            points={linia(s.key)}
             fill="none"
             stroke={s.color}
             strokeWidth="2"
+            strokeDasharray={s.key === 'aportat' ? '4 3' : undefined}
             strokeLinejoin="round"
             strokeLinecap="round"
           />

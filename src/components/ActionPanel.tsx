@@ -7,14 +7,15 @@ import { formatEuros } from '../lib/format'
 import { EffectList } from './EffectList'
 
 /**
- * Accions de les fases joves (12-18). Multiselecció: cada any tens un pressupost de TEMPS
- * (setmanes) i de DINERS (efectiu + paga de l'any); pots encadenar les accions que hi
- * càpiguen. No triar res = temps lliure (l'any passa sense efectes actius).
+ * Accions de les fases joves (12-18). Multiselecció amb MULTIPLICADOR: cada any tens un
+ * pressupost de TEMPS (setmanes) i de DINERS (efectiu + paga de l'any); pots repetir una
+ * mateixa acció diverses vegades mentre hi càpiga. No triar res = temps lliure (l'any
+ * passa sense efectes actius).
  */
 export function ActionPanel() {
   const { t } = useT()
   const { state, actions, nextTurn } = useGame()
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [counts, setCounts] = useState<Record<string, number>>({})
   if (!state) return null
 
   const dinersInicials =
@@ -25,30 +26,45 @@ export function ActionPanel() {
   const tempsCompromes = ajudaCasaSetmanes(state.familia)
   const tempsTotal = Math.max(0, SETMANES_ANY - tempsCompromes)
 
-  const triades = actions.filter((o) => selected.has(o.action.id))
-  const tempsUsat = triades.reduce((s, o) => s + (o.action.setmanes ?? 0), 0)
-  const dinersDelta = triades.reduce((s, o) => s + (o.action.effect.efectiu ?? 0), 0)
+  const countOf = (id: string) => counts[id] ?? 0
+  const tempsUsat = actions.reduce(
+    (s, o) => s + countOf(o.action.id) * (o.action.setmanes ?? 0),
+    0,
+  )
+  const dinersDelta = actions.reduce(
+    (s, o) => s + countOf(o.action.id) * (o.action.effect.efectiu ?? 0),
+    0,
+  )
   const tempsRestant = tempsTotal - tempsUsat
   const dinersRestants = dinersInicials + dinersDelta
+  const totalTriades = actions.reduce((s, o) => s + countOf(o.action.id), 0)
 
-  const potAfegir = (id: string, setmanes: number, cost: number) =>
-    !selected.has(id) &&
-    tempsUsat + setmanes <= tempsTotal &&
-    dinersRestants + cost >= 0
+  // Pots afegir-ne una més si hi cap en temps i si no et deixa els diners en negatiu.
+  const potAfegir = (setmanes: number, cost: number) =>
+    tempsUsat + setmanes <= tempsTotal && dinersRestants + cost >= 0
 
-  const toggle = (id: string, setmanes: number, cost: number) => {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else if (tempsUsat + setmanes <= tempsTotal && dinersRestants + cost >= 0)
-        next.add(id)
+  const inc = (id: string, setmanes: number, cost: number) => {
+    if (!potAfegir(setmanes, cost)) return
+    setCounts((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }))
+  }
+  const dec = (id: string) => {
+    setCounts((prev) => {
+      const n = (prev[id] ?? 0) - 1
+      const next = { ...prev }
+      if (n <= 0) delete next[id]
+      else next[id] = n
       return next
     })
   }
 
   const viu = () => {
-    nextTurn(Array.from(selected))
-    setSelected(new Set())
+    // Construeix la llista d'accions repetint cada id segons el seu multiplicador.
+    const ids: string[] = []
+    for (const o of actions) {
+      for (let i = 0; i < countOf(o.action.id); i++) ids.push(o.action.id)
+    }
+    nextTurn(ids)
+    setCounts({})
   }
 
   const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
@@ -85,20 +101,18 @@ export function ActionPanel() {
         {actions.map(({ action, disabled, reasonKey }) => {
           const setmanes = action.setmanes ?? 0
           const cost = action.effect.efectiu ?? 0
-          const isSel = selected.has(action.id)
-          const blocked = disabled || (!isSel && !potAfegir(action.id, setmanes, cost))
+          const n = countOf(action.id)
+          const isSel = n > 0
+          const canAdd = !disabled && potAfegir(setmanes, cost)
           return (
-            <button
+            <div
               key={action.id}
-              onClick={() => !disabled && toggle(action.id, setmanes, cost)}
-              disabled={disabled}
-              aria-pressed={isSel}
               className={
                 isSel
                   ? 'flex flex-col gap-1.5 rounded-lg bg-indigo-600/80 p-3 text-left ring-2 ring-indigo-400'
-                  : blocked
-                    ? 'flex cursor-not-allowed flex-col gap-1.5 rounded-lg bg-slate-800/40 p-3 text-left opacity-50 ring-1 ring-slate-700/50'
-                    : 'flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/60'
+                  : disabled
+                    ? 'flex flex-col gap-1.5 rounded-lg bg-slate-800/40 p-3 text-left opacity-50 ring-1 ring-slate-700/50'
+                    : 'flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left ring-1 ring-slate-700/50'
               }
             >
               <div className="flex items-center justify-between gap-2">
@@ -117,7 +131,30 @@ export function ActionPanel() {
                 <span className="text-xs text-slate-400">{t(action.descKey)}</span>
               )}
               <EffectList effect={action.effect} />
-            </button>
+              {!disabled && (
+                <div className="mt-1 flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => dec(action.id)}
+                    disabled={n === 0}
+                    aria-label={`− ${t(action.labelKey)}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900/60 text-lg font-bold text-slate-200 transition hover:bg-slate-900 disabled:opacity-30"
+                  >
+                    −
+                  </button>
+                  <span className="min-w-6 text-center font-mono text-sm font-semibold text-slate-100">
+                    {n}
+                  </span>
+                  <button
+                    onClick={() => inc(action.id, setmanes, cost)}
+                    disabled={!canAdd}
+                    aria-label={`+ ${t(action.labelKey)}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900/60 text-lg font-bold text-slate-200 transition hover:bg-slate-900 disabled:opacity-30"
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
           )
         })}
       </div>
@@ -126,7 +163,7 @@ export function ActionPanel() {
         onClick={viu}
         className="mt-4 w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
       >
-        {selected.size === 0 ? t('action.viuLliure') : t('action.viu')}
+        {totalTriades === 0 ? t('action.viuLliure') : t('action.viu')}
       </button>
     </div>
   )

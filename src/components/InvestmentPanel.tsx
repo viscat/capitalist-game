@@ -8,10 +8,10 @@ import {
 } from '../domain/constants'
 import {
   ajutPublicMax,
-  aportacioFamiliarCarrera,
   benestarNivellVida,
   benestarOciAnual,
   cobreixVidaFamiliar,
+  contribucioLlar,
   costVidaPropi,
   defaultPlaInversio,
   desgravacioPensions,
@@ -51,13 +51,19 @@ export function InvestmentPanel() {
   // El model treballa en anual; el panell ho presenta tot en mensual.
   const income = ingressosAnualsCarrera(state)
   const nivell = state.nivellVida ?? NIVELL_VIDA_DEFAULT
-  // El cost de vida és la teva aportació; si vius amb els pares, en cobreixen una part.
-  const costVida = costVidaPropi(state.familia, state.habitatge, nivell)
-  const cobertFamilia = cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
-  const costHab = costHabitatgeAnual(state.habitatge)
-  // Aportació obligatòria a la família d'origen (les classes baixes sostenen la llar).
-  const aportacioFam = aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0))
-  const obligatori = costVida + costHab + aportacioFam
+  // Viure amb els pares = un sol cost (contribució a la llar: manutenció + ajuda), sense
+  // pagar el cost de vida a part ni triar-ne el nivell. Viure sol = cost de vida sencer
+  // (segons el nivell) + habitatge, i s'atura l'ajuda a la família.
+  const ambPares = (state.habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
+  const net = netMensual(state.salari ?? 0)
+  const costVida = ambPares
+    ? contribucioLlar(state.familia, net)
+    : costVidaPropi(state.familia, state.habitatge, nivell)
+  const cobertFamilia = ambPares
+    ? 0
+    : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
+  const costHab = ambPares ? 0 : costHabitatgeAnual(state.habitatge)
+  const obligatori = costVida + costHab
   const efectiu = state.person.patrimoni.efectiu
   const estalvi = state.person.patrimoni.estalvi
   // Pots repartir el sou + els teus estalvis (efectiu + estalvi), per damunt del sou.
@@ -83,7 +89,7 @@ export function InvestmentPanel() {
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
   const desgravacio = desgravacioPensions(pla.fonsPensions)
-  const benNivell = benestarNivellVida(nivell, state.vidaSenzilla)
+  const benNivell = ambPares ? 0 : benestarNivellVida(nivell, state.vidaSenzilla)
   // Benestar felt de l'any: oci + nivell de vida (tots dos es noten cada any).
   const benestarAny = benestar + benNivell
   // Petjada ecològica (indicador cosmètic): com més consum/patrimoni material, més alta.
@@ -125,64 +131,85 @@ export function InvestmentPanel() {
       )}
 
       <div className="space-y-2">
-        {/* Cost de vida: tries el nivell (mínim/mig/alt); l'import no és lliure. */}
-        <div className="rounded-lg bg-slate-700/30 p-3">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-200">{t('pla.costVida')}</div>
-              <div className="text-xs text-slate-500">{t('pla.costVida.desc')}</div>
+        {ambPares ? (
+          /* Vius amb els pares: un sol cost (manutenció + ajuda a casa). No es tria nivell. */
+          <div className="rounded-lg bg-slate-700/30 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-slate-200">
+                  {t('pla.contribucioLlar')}
+                </div>
+                <div className="text-xs text-slate-500">{t('pla.contribucioLlar.desc')}</div>
+              </div>
+              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+                {formatEuros(perMes(costVida))}
+              </span>
             </div>
-            <span className="w-20 text-right font-mono text-sm text-amber-300/90">
-              {formatEuros(perMes(costVida))}
-            </span>
+            {(state.familia.classe === 'pobra' ||
+              state.familia.classe === 'treballadora') && (
+              <p className="mt-1 text-xs text-amber-400/80">🏠 {t('pla.contribucioLlar.humil')}</p>
+            )}
           </div>
-          <div className="flex gap-2">
-            {NIVELLS_VIDA.map((n) => (
+        ) : (
+          /* Vius sol: cost de vida sencer; tries el nivell (mínim/mig/alt). */
+          <div className="rounded-lg bg-slate-700/30 p-3">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-slate-200">{t('pla.costVida')}</div>
+                <div className="text-xs text-slate-500">{t('pla.costVida.desc')}</div>
+              </div>
+              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+                {formatEuros(perMes(costVida))}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              {NIVELLS_VIDA.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setNivellVida(n)}
+                  className={`min-h-9 flex-1 rounded-md px-2 py-2 text-xs transition ${
+                    nivell === n
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  {t(`nivellVida.${n}`)}
+                </button>
+              ))}
+            </div>
+            {nivell === 'minim' && (
               <button
-                key={n}
-                onClick={() => setNivellVida(n)}
-                className={`min-h-9 flex-1 rounded-md px-2 py-2 text-xs transition ${
-                  nivell === n
-                    ? 'bg-indigo-600 text-white'
+                onClick={() => setVidaSenzilla(!state.vidaSenzilla)}
+                className={`mt-2 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition ${
+                  state.vidaSenzilla
+                    ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
-                {t(`nivellVida.${n}`)}
+                <span>🌱 {t('pla.vidaSenzilla')}</span>
+                <span>{state.vidaSenzilla ? '✓' : ''}</span>
               </button>
-            ))}
+            )}
+            {nivell === 'minim' && state.vidaSenzilla && (
+              <p className="mt-1 text-xs text-emerald-300/80">{t('pla.vidaSenzilla.nota')}</p>
+            )}
+            {benNivell !== 0 && (
+              <p className="mt-2 text-xs text-slate-400">
+                {t('nivellVida.benestar')}: {benNivell > 0 ? '+' : ''}
+                {benNivell}
+              </p>
+            )}
+            {cobertFamilia > 0 && (
+              <p className="mt-1 text-xs text-emerald-300/90">
+                🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
+              </p>
+            )}
+            {(state.familia.classe === 'pobra' ||
+              state.familia.classe === 'treballadora') && (
+              <p className="mt-1 text-xs text-amber-400/80">💸 {t('pla.sobrecost')}</p>
+            )}
           </div>
-          {nivell === 'minim' && (
-            <button
-              onClick={() => setVidaSenzilla(!state.vidaSenzilla)}
-              className={`mt-2 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition ${
-                state.vidaSenzilla
-                  ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-              }`}
-            >
-              <span>🌱 {t('pla.vidaSenzilla')}</span>
-              <span>{state.vidaSenzilla ? '✓' : ''}</span>
-            </button>
-          )}
-          {nivell === 'minim' && state.vidaSenzilla && (
-            <p className="mt-1 text-xs text-emerald-300/80">{t('pla.vidaSenzilla.nota')}</p>
-          )}
-          {benNivell !== 0 && (
-            <p className="mt-2 text-xs text-slate-400">
-              {t('nivellVida.benestar')}: {benNivell > 0 ? '+' : ''}
-              {benNivell}
-            </p>
-          )}
-          {cobertFamilia > 0 && (
-            <p className="mt-1 text-xs text-emerald-300/90">
-              🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
-            </p>
-          )}
-          {(state.familia.classe === 'pobra' ||
-            state.familia.classe === 'treballadora') && (
-            <p className="mt-1 text-xs text-amber-400/80">💸 {t('pla.sobrecost')}</p>
-          )}
-        </div>
+        )}
 
         {/* Habitatge (lloguer o hipoteca): obligatori, no es pot modificar. */}
         {costHab > 0 && (
@@ -199,26 +226,6 @@ export function InvestmentPanel() {
               </span>
               <span className="w-20 text-right font-mono text-sm text-amber-300/90">
                 {formatEuros(perMes(costHab))}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Aportació a la família d'origen: obligatòria per a les classes baixes. */}
-        {aportacioFam > 0 && (
-          <div className="flex items-center justify-between gap-3 opacity-90">
-            <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-300">
-                {t('pla.aportacioFamilia')}
-              </div>
-              <div className="text-xs text-slate-500">{t('pla.aportacioFamilia.desc')}</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-slate-500" aria-hidden>
-                🔒
-              </span>
-              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
-                {formatEuros(perMes(aportacioFam))}
               </span>
             </div>
           </div>

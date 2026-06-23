@@ -73,7 +73,8 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     category: 'economia',
     titleKey: 'event.bon_any_economic.title',
     descKey: 'event.bon_any_economic.desc',
-    weight: (f) => 0.5 + econSecurity(f) * 2.5,
+    // A les famílies pobres no hi ha «bon any» amb marge per estalviar en nom de la criatura.
+    weight: (f) => (f.classe === 'pobra' ? 0 : 0.5 + econSecurity(f) * 2.5),
     effect: { benestar: 4, estalvi: 30 },
   },
   {
@@ -82,7 +83,8 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     titleKey: 'event.regal_diners_avis.title',
     descKey: 'event.regal_diners_avis.desc',
     params: { amount: 50 },
-    weight: () => 2,
+    // Els avis d'una família pobra no poden donar diners.
+    weight: (f) => (f.classe === 'pobra' ? 0 : 2),
     choices: [
       {
         id: 'estalviar',

@@ -102,8 +102,13 @@ export function familyBaselineBenestar(familia: Familia): number {
   return clampBenestar(Math.round(baseline))
 }
 
-/** Estalvi que la família aporta cada any al compte de la criatura. */
+/**
+ * Estalvi que la família aporta cada any al compte de la criatura. Les famílies pobres
+ * NO en poden aportar: no els sobra res per estalviar en nom dels fills (P: l'origen
+ * humil no dóna coixí, ni de petit).
+ */
 export function estalviAnualCriatura(familia: Familia): number {
+  if (familia.classe === 'pobra') return 0
   const perPatrimoni = familia.patrimoni * 0.002
   const perIngressos = Math.max(0, familia.ingressosMensuals - 1500) * 0.05
   return Math.round((perPatrimoni + perIngressos) / 10) * 10
@@ -111,9 +116,11 @@ export function estalviAnualCriatura(familia: Familia): number {
 
 /**
  * Paga mensual que rep l'adolescent segons la capacitat de la família. Marca el
- * punt de partida de la gestió activa dels diners.
+ * punt de partida de la gestió activa dels diners. Les famílies pobres NO donen paga:
+ * no poden permetre's donar diners als fills (al contrari, els necessiten ajudant a casa).
  */
 export function pagaMensual(familia: Familia): number {
+  if (familia.classe === 'pobra') return 0
   const perIngressos = familia.ingressosMensuals * 0.008
   const perPatrimoni = Math.min(familia.patrimoni, 2_000_000) * 0.00015
   return Math.round((perIngressos + perPatrimoni) / 5) * 5
@@ -610,6 +617,21 @@ export function aportacioFamiliarCarrera(familia: Familia, netMensual: number): 
 }
 
 /**
+ * Cost ANUAL de viure amb els pares (fase adulta): un sol import que engloba la teva
+ * manutenció (la part del cost de vida que NO et cobreix la família) i l'ajuda que dónes
+ * a casa. Quan vius amb els pares NO pagues el cost de vida a part (ells et mantenen): el
+ * que «pagues» és aquesta contribució a la llar. Escala amb la classe —la família pobra
+ * absorbeix una part gran del teu sou perquè et necessita; de la mitjana amunt és, de
+ * mitjana, propera al cost de vida baix; la rica no et demana res—. Quan te'n vas a viure
+ * sol, en canvi, deixes de fer aquesta aportació però pagues el cost de vida i l'habitatge
+ * sencers.
+ */
+export function contribucioLlar(familia: Familia, netMensual: number): number {
+  const manutencio = costVidaPropi(familia, { tipus: 'amb_pares' }, 'mig')
+  return Math.round(manutencio + aportacioFamiliarCarrera(familia, netMensual))
+}
+
+/**
  * Pressupost mensual per defecte: només es pre-omple l'**obligatori** (l'aportació mínima a
  * casa); tota la resta (estalvi, oci, compres) comença a **0** perquè el jugador el
  * construeixi des de zero i mai parteixi d'un pressupost que supera l'ingrés.
@@ -720,11 +742,27 @@ export function applyBudgetYear(
 
 // --- Universitat (18→22) ---
 
+// Fins a quin punt la família pot mantenir un fill que estudia a la universitat en
+// comptes de fer-lo treballar. La família pobra NO pot: necessita que el fill aporti, no
+// pot permetre's mantenir-lo quatre anys sense ingressar (P: l'origen condiciona qui pot
+// «permetre's» estudiar). La treballadora amb prou feines hi arriba; de la mitjana amunt,
+// el suport és ple.
+const SUPORT_UNI_FACTOR: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0.35,
+  mitjana: 1,
+  alta: 1,
+  rica: 1,
+  super_rica: 1,
+}
+
 /** Suport familiar anual durant la universitat (com més recursos, més ajut). */
 export function suportUniversitatAnual(familia: Familia): number {
+  const factor = SUPORT_UNI_FACTOR[familia.classe]
+  if (factor === 0) return 0
   const perIngressos = familia.ingressosMensuals * 12 * 0.06
   const perPatrimoni = Math.min(familia.patrimoni, 1_000_000) * 0.002
-  return Math.round((perIngressos + perPatrimoni) / 50) * 50
+  return Math.round((perIngressos + perPatrimoni) * factor / 50) * 50
 }
 
 // Beca per renda: cobreix més matrícula com més baixa és la renda familiar (les
