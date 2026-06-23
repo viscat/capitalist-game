@@ -431,6 +431,11 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   }
 
   const entries: LogEntry[] = []
+  // Stats no monetaris que poden moure les accions (dedicació universitària, etc.).
+  // applyEffect només toca patrimoni i benestar, així que els acumulem a part.
+  let accAcademic = 0
+  let accVincles = 0
+  let accSalut = 0
 
   // Accions voluntàries de l'any (fases d'acció): se'n poden haver triat diverses.
   if (isActionStage(stage) && actionIds) {
@@ -439,6 +444,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       const action = cataleg.find((a) => a.id === actionId)
       if (!action) continue
       person = applyEffect(person, action.effect)
+      accAcademic += action.effect.academicDelta ?? 0
+      accVincles += action.effect.vinclesDelta ?? 0
+      accSalut += action.effect.salutCronicaDelta ?? 0
       entries.push({
         torn,
         edatAnys: anys,
@@ -459,6 +467,10 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     state.ultimEventId,
   )
 
+  // Aplica els stats no monetaris acumulats per les accions (gating de vincles per deute,
+  // com a resolveEvent). Els events del torn hi sumaran els seus deltes a sobre.
+  const vinclesAccio =
+    accVincles > 0 && (person.patrimoni.deute ?? 0) > 0 ? accVincles * 0.3 : accVincles
   const base: GameState = {
     ...state,
     torn,
@@ -466,6 +478,18 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     habitatge,
     patrimoniHist,
     anysExperiencia,
+    nivellAcademic:
+      accAcademic !== 0
+        ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic))
+        : state.nivellAcademic,
+    vinclesSocials:
+      vinclesAccio !== 0
+        ? Math.max(0, Math.min(1, (state.vinclesSocials ?? 0) + vinclesAccio))
+        : state.vinclesSocials,
+    salutCronica:
+      accSalut !== 0
+        ? Math.min(40, Math.max(0, (state.salutCronica ?? 0) + accSalut))
+        : state.salutCronica,
     rngState: nextRng,
     ultimEventId: event.id,
     historial: [...state.historial, ...entries],
