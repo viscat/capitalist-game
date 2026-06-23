@@ -12,7 +12,8 @@ import {
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
 import { generaOfertes } from './jobs'
-import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
+import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
+import { UNIVERSITY_ACTIONS } from './actions/universitat'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
 import { ATUR_ADULT_EVENTS, CARRERA_EVENTS, UNIVERSITAT_EVENTS } from './events/adult'
@@ -186,12 +187,16 @@ function turnMonths(): number {
 
 /** Fases en què el jugador tria accions de targeta cada torn. */
 function isActionStage(stage: LifeStage): boolean {
-  return stage === 'adolescencia' || stage === 'estudis_post'
+  return (
+    stage === 'adolescencia' || stage === 'estudis_post' || stage === 'universitat'
+  )
 }
 
 /** Catàleg d'accions corresponent a la fase d'acció actual. */
 function stageActions(state: GameState): GameAction[] {
   switch (state.lifeStage) {
+    case 'universitat':
+      return UNIVERSITY_ACTIONS
     default:
       return ADOLESCENCE_ACTIONS
   }
@@ -413,8 +418,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
 
   // Accions voluntàries de l'any (fases d'acció): se'n poden haver triat diverses.
   if (isActionStage(stage) && actionIds) {
+    const cataleg = stageActions(state)
     for (const actionId of actionIds) {
-      const action = findAction(actionId)
+      const action = cataleg.find((a) => a.id === actionId)
       if (!action) continue
       person = applyEffect(person, action.effect)
       entries.push({

@@ -285,6 +285,16 @@ export const ca: Record<string, string> = {
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',
 
+  // Dedicació de l'any d'universitat
+  'uni.title': 'Com vius aquest curs?',
+  'uni.nota': 'Tria com enfoques l’any: cada opció té els seus pros i contres.',
+  'uni.estudis.label': 'Estudiar a fons',
+  'uni.estudis.desc': 'T’hi dediques de ple. Bones notes i propòsit, sense ingressos extra.',
+  'uni.treball.label': 'Treballar i estudiar',
+  'uni.treball.desc': 'Compagines una feineta amb els estudis: uns diners, però esgota.',
+  'uni.social.label': 'Vida universitària',
+  'uni.social.desc': 'Surts, fas pinya, potser un Erasmus. Vincles per a tota la vida.',
+
   // Cerca de feina (carrera a l'atur: entrada al món laboral o després d'un acomiadament)
   'jobsearch.title': 'Busques feina',
   'jobsearch.ocupabilitat': 'Les teves opcions de trobar feina són {tram}.',
@@ -487,6 +497,22 @@ export const ca: Record<string, string> = {
     'Pots apuntar-te a una activitat que t’agrada (esport, música...). T’hi apuntes?',
   'event.extraescolar.choice.apuntar': 'Apuntar-m’hi',
   'event.extraescolar.choice.no': 'Deixar-ho passar',
+
+  'event.equip_esport.title': 'Un equip d’esport',
+  'event.equip_esport.desc':
+    'Pots entrar a l’equip del barri: entrenaments, partits i colla nova. T’hi apuntes?',
+  'event.equip_esport.choice.apuntar': 'Apuntar-m’hi',
+  'event.equip_esport.choice.ara_no': 'Ara no',
+  'event.instrument.title': 'Aprendre un instrument',
+  'event.instrument.desc':
+    'Hi ha l’opció d’aprendre música. Costa constància, però omple.',
+  'event.instrument.choice.aprendre': 'Aprendre’n',
+  'event.instrument.choice.no': 'No, ara no',
+  'event.fer_pinya.title': 'Un amic ho passa malament',
+  'event.fer_pinya.desc':
+    'Un company de classe necessita una mà. L’ajudes encara que et costi temps?',
+  'event.fer_pinya.choice.ajudar': 'Ajudar-lo',
+  'event.fer_pinya.choice.passar': 'Passar-ne',
 
   // --- Esdeveniments d'adolescència (ESO) ---
   'event.examens.title': 'Època d’exàmens',

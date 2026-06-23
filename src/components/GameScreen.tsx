@@ -8,6 +8,7 @@ import { BudgetPanel } from './BudgetPanel'
 import { HabitatgePanel } from './HabitatgePanel'
 import { InvestmentPanel } from './InvestmentPanel'
 import { JobSearchPanel } from './JobSearchPanel'
+import { UniversityPanel } from './UniversityPanel'
 import { EventCard } from './EventCard'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
@@ -31,8 +32,9 @@ export function GameScreen() {
   // A la carrera sense sou s'està buscant feina (a l'entrada o després d'un acomiadament).
   const esCercaFeina = esCarrera && !salari
   const esAdult = esUniversitat || esCarrera
-  // El botó simple de «Següent any» val per a infància i universitat.
-  const esAnual = esInfancia || esUniversitat
+  // El botó simple de «Següent any» val només per a la infància (la universitat té el seu
+  // panell de dedicació anual).
+  const esAnual = esInfancia
   const aLatur =
     (lifeStage === 'laboral' && itinerari === 'treball' && !salari) || esCercaFeina
   const nom = state.identitat?.nom
@@ -107,6 +109,7 @@ export function GameScreen() {
           />
           {!pendingEvent && esAccions && <ActionPanel />}
           {!pendingEvent && esLaboral && <BudgetPanel />}
+          {!pendingEvent && esUniversitat && <UniversityPanel />}
           {!pendingEvent && esCercaFeina && <JobSearchPanel />}
           {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
           {!pendingEvent && esCarrera && !esCercaFeina && <InvestmentPanel />}
