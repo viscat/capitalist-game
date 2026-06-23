@@ -18,7 +18,9 @@ export const UNIVERSITY_ACTIONS: GameAction[] = [
     category: 'economia',
     labelKey: 'uni.treball.label',
     descKey: 'uni.treball.desc',
-    effect: { efectiu: 2500, benestar: -4 },
+    // Diners ara, però cansa i et treu temps d'estudiar (no apuja el nivell acadèmic).
+    // Menys generós que abans perquè no eclipsi la via d'estudiar a fons.
+    effect: { efectiu: 1500, benestar: -4 },
   },
   {
     id: 'uni_social',
