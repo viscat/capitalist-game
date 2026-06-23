@@ -47,8 +47,8 @@ interface GameContextValue {
   /** Inici ràpid a la fase de carrera als 22 (proves d'inversió). */
   startGameAtCarrera: (preset: FamilyClass, identitat?: Identitat) => void
   continueGame: () => void
-  /** Avança un torn. A les fases d'estudi cal passar l'`actionId` triat. */
-  nextTurn: (actionId?: string) => void
+  /** Avança un torn. A les fases d'acció, passa-hi els `actionIds` triats (multiselecció). */
+  nextTurn: (actionIds?: string[]) => void
   choose: (choiceId: string) => void
   /** Aplica l'opció escollida en una fita (pantalla de decisió). */
   chooseMilestone: (optionId: string) => void
@@ -105,8 +105,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           newGameAtCarrera(preset, undefined, { dataNaixement: avuiISO(), identitat }),
         ),
       continueGame: () => setState(loadSave()),
-      nextTurn: (actionId) =>
-        setState((s) => (s ? advanceTurn(s, actionId) : s)),
+      nextTurn: (actionIds) =>
+        setState((s) => (s ? advanceTurn(s, actionIds) : s)),
       choose: (choiceId) => setState((s) => (s ? applyChoice(s, choiceId) : s)),
       chooseMilestone: (optionId) =>
         setState((s) => (s ? applyMilestoneChoice(s, optionId) : s)),

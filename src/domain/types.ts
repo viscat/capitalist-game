@@ -246,6 +246,11 @@ export interface GameAction {
   labelKey: string
   descKey: string
   effect: EventEffect
+  /**
+   * Cost de TEMPS de l'acció en setmanes (sobre un pressupost anual de `SETMANES_ANY`).
+   * Permet triar diverses accions l'any fins que s'esgota el temps (o els diners).
+   */
+  setmanes?: number
   /** Disponible només si es compleix la condició de context (p. ex. estiu). */
   available?: (state: GameState) => boolean
   /** Motiu (clau i18n) que s'ensenya quan `available` falla. */

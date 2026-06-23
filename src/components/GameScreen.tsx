@@ -16,7 +16,7 @@ import { TurnLog } from './TurnLog'
 
 export function GameScreen() {
   const { t } = useT()
-  const { state, nextTurn, choose, reset, actions } = useGame()
+  const { state, nextTurn, choose, reset } = useGame()
   if (!state) return null
 
   const { person, familia, historial, pendingEvent, lifeStage, itinerari, salari } =
@@ -105,9 +105,7 @@ export function GameScreen() {
             lastEntry={lastEntry}
             onChoose={choose}
           />
-          {!pendingEvent && esAccions && (
-            <ActionPanel actions={actions} onAct={(id) => nextTurn(id)} />
-          )}
+          {!pendingEvent && esAccions && <ActionPanel />}
           {!pendingEvent && esLaboral && <BudgetPanel />}
           {!pendingEvent && esCercaFeina && <JobSearchPanel />}
           {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}

@@ -339,14 +339,20 @@ export const ca: Record<string, string> = {
 
   // Accions (adolescència) — un torn = un any
   'action.title': 'Què fas aquest any?',
-  'action.nota': 'Tria una cosa per a l’any. En triar-la, avances 12 mesos.',
+  'action.nota':
+    'Tria les coses que vols fer aquest any: pots combinar-ne diverses mentre tinguis temps i diners.',
+  'action.temps': 'Temps',
+  'action.setmanes': 'setm.',
+  'action.viu': 'Viu aquest any →',
+  'action.viuLliure': 'Un any tranquil →',
   'action.sortir_amics.label': 'Sortir amb els amics',
   'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
-  'action.mes_tranquil.label': 'Any tranquil',
-  'action.mes_tranquil.desc':
-    'Deixes passar l’any sense complicar-te. Una mica d’avorriment.',
+  'action.hobby.label': 'Una afició',
+  'action.hobby.desc': 'Música, esport, dibuix... Hi dediques temps i et fa feliç.',
   'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
   'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
+  'action.vendre_coses.label': 'Vendre coses de segona mà',
+  'action.vendre_coses.desc': 'Et treus uns calerons venent el que ja no fas servir.',
   'action.caprici.label': 'Donar-te un caprici',
   'action.caprici.desc': 'Aquella cosa que tant vols. Alegria immediata, butxaca buida.',
   'action.feina_estiu.label': 'Feina d’estiu',

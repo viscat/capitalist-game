@@ -58,6 +58,7 @@ import type {
   ActionOption,
   EventEffect,
   FamilyClass,
+  GameAction,
   GameEvent,
   GameState,
   Identitat,
@@ -182,9 +183,17 @@ function turnMonths(): number {
   return MESOS_PER_ANY
 }
 
-/** Fases en què el jugador tria una acció de targeta cada torn. */
+/** Fases en què el jugador tria accions de targeta cada torn. */
 function isActionStage(stage: LifeStage): boolean {
   return stage === 'adolescencia' || stage === 'estudis_post'
+}
+
+/** Catàleg d'accions corresponent a la fase d'acció actual. */
+function stageActions(state: GameState): GameAction[] {
+  switch (state.lifeStage) {
+    default:
+      return ADOLESCENCE_ACTIONS
+  }
 }
 
 /**
@@ -247,8 +256,10 @@ function resolveEffect(
 }
 
 /**
- * Totes les accions de targeta amb el seu estat. No s'amaguen: les que no es
- * poden fer es retornen `disabled` amb el motiu (temporada, diners o benestar).
+ * Accions disponibles a la fase d'acció actual. Només es marquen `disabled` per
+ * disponibilitat de context (p. ex. temporada); el cost en diners i temps el gestiona
+ * la UI de manera acumulada (multiselecció), ja que se'n poden triar diverses l'any.
+ * No triar res sempre és vàlid (temps lliure), així que el torn mai es bloqueja.
  * Buit fora de les fases d'acció.
  */
 export function actionOptions(state: GameState): ActionOption[] {
@@ -260,34 +271,12 @@ export function actionOptions(state: GameState): ActionOption[] {
   ) {
     return []
   }
-  // Caixa prevista després d'ingressar la paga de l'any (no hi ha deute).
-  const caixaPrevista =
-    state.person.patrimoni.efectiu +
-    pagaMensual(state.familia) * MESOS_PER_ANY
-  const benestar = state.person.stats.benestar
-
-  const options = ADOLESCENCE_ACTIONS.map((action): ActionOption => {
+  return stageActions(state).map((action): ActionOption => {
     if (action.available && !action.available(state)) {
       return { action, disabled: true, reasonKey: action.lockedReasonKey }
     }
-    const cost = action.effect.efectiu ?? 0
-    if (cost < 0 && caixaPrevista + cost < 0) {
-      return { action, disabled: true, reasonKey: 'action.locked.diners' }
-    }
-    const deltaBenestar = action.effect.benestar ?? 0
-    if (deltaBenestar < 0 && benestar + deltaBenestar < 0) {
-      return { action, disabled: true, reasonKey: 'action.locked.benestar' }
-    }
     return { action, disabled: false }
   })
-
-  // Garantia: sempre hi ha d'haver una opció jugable (l'any tranquil),
-  // perquè el torn mai es bloquegi del tot.
-  if (options.every((o) => o.disabled)) {
-    const fallback = options.find((o) => o.action.id === 'mes_tranquil')
-    if (fallback) fallback.disabled = false
-  }
-  return options
 }
 
 /**
@@ -298,7 +287,7 @@ export function actionOptions(state: GameState): ActionOption[] {
  * Després pot saltar un esdeveniment; si requereix decisió, queda pendent fins a
  * `applyChoice`.
  */
-export function advanceTurn(state: GameState, actionId?: string): GameState {
+export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   if (state.acabat || state.pendingEvent || state.pendingMilestone) return state
 
   const stage = state.lifeStage
@@ -420,10 +409,11 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
 
   const entries: LogEntry[] = []
 
-  // Acció voluntària (fases d'estudi).
-  if (isActionStage(stage) && actionId) {
-    const action = findAction(actionId)
-    if (action) {
+  // Accions voluntàries de l'any (fases d'acció): se'n poden haver triat diverses.
+  if (isActionStage(stage) && actionIds) {
+    for (const actionId of actionIds) {
+      const action = findAction(actionId)
+      if (!action) continue
       person = applyEffect(person, action.effect)
       entries.push({
         torn,
