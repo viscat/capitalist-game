@@ -181,7 +181,7 @@ export function HabitatgePanel() {
           >
             🏠 {t('habitatge.comprar')}
           </button>
-          {habitatge.tipus !== 'amb_pares' && (
+          {!esPropietari && habitatge.tipus !== 'amb_pares' && (
             <button
               onClick={tornarAmbPares}
               className="w-full rounded-lg bg-slate-700/60 p-2 text-sm text-slate-300 transition hover:bg-slate-600"

@@ -67,8 +67,14 @@ export const ca: Record<string, string> = {
   'stat.benestar.tip':
     'El benestar gravita cap a la teva referència d’entorn: es recupera lentament i cau de pressa (un cop dolent costa de remuntar).',
   'stat.vincles': 'Vincles',
+  'stat.vincles.tip':
+    'Amistats, parella i comunitat. Una font de benestar que no es compra; pot sostenir una vida plena amb poc patrimoni. Es construeix amb decisions socials (i costa molt si vas endeutat).',
   'stat.sequela': 'Seqüeles',
+  'stat.sequela.tip':
+    'Dany permanent de salut (incapacitats). Rebaixa la teva referència de benestar per sempre: per això costa de remuntar.',
   'stat.academic': 'Nivell acadèmic',
+  'stat.academic.tip':
+    'Esforç i rendiment a la universitat. No dóna benestar immediat, però millora el sou de partida i les ofertes de feina en sortir.',
   'benestar.molt_baix': 'En la misèria',
   'benestar.baix': 'Malament',
   'benestar.mig': 'Regular',
@@ -420,13 +426,13 @@ export const ca: Record<string, string> = {
   'gameover.title': 'Fas 35 anys',
   'gameover.subtitle':
     'Ja ets una persona adulta amb una vida feta. És moment de mirar enrere i veure on t’han portat les teves decisions.',
-  'gameover.final.solid.title': 'Fas 35 anys',
+  'gameover.final.solid.title': 'Una vida assentada',
   'gameover.final.solid.desc':
     'Arribes a la vida adulta amb una base sòlida. El camí ha donat fruits: tens marge i tranquil·litat.',
   'gameover.final.plena.title': 'Una vida plena',
   'gameover.final.plena.desc':
     'No has acumulat gaire patrimoni, però tens el que de debò sosté una vida: vincles, salut i sentit. La llibertat no sempre es compra.',
-  'gameover.final.precaria.title': 'Fas 35 anys',
+  'gameover.final.precaria.title': 'Anys de lluita',
   'gameover.final.precaria.desc':
     'Han estat anys durs i el marge segueix sent escàs. L’origen ha pesat, i remar a contracorrent esgota.',
   'gameover.benestarFinal': 'Benestar final',

@@ -43,7 +43,9 @@ export function StatBar({
           {vinclesPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-400">🤝 {t('stat.vincles')}</span>
+                <span className="text-slate-400" title={t('stat.vincles.tip')}>
+                  🤝 {t('stat.vincles')}
+                </span>
                 <span className="text-slate-400">{vinclesPct}%</span>
               </div>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
@@ -57,7 +59,9 @@ export function StatBar({
           {academicPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-400">🎓 {t('stat.academic')}</span>
+                <span className="text-slate-400" title={t('stat.academic.tip')}>
+                  🎓 {t('stat.academic')}
+                </span>
                 <span className="text-slate-400">{academicPct}%</span>
               </div>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
@@ -70,7 +74,9 @@ export function StatBar({
           )}
           {sequela > 0 && (
             <div className="flex items-baseline justify-between text-xs">
-              <span className="text-red-300">🩹 {t('stat.sequela')}</span>
+              <span className="text-red-300" title={t('stat.sequela.tip')}>
+                🩹 {t('stat.sequela')}
+              </span>
               <span className="font-medium text-red-400">−{Math.round(sequela)}</span>
             </div>
           )}

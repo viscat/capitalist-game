@@ -71,6 +71,31 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       positive: v > 0,
     })
   }
+  // Stats no monetaris: fer-ne visible l'impacte de cada decisió.
+  if (effect.vinclesDelta) {
+    const pct = Math.round(effect.vinclesDelta * 100)
+    badges.push({
+      label: `🤝 ${t('stat.vincles')}`,
+      text: `${pct > 0 ? '+' : ''}${pct}%`,
+      positive: pct > 0,
+    })
+  }
+  if (effect.academicDelta) {
+    const pct = Math.round(effect.academicDelta * 100)
+    badges.push({
+      label: `🎓 ${t('stat.academic')}`,
+      text: `${pct > 0 ? '+' : ''}${pct}%`,
+      positive: pct > 0,
+    })
+  }
+  if (effect.salutCronicaDelta) {
+    // És una penalització crònica de benestar (sempre dolenta).
+    badges.push({
+      label: `🩹 ${t('stat.sequela')}`,
+      text: `−${Math.round(effect.salutCronicaDelta)}`,
+      positive: false,
+    })
+  }
 
   if (badges.length === 0) return null
 

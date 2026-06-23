@@ -569,8 +569,9 @@ function resolveEvent(
     : state.ultimAugmentMes
 
   // Seqüela crònica (incapacitat): s'acumula i perdura, rebaixant la referència adulta.
+  // Amb sostre (40) perquè incapacitats repetides no la facin créixer sense límit.
   const salutCronica = effect.salutCronicaDelta
-    ? Math.max(0, (state.salutCronica ?? 0) + effect.salutCronicaDelta)
+    ? Math.min(40, Math.max(0, (state.salutCronica ?? 0) + effect.salutCronicaDelta))
     : state.salutCronica
 
   // Vincles socials (0..1): es construeixen i s'erosionen amb la vida; font de benestar

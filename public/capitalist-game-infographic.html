@@ -1,0 +1,1233 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capitalist Game - Infografia</title>
+    <style>
+      :root {
+        --ink: #142235;
+        --muted: #627184;
+        --paper: #fbf4e6;
+        --panel: #fffaf0;
+        --line: rgba(20, 34, 53, 0.16);
+        --soft-line: rgba(20, 34, 53, 0.09);
+        --shadow: 0 10px 24px rgba(41, 47, 60, 0.1);
+        --amber: #d89422;
+        --blue: #3477a8;
+        --teal: #16868a;
+        --purple: #8160a2;
+        --green: #5f9440;
+        --coral: #d1654d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        background: #e6ddcf;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      svg {
+        display: block;
+      }
+
+      .defs {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 32px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .poster {
+        width: min(100%, 1040px);
+        padding: 54px 48px 48px;
+        background:
+          linear-gradient(var(--soft-line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--soft-line) 1px, transparent 1px),
+          radial-gradient(circle at 18% 10%, rgba(216, 148, 34, 0.08), transparent 30%),
+          radial-gradient(circle at 86% 54%, rgba(22, 134, 138, 0.07), transparent 30%),
+          var(--paper);
+        background-size: 24px 24px, 24px 24px, auto, auto, auto;
+        border: 1px solid rgba(20, 34, 53, 0.08);
+        box-shadow: 0 28px 80px rgba(20, 34, 53, 0.2);
+      }
+
+      .masthead {
+        margin-bottom: 34px;
+        text-align: center;
+      }
+
+      .title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(56px, 8.3vw, 88px);
+        line-height: 0.92;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        display: inline-block;
+        margin-top: 18px;
+        padding: 10px 30px 12px;
+        color: #fff9ed;
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        font-size: clamp(22px, 3.2vw, 31px);
+        font-style: italic;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0;
+        background: linear-gradient(180deg, #1a8a90, #0c626b);
+        border: 2px solid rgba(12, 98, 107, 0.38);
+        border-radius: 9px;
+        box-shadow: 0 9px 18px rgba(12, 98, 107, 0.16);
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 220px;
+        gap: 24px;
+        align-items: start;
+      }
+
+      .flow {
+        position: relative;
+        display: grid;
+        gap: 18px;
+        --rail-x: 34px;
+        --card-offset: 108px;
+        --badge-size: 64px;
+        --badge-radius: 32px;
+        --badge-center-y: 54px;
+      }
+
+      .flow::before {
+        content: "";
+        position: absolute;
+        top: var(--badge-center-y);
+        bottom: 54px;
+        left: calc(var(--rail-x) - 2px);
+        width: 4px;
+        background: #16304c;
+        border-radius: 999px;
+      }
+
+      .timeline-past {
+        position: relative;
+        display: grid;
+        gap: 18px;
+      }
+
+      .stage,
+      .checkpoint,
+      .continuation {
+        position: relative;
+        margin-left: var(--card-offset);
+      }
+
+      .stage,
+      .checkpoint {
+        --accent: var(--amber);
+        background: rgba(255, 250, 240, 0.94);
+        border: 2px solid color-mix(in srgb, var(--accent) 78%, #ffffff);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: visible;
+      }
+
+      .stage::before,
+      .checkpoint::before,
+      .continuation::before {
+        content: attr(data-age);
+        position: absolute;
+        top: 22px;
+        left: calc(var(--rail-x) - var(--card-offset) - var(--badge-radius));
+        z-index: 2;
+        width: var(--badge-size);
+        height: var(--badge-size);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 1;
+        white-space: nowrap;
+        background: var(--accent);
+        border: 4px solid #fff7e8;
+        border-radius: 999px;
+        box-shadow: 0 0 0 2px var(--accent);
+      }
+
+      .stage[data-age="18-23"]::before,
+      .stage[data-age="24-35"]::before {
+        font-size: 19px;
+      }
+
+      .stage::after,
+      .checkpoint::after,
+      .continuation::after {
+        content: "";
+        position: absolute;
+        top: 53px;
+        left: calc(var(--rail-x) - var(--card-offset) + var(--badge-radius));
+        width: calc(var(--card-offset) - var(--rail-x) - var(--badge-radius));
+        height: 4px;
+        background: var(--accent);
+        border-radius: 999px;
+      }
+
+      .stage-head {
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: 14px;
+        align-items: center;
+        padding: 16px 20px;
+        color: #fff;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, white), var(--accent));
+        border-radius: 9px 9px 0 0;
+      }
+
+      .stage-icon {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        background: rgba(255, 250, 240, 0.92);
+        border: 2px solid rgba(255, 255, 255, 0.72);
+        border-radius: 14px;
+      }
+
+      .stage-icon .icon {
+        width: 30px;
+        height: 30px;
+      }
+
+      .stage-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 34px;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .stage-body {
+        padding: 20px 22px 22px;
+      }
+
+      .stage-grid {
+        display: grid;
+        grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .item {
+        min-height: 78px;
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1.5px solid rgba(20, 34, 53, 0.14);
+        border-radius: 10px;
+      }
+
+      .item.compact {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        min-height: 82px;
+        padding: 10px 8px;
+        text-align: center;
+      }
+
+      .item .icon {
+        width: 32px;
+        height: 32px;
+        color: var(--accent);
+      }
+
+      .item-label,
+      .system-label,
+      .meter-title,
+      .future-label {
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
+      .item-label {
+        font-size: 18px;
+      }
+
+      .item.compact .item-label {
+        font-size: 14px;
+      }
+
+      .branch {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .choice-branch {
+        grid-template-columns: minmax(0, 1fr) 44px minmax(0, 1fr);
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .choice-marker {
+        align-self: center;
+        justify-self: center;
+        width: 42px;
+        height: 42px;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        background: rgba(255, 250, 240, 0.92);
+        border: 2px solid color-mix(in srgb, var(--accent) 35%, white);
+        border-radius: 999px;
+        box-shadow: 0 4px 10px rgba(41, 47, 60, 0.07);
+      }
+
+      .branch .item {
+        position: relative;
+        z-index: 1;
+        min-height: 104px;
+        grid-template-columns: 52px 1fr;
+        padding: 18px 22px;
+        background: rgba(255, 255, 255, 0.74);
+        border-color: color-mix(in srgb, var(--accent) 28%, white);
+      }
+
+      .branch .item .icon {
+        width: 38px;
+        height: 38px;
+      }
+
+      .branch .item-label {
+        font-size: 21px;
+      }
+
+      .stage.childhood {
+        --accent: var(--amber);
+      }
+
+      .stage.eso {
+        --accent: var(--blue);
+      }
+
+      .stage.fork {
+        --accent: var(--purple);
+      }
+
+      .stage.preadult {
+        --accent: var(--teal);
+      }
+
+      .stage.adult {
+        --accent: var(--teal);
+      }
+
+      .checkpoint {
+        --accent: var(--green);
+      }
+
+      .adult-path {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .adult-primary {
+        grid-template-columns: 1fr;
+      }
+
+      .adult-path .item {
+        min-height: 86px;
+        grid-template-columns: 48px 1fr;
+        padding: 15px 18px;
+      }
+
+      .adult-path .item .icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      .adult-tools {
+        --cols: 2;
+      }
+
+      .adult-tools .item.compact {
+        grid-template-columns: 40px 1fr;
+        justify-items: start;
+        min-height: 72px;
+        padding: 12px 14px;
+        text-align: left;
+      }
+
+      .adult-path .item-label,
+      .adult-tools .item.compact .item-label {
+        font-size: 18px;
+      }
+
+      .adult-tools .item.compact .icon {
+        width: 31px;
+        height: 31px;
+      }
+
+      .meters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .meter {
+        min-height: 146px;
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.62);
+        border: 1.5px solid color-mix(in srgb, var(--meter-color) 34%, white);
+        border-radius: 14px;
+      }
+
+      .meter-icons {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .meter-icons .icon {
+        width: 46px;
+        height: 46px;
+        color: var(--meter-color);
+      }
+
+      .meter-icons .money-icon {
+        width: 34px;
+        height: 34px;
+        margin-left: -4px;
+        opacity: 0.95;
+      }
+
+      .meter-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 22px;
+      }
+
+      .range-scale {
+        width: min(100%, 260px);
+        display: grid;
+        grid-template-columns: auto minmax(96px, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+      }
+
+      .range-label {
+        color: rgba(20, 34, 53, 0.62);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .range-track {
+        position: relative;
+        height: 18px;
+        background: rgba(20, 34, 53, 0.07);
+        border: 1px solid rgba(20, 34, 53, 0.16);
+        border-radius: 999px;
+      }
+
+      .range-track::before {
+        content: "";
+        position: absolute;
+        top: 6px;
+        right: 12px;
+        left: 12px;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--meter-color) 20%, white),
+          color-mix(in srgb, var(--meter-color) 72%, white)
+        );
+      }
+
+      .range-arrow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 24px;
+        height: 24px;
+        padding: 2px;
+        color: var(--meter-color);
+        background: rgba(255, 250, 240, 0.95);
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+      }
+
+      .continuation {
+        --accent: var(--green);
+        margin-top: 0;
+        padding: 18px 20px 20px;
+        background: rgba(255, 250, 240, 0.9);
+        border: 2px dashed rgba(79, 127, 104, 0.38);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+
+      .continuation::before {
+        content: attr(data-status);
+        color: var(--green);
+        font-family:
+          ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        font-size: 15px;
+        letter-spacing: 0;
+        background: rgba(255, 250, 240, 0.96);
+        border-color: rgba(255, 250, 240, 0.95);
+        box-shadow: 0 0 0 2px var(--green);
+      }
+
+      .continuation::after {
+        background: var(--green);
+        opacity: 0.65;
+      }
+
+      .wip-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .wip-label {
+        display: inline-grid;
+        place-items: center;
+        min-height: 28px;
+        padding: 6px 10px;
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        background: rgba(95, 148, 64, 0.11);
+        border: 1.5px solid rgba(95, 148, 64, 0.28);
+        border-radius: 999px;
+      }
+
+      .wip-note {
+        color: rgba(20, 34, 53, 0.62);
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-align: right;
+      }
+
+      .future-chain {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 34px minmax(0, 1fr) 34px minmax(0, 1fr);
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .future-arrow {
+        align-self: center;
+        justify-self: center;
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        color: var(--green);
+        background: rgba(95, 148, 64, 0.1);
+        border: 1.5px solid rgba(95, 148, 64, 0.3);
+        border-radius: 999px;
+      }
+
+      .future-arrow .icon {
+        width: 18px;
+        height: 18px;
+        stroke-width: 2.4;
+      }
+
+      .future-step {
+        position: relative;
+        z-index: 1;
+        min-height: 104px;
+        display: grid;
+        justify-items: center;
+        align-content: center;
+        gap: 10px;
+        padding: 14px 10px;
+        background: rgba(255, 255, 255, 0.68);
+        border: 1.5px solid rgba(20, 34, 53, 0.14);
+        border-radius: 12px;
+        text-align: center;
+      }
+
+      .future-step .icon {
+        width: 34px;
+        height: 34px;
+        color: var(--green);
+      }
+
+      .future-label {
+        font-size: 16px;
+      }
+
+      .systems {
+        display: grid;
+        grid-template-rows: auto repeat(7, minmax(62px, auto));
+        gap: 8px;
+        padding: 10px;
+        background: rgba(255, 248, 236, 0.62);
+        border: 1.5px solid rgba(216, 148, 34, 0.28);
+        border-radius: 18px;
+      }
+
+      .system-card {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 10px;
+        align-items: center;
+        min-height: 62px;
+        padding: 9px 10px;
+        background: rgba(255, 250, 240, 0.92);
+        border: 1.5px solid color-mix(in srgb, var(--system-color) 38%, white);
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      .system-card .icon {
+        width: 32px;
+        height: 32px;
+        color: var(--system-color);
+      }
+
+      .system-label {
+        font-family: inherit;
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .origin-card {
+        display: grid;
+        gap: 12px;
+        padding: 15px 12px 14px;
+        background: rgba(255, 250, 240, 0.94);
+        border: 1.5px solid color-mix(in srgb, var(--amber) 46%, white);
+        border-radius: 14px;
+        text-align: center;
+        box-shadow: 0 8px 18px rgba(41, 47, 60, 0.07);
+      }
+
+      .origin-title {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 22px;
+        line-height: 1.05;
+      }
+
+      .origin-bars {
+        display: grid;
+        gap: 7px;
+        text-align: left;
+      }
+
+      .origin-row {
+        display: grid;
+        gap: 3px;
+      }
+
+      .origin-meta {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .origin-share {
+        color: rgba(20, 34, 53, 0.68);
+        font-size: 11px;
+      }
+
+      .origin-track {
+        height: 14px;
+        padding: 2px;
+        background: rgba(20, 34, 53, 0.06);
+        border: 1px solid rgba(20, 34, 53, 0.12);
+        border-radius: 999px;
+      }
+
+      .origin-fill {
+        width: max(var(--share), 6%);
+        height: 100%;
+        background: var(--origin-color);
+        border-radius: 999px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+      }
+
+      .origin-summary {
+        margin-top: 2px;
+        padding: 7px 8px;
+        color: rgba(20, 34, 53, 0.72);
+        font-size: 11px;
+        font-weight: 900;
+        line-height: 1;
+        text-align: center;
+        text-transform: uppercase;
+        background: rgba(216, 148, 34, 0.08);
+        border: 1px solid rgba(216, 148, 34, 0.2);
+        border-radius: 9px;
+      }
+
+      .icon {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .icon .fill {
+        fill: currentColor;
+        stroke: none;
+      }
+
+      .accent-amber {
+        color: var(--amber);
+      }
+
+      .accent-blue {
+        color: var(--blue);
+      }
+
+      .accent-teal {
+        color: var(--teal);
+      }
+
+      .accent-purple {
+        color: var(--purple);
+      }
+
+      .accent-green {
+        color: var(--green);
+      }
+
+      .accent-coral {
+        color: var(--coral);
+      }
+
+      .credit {
+        margin-top: 22px;
+        color: rgba(20, 34, 53, 0.58);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      @media (max-width: 920px) {
+        .page {
+          padding: 16px;
+        }
+
+        .poster {
+          min-height: 0;
+          padding: 34px 18px 28px;
+        }
+
+        .board {
+          grid-template-columns: 1fr;
+        }
+
+        .systems {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-rows: auto;
+          order: -1;
+        }
+
+        .origin-card {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 650px) {
+        .flow::before,
+        .stage::before,
+        .stage::after,
+        .checkpoint::before,
+        .checkpoint::after,
+        .continuation::before,
+        .continuation::after {
+          display: none;
+        }
+
+        .stage,
+        .checkpoint,
+        .continuation {
+          margin-left: 0;
+        }
+
+        .stage-grid,
+        .choice-branch,
+        .adult-tools,
+        .meters,
+        .future-chain,
+        .systems,
+        .adult-path {
+          grid-template-columns: 1fr;
+        }
+
+        .stage-head {
+          grid-template-columns: 52px 1fr;
+        }
+
+        .stage-title {
+          font-size: 29px;
+        }
+
+        .future-arrow {
+          transform: rotate(90deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="defs" aria-hidden="true">
+      <symbol id="lucide-heart-pulse" viewBox="0 0 24 24">
+        <path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" />
+        <path d="M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27" />
+      </symbol>
+      <symbol id="lucide-house" viewBox="0 0 24 24">
+        <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+        <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </symbol>
+      <symbol id="lucide-coins" viewBox="0 0 24 24">
+        <path d="M13.744 17.736a6 6 0 1 1-7.48-7.48" />
+        <path d="M15 6h1v4" />
+        <path d="m6.134 14.768.866-.5 2 3.464" />
+        <circle cx="16" cy="8" r="6" />
+      </symbol>
+      <symbol id="lucide-piggy-bank" viewBox="0 0 24 24">
+        <path d="M11 17h3v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-3a3.16 3.16 0 0 0 2-2h1a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-1a5 5 0 0 0-2-4V3a4 4 0 0 0-3.2 1.6l-.3.4H11a6 6 0 0 0-6 6v1a5 5 0 0 0 2 4v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1z" />
+        <path d="M16 10h.01" />
+        <path d="M2 8v1a2 2 0 0 0 2 2h1" />
+      </symbol>
+      <symbol id="lucide-receipt-text" viewBox="0 0 24 24">
+        <path d="M13 16H8" />
+        <path d="M14 8H8" />
+        <path d="M16 12H8" />
+        <path d="M4 3a1 1 0 0 1 1-1 1.3 1.3 0 0 1 .7.2l.933.6a1.3 1.3 0 0 0 1.4 0l.934-.6a1.3 1.3 0 0 1 1.4 0l.933.6a1.3 1.3 0 0 0 1.4 0l.933-.6a1.3 1.3 0 0 1 1.4 0l.934.6a1.3 1.3 0 0 0 1.4 0l.933-.6A1.3 1.3 0 0 1 19 2a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1 1.3 1.3 0 0 1-.7-.2l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.934.6a1.3 1.3 0 0 1-1.4 0l-.933-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-1.4 0l-.934-.6a1.3 1.3 0 0 0-1.4 0l-.933.6a1.3 1.3 0 0 1-.7.2 1 1 0 0 1-1-1z" />
+      </symbol>
+      <symbol id="lucide-graduation-cap" viewBox="0 0 24 24">
+        <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+        <path d="M22 10v6" />
+        <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+      </symbol>
+      <symbol id="lucide-briefcase-business" viewBox="0 0 24 24">
+        <path d="M12 12h.01" />
+        <path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+        <path d="M22 13a18.15 18.15 0 0 1-20 0" />
+        <rect width="20" height="14" x="2" y="6" rx="2" />
+      </symbol>
+      <symbol id="lucide-user-round" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="5" />
+        <path d="M20 21a8 8 0 0 0-16 0" />
+      </symbol>
+      <symbol id="lucide-sprout" viewBox="0 0 24 24">
+        <path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3" />
+        <path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4" />
+        <path d="M5 21h14" />
+      </symbol>
+      <symbol id="lucide-arrow-right" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+        <path d="m12 5 7 7-7 7" />
+      </symbol>
+      <symbol id="lucide-arrow-left-right" viewBox="0 0 24 24">
+        <path d="M8 3 4 7l4 4" />
+        <path d="M4 7h16" />
+        <path d="m16 21 4-4-4-4" />
+        <path d="M20 17H4" />
+      </symbol>
+      <symbol id="lucide-lock-keyhole" viewBox="0 0 24 24">
+        <circle cx="12" cy="16" r="1" />
+        <rect x="3" y="10" width="18" height="12" rx="2" />
+        <path d="M7 10V7a5 5 0 0 1 10 0v3" />
+      </symbol>
+      <symbol id="lucide-chart-columns" viewBox="0 0 24 24">
+        <path d="M5 21v-6" />
+        <path d="M12 21V9" />
+        <path d="M19 21V3" />
+      </symbol>
+      <symbol id="lucide-chart-line" viewBox="0 0 24 24">
+        <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+        <path d="m19 9-5 5-4-4-3 3" />
+      </symbol>
+      <symbol id="lucide-banknote" viewBox="0 0 24 24">
+        <rect width="20" height="12" x="2" y="6" rx="2" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M6 12h.01M18 12h.01" />
+      </symbol>
+      <symbol id="lucide-baby" viewBox="0 0 24 24">
+        <path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
+        <path d="M15 12h.01" />
+        <path d="M19.38 6.813A9 9 0 0 1 20.8 10.2a2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1" />
+        <path d="M9 12h.01" />
+      </symbol>
+      <symbol id="lucide-hand-heart" viewBox="0 0 24 24">
+        <path d="M11 14h2a2 2 0 0 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16" />
+        <path d="m14.45 13.39 5.05-4.694C20.196 8 21 6.85 21 5.75a2.75 2.75 0 0 0-4.797-1.837.276.276 0 0 1-.406 0A2.75 2.75 0 0 0 11 5.75c0 1.2.802 2.248 1.5 2.946L16 11.95" />
+        <path d="m2 15 6 6" />
+        <path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a1 1 0 0 0-2.75-2.91" />
+      </symbol>
+      <symbol id="lucide-landmark" viewBox="0 0 24 24">
+        <path d="M10 18v-7" />
+        <path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z" />
+        <path d="M14 18v-7" />
+        <path d="M18 18v-7" />
+        <path d="M3 22h18" />
+        <path d="M6 18v-7" />
+      </symbol>
+      <symbol id="lucide-dices" viewBox="0 0 24 24">
+        <rect width="12" height="12" x="2" y="10" rx="2" ry="2" />
+        <path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6" />
+        <path d="M6 18h.01" />
+        <path d="M10 14h.01" />
+        <path d="M15 6h.01" />
+        <path d="M18 9h.01" />
+      </symbol>
+      <symbol id="lucide-school" viewBox="0 0 24 24">
+        <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
+        <path d="M18 4.933V21" />
+        <path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6" />
+        <path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11" />
+        <path d="M6 4.933V21" />
+        <circle cx="12" cy="9" r="2" />
+      </symbol>
+      <symbol id="lucide-signpost" viewBox="0 0 24 24">
+        <path d="M12 13v8" />
+        <path d="M12 3v3" />
+        <path d="M2.354 10.354a1.207 1.207 0 0 1 0-1.708l2.06-2.06A2 2 0 0 1 5.828 6h12.344a2 2 0 0 1 1.414.586l2.06 2.06a1.207 1.207 0 0 1 0 1.708l-2.06 2.06a2 2 0 0 1-1.414.586H5.828a2 2 0 0 1-1.414-.586z" />
+      </symbol>
+      <symbol id="lucide-calendar-check" viewBox="0 0 24 24">
+        <path d="M8 2v4" />
+        <path d="M16 2v4" />
+        <rect width="18" height="18" x="3" y="4" rx="2" />
+        <path d="M3 10h18" />
+        <path d="m9 16 2 2 4-4" />
+      </symbol>
+      <symbol id="lucide-wallet" viewBox="0 0 24 24">
+        <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4" />
+      </symbol>
+      <symbol id="lucide-list-checks" viewBox="0 0 24 24">
+        <path d="M13 5h8" />
+        <path d="M13 12h8" />
+        <path d="M13 19h8" />
+        <path d="m3 17 2 2 4-4" />
+        <path d="m3 7 2 2 4-4" />
+      </symbol>
+      <symbol id="lucide-book-open" viewBox="0 0 24 24">
+        <path d="M12 7v14" />
+        <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
+      </symbol>
+    </svg>
+
+    <div class="page">
+      <article class="poster" aria-label="Infografia de Capitalist Game">
+        <header class="masthead">
+          <h1 class="title">Capitalist Game</h1>
+          <div class="subtitle">La vida financera, torn a torn</div>
+        </header>
+
+        <div class="board">
+          <main class="flow">
+            <div class="timeline-past">
+              <section class="stage childhood" data-age="0-12">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-house" /></svg></div>
+                  <h2 class="stage-title">Infància</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="stage-grid" style="--cols: 2">
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-calendar-check" /></svg>
+                      <div class="item-label">Esdeveniments</div>
+                    </div>
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-signpost" /></svg>
+                      <div class="item-label">Decisions</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="stage eso" data-age="12-16">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-school" /></svg></div>
+                  <h2 class="stage-title">Adolescència</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="stage-grid" style="--cols: 4">
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-wallet" /></svg>
+                      <div class="item-label">Paga</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-list-checks" /></svg>
+                      <div class="item-label">Activitats</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-calendar-check" /></svg>
+                      <div class="item-label">Esdeveniments</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-signpost" /></svg>
+                      <div class="item-label">Decisions</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="stage fork" data-age="16">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-signpost" /></svg></div>
+                  <h2 class="stage-title">Cruïlla</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="branch choice-branch">
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-book-open" /></svg>
+                      <div class="item-label">Estudiar</div>
+                    </div>
+                    <div class="choice-marker" aria-hidden="true">o</div>
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-briefcase-business" /></svg>
+                      <div class="item-label">Treballar</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="stage preadult" data-age="18-23">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-user-round" /></svg></div>
+                  <h2 class="stage-title">Pre adultesa</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="adult-path">
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-graduation-cap" /></svg>
+                      <div class="item-label">Universitat</div>
+                    </div>
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-signpost" /></svg>
+                      <div class="item-label">Decisions</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="stage adult" data-age="24-35">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-briefcase-business" /></svg></div>
+                  <h2 class="stage-title">Adultesa</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="adult-path adult-primary">
+                    <div class="item">
+                      <svg class="icon"><use href="#lucide-briefcase-business" /></svg>
+                      <div class="item-label">Feina</div>
+                    </div>
+                  </div>
+                  <div class="stage-grid adult-tools">
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-receipt-text" /></svg>
+                      <div class="item-label">Pressupost</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-piggy-bank" /></svg>
+                      <div class="item-label">Estalvi</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-chart-columns" /></svg>
+                      <div class="item-label">Fons indexat</div>
+                    </div>
+                    <div class="item compact">
+                      <svg class="icon"><use href="#lucide-lock-keyhole" /></svg>
+                      <div class="item-label">Pla de pensions</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="checkpoint" data-age="35">
+                <header class="stage-head">
+                  <div class="stage-icon"><svg class="icon"><use href="#lucide-heart-pulse" /></svg></div>
+                  <h2 class="stage-title">Balanç</h2>
+                </header>
+                <div class="stage-body">
+                  <div class="meters">
+                    <div class="meter" style="--meter-color: var(--teal)">
+                      <div class="meter-title">Benestar</div>
+                      <div class="meter-icons">
+                        <svg class="icon"><use href="#lucide-heart-pulse" /></svg>
+                      </div>
+                      <div class="range-scale">
+                        <span class="range-label">baix</span>
+                        <div class="range-track">
+                          <svg class="icon range-arrow"><use href="#lucide-arrow-left-right" /></svg>
+                        </div>
+                        <span class="range-label">alt</span>
+                      </div>
+                    </div>
+                    <div class="meter" style="--meter-color: var(--green)">
+                      <div class="meter-title">Patrimoni</div>
+                      <div class="meter-icons">
+                        <svg class="icon"><use href="#lucide-house" /></svg>
+                        <svg class="icon money-icon"><use href="#lucide-coins" /></svg>
+                      </div>
+                      <div class="range-scale">
+                        <span class="range-label">baix</span>
+                        <div class="range-track">
+                          <svg class="icon range-arrow"><use href="#lucide-arrow-left-right" /></svg>
+                        </div>
+                        <span class="range-label">alt</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <section class="continuation" data-status="WIP" aria-label="Continuació de la partida en desenvolupament">
+              <div class="wip-head">
+                <span class="wip-label">Work in progress</span>
+                <span class="wip-note">Futures etapes en desenvolupament</span>
+              </div>
+              <div class="future-chain">
+                <article class="future-step">
+                  <svg class="icon"><use href="#lucide-user-round" /></svg>
+                  <div class="future-label">Vida adulta</div>
+                </article>
+                <div class="future-arrow" aria-hidden="true">
+                  <svg class="icon"><use href="#lucide-arrow-right" /></svg>
+                </div>
+                <article class="future-step">
+                  <svg class="icon"><use href="#lucide-baby" /></svg>
+                  <div class="future-label">Descendència</div>
+                </article>
+                <div class="future-arrow" aria-hidden="true">
+                  <svg class="icon"><use href="#lucide-arrow-right" /></svg>
+                </div>
+                <article class="future-step">
+                  <svg class="icon"><use href="#lucide-sprout" /></svg>
+                  <div class="future-label">Nova generació</div>
+                </article>
+              </div>
+            </section>
+          </main>
+
+          <aside class="systems" aria-label="Indicadors laterals">
+            <section class="origin-card">
+              <h2 class="origin-title">Origen familiar</h2>
+              <div class="origin-bars" aria-label="Distribució social d'origen familiar">
+                <div class="origin-row" style="--share: 1%; --origin-color: #e8bc58">
+                  <div class="origin-meta"><span>super-rica</span><span class="origin-share">1%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-row" style="--share: 4%; --origin-color: #dba447">
+                  <div class="origin-meta"><span>rica</span><span class="origin-share">4%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-row" style="--share: 10%; --origin-color: #8faa66">
+                  <div class="origin-meta"><span>alta</span><span class="origin-share">10%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-row" style="--share: 15%; --origin-color: #a8bd72">
+                  <div class="origin-meta"><span>mitjana</span><span class="origin-share">15%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-row" style="--share: 45%; --origin-color: #e9a05b">
+                  <div class="origin-meta"><span>treballadora</span><span class="origin-share">45%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-row" style="--share: 25%; --origin-color: #d96f57">
+                  <div class="origin-meta"><span>pobra</span><span class="origin-share">25%</span></div>
+                  <div class="origin-track"><div class="origin-fill"></div></div>
+                </div>
+                <div class="origin-summary">base social · 70%</div>
+              </div>
+            </section>
+            <section class="system-card" style="--system-color: var(--teal)">
+              <svg class="icon"><use href="#lucide-heart-pulse" /></svg>
+              <div class="system-label">Benestar</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--green)">
+              <svg class="icon"><use href="#lucide-landmark" /></svg>
+              <div class="system-label">Patrimoni</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--purple)">
+              <svg class="icon"><use href="#lucide-hand-heart" /></svg>
+              <div class="system-label">Cura</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--coral)">
+              <svg class="icon"><use href="#lucide-dices" /></svg>
+              <div class="system-label">Atzar</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--blue)">
+              <svg class="icon"><use href="#lucide-receipt-text" /></svg>
+              <div class="system-label">Pressupost</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--green)">
+              <svg class="icon"><use href="#lucide-chart-columns" /></svg>
+              <div class="system-label">Inversions</div>
+            </section>
+            <section class="system-card" style="--system-color: var(--green)">
+              <svg class="icon"><use href="#lucide-chart-line" /></svg>
+              <div class="system-label">Interès compost</div>
+            </section>
+          </aside>
+        </div>
+
+        <div class="credit">Iconografia Lucide, llicència ISC.</div>
+      </article>
+    </div>
+  </body>
+</html>
