@@ -213,8 +213,13 @@ describe('aportació obligatòria a casa', () => {
 })
 
 describe('fase laboral i pressupost', () => {
-  it('cada torn avança 1 any, ingressa i estalvia segons el pressupost mensual', () => {
-    const s = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
+  it('cada torn avança 1 any i estalvia segons el pressupost mensual', () => {
+    const base = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
+    // Per defecte l'opcional és 0; per provar l'estalvi, destinem-hi diners explícitament.
+    const s = {
+      ...base,
+      pressupost: { ...base.pressupost!, estalvi: 100, oci: 0, compres: 0 },
+    }
     const estalviAbans = s.person.patrimoni.estalvi
     const after = advanceTurn(s)
     expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)

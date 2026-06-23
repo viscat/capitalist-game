@@ -9,7 +9,9 @@ export const UNIVERSITY_ACTIONS: GameAction[] = [
     category: 'escola',
     labelKey: 'uni.estudis.label',
     descKey: 'uni.estudis.desc',
-    effect: { benestar: 5 },
+    // Estudiar fort estressa i no surts: no dóna benestar, però apuja el nivell acadèmic,
+    // que es paga després (millor sou i ocupabilitat en sortir).
+    effect: { benestar: -3, academicDelta: 0.22 },
   },
   {
     id: 'uni_treball',

@@ -26,6 +26,7 @@ import type { NivellVida, PlaInversio } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { AmountStepper } from './AmountStepper'
 
 const CATEGORIES: (keyof PlaInversio)[] = [
   'oci',
@@ -93,11 +94,9 @@ export function InvestmentPanel() {
         ? 'mitjana'
         : 'baixa'
 
-  const set = (k: keyof PlaInversio, delta: number) => {
-    // Pots assignar per sobre del sou mentre ho cobreixin els teus estalvis.
-    if (delta > 0 && total + delta > assignable) return
-    setPla({ ...pla, [k]: Math.max(0, pla[k] + delta) })
-  }
+  // Marge anual encara assignable (sense passar de l'ingrés + estalvis). El màxim per
+  // partida és el seu valor + aquest marge (l'AmountStepper treballa en mensual).
+  const margeAnual = Math.max(0, assignable - total)
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -232,25 +231,14 @@ export function InvestmentPanel() {
               <div className="text-sm font-medium text-slate-100">{t(`pla.${k}`)}</div>
               <div className="text-xs text-slate-500">{t(`pla.${k}.desc`)}</div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => set(k, -PAS_PLA)}
-                disabled={pla[k] <= 0}
-                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
-              >
-                −
-              </button>
-              <span className="w-20 text-right font-mono text-sm text-slate-100">
-                {formatEuros(perMes(pla[k]))}
-              </span>
-              <button
-                onClick={() => set(k, PAS_PLA)}
-                disabled={total + PAS_PLA > assignable}
-                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
-              >
-                +
-              </button>
-            </div>
+            <AmountStepper
+              value={perMes(pla[k])}
+              min={0}
+              max={perMes(pla[k] + margeAnual)}
+              step={perMes(PAS_PLA)}
+              onChange={(mes) => setPla({ ...pla, [k]: mes * MESOS_PER_ANY })}
+              ariaLabel={t(`pla.${k}`)}
+            />
           </div>
         ))}
       </div>

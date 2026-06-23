@@ -1,3 +1,5 @@
+import { EDAT_FI_ADOLESCENCIA } from '../constants'
+import { edatAnys } from '../time'
 import type { GameAction } from '../types'
 
 // Accions que el jove pot triar cada any (un torn = un any). Com que l'any és llarg,
@@ -53,6 +55,9 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     descKey: 'action.feina_estiu.desc',
     effect: { efectiu: 700, benestar: -6 },
     setmanes: 20,
+    // Treballar a l'estiu només a partir dels 16 (abans, ets massa jove).
+    available: (s) => edatAnys(s.person.edatMesos) >= EDAT_FI_ADOLESCENCIA,
+    lockedReasonKey: 'action.locked.edat16',
   },
 ]
 

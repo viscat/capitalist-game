@@ -68,6 +68,7 @@ export const ca: Record<string, string> = {
     'El benestar gravita cap a la teva referència d’entorn: es recupera lentament i cau de pressa (un cop dolent costa de remuntar).',
   'stat.vincles': 'Vincles',
   'stat.sequela': 'Seqüeles',
+  'stat.academic': 'Nivell acadèmic',
   'benestar.molt_baix': 'En la misèria',
   'benestar.baix': 'Malament',
   'benestar.mig': 'Regular',
@@ -297,7 +298,7 @@ export const ca: Record<string, string> = {
   'uni.title': 'Com vius aquest curs?',
   'uni.nota': 'Tria com enfoques l’any: cada opció té els seus pros i contres.',
   'uni.estudis.label': 'Estudiar a fons',
-  'uni.estudis.desc': 'T’hi dediques de ple. Bones notes i propòsit, sense ingressos extra.',
+  'uni.estudis.desc': 'T’hi deixes la pell: poc temps per a tu, però puja el nivell acadèmic (millor sou i feina en sortir).',
   'uni.treball.label': 'Treballar i estudiar',
   'uni.treball.desc': 'Compagines una feineta amb els estudis: uns diners, però esgota.',
   'uni.social.label': 'Vida universitària',
@@ -361,6 +362,7 @@ export const ca: Record<string, string> = {
     'Tria les coses que vols fer aquest any: pots combinar-ne diverses mentre tinguis temps i diners.',
   'action.temps': 'Temps',
   'action.setmanes': 'setm.',
+  'action.ajudaCasa': 'Ja dediques {setmanes} setm. a ajudar a casa: et queda menys temps lliure.',
   'action.viu': 'Viu aquest any →',
   'action.viuLliure': 'Un any tranquil →',
   'action.sortir_amics.label': 'Sortir amb els amics',
@@ -379,6 +381,7 @@ export const ca: Record<string, string> = {
   // Motius pels quals una acció està bloquejada
   'action.locked.diners': 'No tens prou diners',
   'action.locked.benestar': 'No tens prou ànims',
+  'action.locked.edat16': 'Només a partir dels 16 anys',
 
   // Pantalla de transició infància → adolescència
   'transition.kicker': 'Fi de la infància',
