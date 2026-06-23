@@ -12,7 +12,7 @@ import {
   applyMilestoneChoice,
   newGame,
 } from '../engine'
-import { patrimoniTotal } from '../stats'
+import { defaultPlaInversio, ingressosAnualsCarrera, patrimoniTotal } from '../stats'
 import type {
   EventEffect,
   FamilyClass,
@@ -101,6 +101,9 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
     ) {
       const best = [...s.ofertesFeina].sort((a, b) => b.sou - a.sou)[0]
       s = acceptarOferta(s, best.id)
+      // El pla d'inversió ara comença buit (el jugador el reparteix a mà); el jugador
+      // simulat representa algú «raonable», així que adopta el pla per defecte sensat.
+      s = { ...s, plaInversio: defaultPlaInversio(ingressosAnualsCarrera(s)) }
       continue
     }
     s = advanceTurn(s)

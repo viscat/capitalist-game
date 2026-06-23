@@ -119,7 +119,8 @@ export const ADOLESCENCE_EVENTS: GameEvent[] = [
     titleKey: 'event.paga_extra_avis.title',
     descKey: 'event.paga_extra_avis.desc',
     params: { amount: 40 },
-    weight: () => 1.2,
+    // Els avis d'una família pobra no poden donar una paga extra.
+    weight: (f) => (f.classe === 'pobra' ? 0 : 1.2),
     effect: { efectiu: 40, benestar: 2 },
   },
   {

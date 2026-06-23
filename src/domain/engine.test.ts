@@ -299,11 +299,16 @@ describe('universitat i carrera', () => {
   })
 
   it('un any de carrera avança 1 any, inverteix i deixa els comptes no negatius', () => {
-    const s = newGameAtCarrera('mitjana', 7)
+    // El pla comença buit (el jugador el reparteix); aquí n'assignem un per provar la inversió.
+    const base = newGameAtCarrera('mitjana', 7)
+    const s = {
+      ...base,
+      plaInversio: { oci: 2400, estalvi: 1200, fonsIndexat: 3600, fonsPensions: 1200 },
+    }
     const after = advanceTurn(s)
     expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
     expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
-    // Amb el pla per defecte s'aporta a fons indexat i/o pla de pensions.
+    // Amb un pla amb aportacions, s'inverteix a fons indexat i/o pla de pensions.
     const inv = after.person.patrimoni
     expect(inv.fonsIndexat + inv.fonsPensions).toBeGreaterThan(0)
   })

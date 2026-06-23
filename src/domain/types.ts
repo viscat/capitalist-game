@@ -359,6 +359,12 @@ export interface PatrimoniSnapshot {
   fonsIndexat: number
   fonsPensions: number
   estalvi: number
+  /**
+   * Suma ACUMULADA de les aportacions fetes al fons indexat + pla de pensions (el que has
+   * posat de la teva butxaca, sense rendiments). Comparada amb el valor actual (fonsIndexat
+   * + fonsPensions) fa visible quant ha crescut la cartera pel rendiment.
+   */
+  aportat: number
 }
 
 /** Una acció amb el seu estat de disponibilitat per a la UI. */
