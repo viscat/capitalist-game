@@ -420,7 +420,7 @@ const FACTOR_HERENCIA_VIDA: Record<FamilyClass, number> = {
   mitjana: 0.005,
   alta: 0.015,
   rica: 0.03,
-  super_rica: 0.025,
+  super_rica: 0.04,
 }
 
 // Impost de successions progressiu (knob redistributiu sobre l'herència en vida, P6):
@@ -481,6 +481,20 @@ export function petjadaEcologicaBenestar(
 ): number {
   const p = (nivell === 'alt' ? 2 : 0) + cases
   return Math.min(p, 5)
+}
+
+/**
+ * Escala un import base segons un multiplicador per classe. Per a esdeveniments el sentit
+ * dels quals depèn del context: una mateixa xifra no significa el mateix per a una família
+ * pobra que per a una de rica (una herència de 8.000 € és transformadora per a l'una i
+ * simbòlica per a l'altra; una "ajuda a la família" no té sentit en una llar super-rica).
+ */
+export function escalaPerClasse(
+  base: number,
+  classe: FamilyClass,
+  mapa: Record<FamilyClass, number>,
+): number {
+  return Math.round(base * mapa[classe])
 }
 
 /**

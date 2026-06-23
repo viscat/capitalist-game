@@ -451,7 +451,7 @@ export const ca: Record<string, string> = {
 
   'event.herencia.title': 'Una petita herència',
   'event.herencia.desc':
-    'Ha mort un familiar i t’ha deixat {amount} € al teu compte. Tristesa i diners alhora.',
+    'Ha mort un familiar i t’ha deixat uns diners al teu compte. Tristesa i diners alhora.',
 
   'event.malaltia_lleu.title': 'Has agafat la grip',
   'event.malaltia_lleu.desc':
@@ -769,7 +769,7 @@ export const ca: Record<string, string> = {
 
   'event.herencia_adult.title': 'Una herència',
   'event.herencia_adult.desc':
-    'Es mor un familiar i t’hereta {amount} €. Tristesa i, alhora, un coixí.',
+    'Es mor un familiar i t’hereta el que tenia. Tristesa i, alhora, un coixí.',
 
   'event.ajudar_familia_adult.title': 'La família necessita ajuda',
   'event.ajudar_familia_adult.desc':

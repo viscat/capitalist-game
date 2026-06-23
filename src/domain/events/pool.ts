@@ -1,5 +1,15 @@
-import { careScore, econSecurity } from '../stats'
-import type { GameEvent } from '../types'
+import { careScore, econSecurity, escalaPerClasse } from '../stats'
+import type { FamilyClass, GameEvent } from '../types'
+
+// L'herència escala amb el patrimoni de la família d'origen (com a la vida adulta).
+const HERENCIA_PES: Record<FamilyClass, number> = {
+  pobra: 0.4,
+  treballadora: 0.6,
+  mitjana: 1,
+  alta: 2,
+  rica: 4,
+  super_rica: 8,
+}
 
 // Catàleg d'esdeveniments de la fase d'infància (0-12 anys, 1 torn = 1 any).
 // El `weight` pondera la probabilitat segons el context familiar: així el mateix
@@ -99,9 +109,11 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     category: 'regal',
     titleKey: 'event.herencia.title',
     descKey: 'event.herencia.desc',
-    params: { amount: 500 },
     weight: () => 0.4,
-    effect: { estalvi: 500, benestar: -3 },
+    resolve: (s) => ({
+      estalvi: escalaPerClasse(500, s.familia.classe, HERENCIA_PES),
+      benestar: -3,
+    }),
   },
   {
     id: 'malaltia_lleu',
