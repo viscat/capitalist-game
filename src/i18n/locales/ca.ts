@@ -285,6 +285,8 @@ export const ca: Record<string, string> = {
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',
 
+  'chart.title': 'Evolució de les teves inversions',
+
   // Dedicació de l'any d'universitat
   'uni.title': 'Com vius aquest curs?',
   'uni.nota': 'Tria com enfoques l’any: cada opció té els seus pros i contres.',

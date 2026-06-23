@@ -322,6 +322,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     stats: { ...state.person.stats, benestar },
   }
   let habitatge = state.habitatge
+  let patrimoniHist = state.patrimoniHist
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -378,6 +379,16 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0)),
       benestarNivellVida(state.nivellVida, state.vidaSenzilla),
     )
+    // Instantània anual del patrimoni invertit, per al gràfic de rendiment.
+    patrimoniHist = [
+      ...(state.patrimoniHist ?? []),
+      {
+        edat: anys,
+        fonsIndexat: person.patrimoni.fonsIndexat,
+        fonsPensions: person.patrimoni.fonsPensions,
+        estalvi: person.patrimoni.estalvi,
+      },
+    ]
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi
     // es decideixen en mensual i s'ingressen per tot l'any (× 12).
@@ -448,6 +459,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     torn,
     person,
     habitatge,
+    patrimoniHist,
     anysExperiencia,
     rngState: nextRng,
     ultimEventId: event.id,

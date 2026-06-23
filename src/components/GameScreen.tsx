@@ -7,6 +7,7 @@ import { ActionPanel } from './ActionPanel'
 import { BudgetPanel } from './BudgetPanel'
 import { HabitatgePanel } from './HabitatgePanel'
 import { InvestmentPanel } from './InvestmentPanel'
+import { InvestmentChart } from './InvestmentChart'
 import { JobSearchPanel } from './JobSearchPanel'
 import { UniversityPanel } from './UniversityPanel'
 import { EventCard } from './EventCard'
@@ -113,6 +114,9 @@ export function GameScreen() {
           {!pendingEvent && esCercaFeina && <JobSearchPanel />}
           {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
           {!pendingEvent && esCarrera && !esCercaFeina && <InvestmentPanel />}
+          {esCarrera && state.patrimoniHist && state.patrimoniHist.length >= 2 && (
+            <InvestmentChart hist={state.patrimoniHist} />
+          )}
           {!pendingEvent && esAnual && (
             <button
               onClick={() => nextTurn()}
