@@ -83,6 +83,8 @@ export function InvestmentPanel() {
   const minOci = minimOciAnual(income)
   const desgravacio = desgravacioPensions(pla.fonsPensions)
   const benNivell = benestarNivellVida(nivell, state.vidaSenzilla)
+  // Benestar felt de l'any: oci + nivell de vida (tots dos es noten cada any).
+  const benestarAny = benestar + benNivell
   // Petjada ecològica (indicador cosmètic): com més consum/patrimoni material, més alta.
   const petjada =
     nivell === 'alt' || state.person.patrimoni.cases.length > 0
@@ -254,18 +256,18 @@ export function InvestmentPanel() {
           <span className="text-slate-400">{t('pla.benestar')}</span>
           <span
             className={`font-semibold ${
-              benestar > 0
+              benestarAny > 0
                 ? 'text-emerald-300'
-                : benestar < 0
+                : benestarAny < 0
                   ? 'text-amber-400'
                   : 'text-slate-300'
             }`}
           >
-            {benestar > 0 ? '+' : ''}
-            {benestar}
+            {benestarAny > 0 ? '+' : ''}
+            {benestarAny}
           </span>
         </div>
-        {benestar <= 0 && (
+        {benestar < 0 && (
           <p className="text-xs text-amber-400/80">
             {t('pla.benestar.min', { min: formatEuros(perMes(minOci)) })}
           </p>

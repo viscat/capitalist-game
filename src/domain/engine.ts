@@ -34,6 +34,7 @@ import {
   applyEffect,
   balancUniversitatAnual,
   baselineBenestar,
+  benestarNivellVida,
   clampBenestar,
   costVidaPropi,
   defaultBudget,
@@ -370,6 +371,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       costHabitatgeAnual(habitatge),
       state.familia,
       aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0)),
+      benestarNivellVida(state.nivellVida, state.vidaSenzilla),
     )
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi
