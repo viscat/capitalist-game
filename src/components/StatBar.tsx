@@ -5,16 +5,20 @@ export function StatBar({
   benestar,
   vincles = 0,
   sequela = 0,
+  academic = 0,
 }: {
   benestar: number
   /** Vincles socials 0..1 (font de benestar no monetària). */
   vincles?: number
   /** Penalització crònica de benestar acumulada (seqüeles). */
   sequela?: number
+  /** Nivell acadèmic 0..1 (millora sou i ocupabilitat en sortir de la universitat). */
+  academic?: number
 }) {
   const { t } = useT()
   const value = Math.round(benestar)
   const vinclesPct = Math.round(vincles * 100)
+  const academicPct = Math.round(academic * 100)
   return (
     <div className="rounded-xl bg-slate-800/60 p-4">
       <div className="mb-2 flex items-baseline justify-between">
@@ -34,7 +38,7 @@ export function StatBar({
           style={{ width: `${value}%` }}
         />
       </div>
-      {(vinclesPct > 0 || sequela > 0) && (
+      {(vinclesPct > 0 || sequela > 0 || academicPct > 0) && (
         <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-2.5">
           {vinclesPct > 0 && (
             <div>
@@ -46,6 +50,20 @@ export function StatBar({
                 <div
                   className="h-full rounded-full bg-rose-400/80 transition-all duration-500"
                   style={{ width: `${vinclesPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {academicPct > 0 && (
+            <div>
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="text-slate-400">🎓 {t('stat.academic')}</span>
+                <span className="text-slate-400">{academicPct}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-sky-400/80 transition-all duration-500"
+                  style={{ width: `${academicPct}%` }}
                 />
               </div>
             </div>

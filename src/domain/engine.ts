@@ -28,6 +28,7 @@ import { FAMILY_PRESETS } from './family/presets'
 import { MILESTONES } from './milestones'
 import { rng, seedFromTime } from './rng'
 import {
+  ajudaCasaBenestar,
   aportacioFamiliarCarrera,
   aportacioMinima,
   applyBudgetYear,
@@ -405,6 +406,10 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
           (pagaMensual(state.familia) + estipendiMensual) * MESOS_PER_ANY,
       },
     }
+    // Ajuda obligatòria a casa/negoci familiar (més en famílies humils): menys temps i
+    // energia propis. El temps compromès es reflecteix al pressupost de l'ActionPanel; aquí
+    // se n'aplica el cost de benestar.
+    person = applyEffect(person, { benestar: ajudaCasaBenestar(state.familia) })
   }
 
   // Habitatge (fases adultes): l'immoble es revalora i la hipoteca s'amortitza.
@@ -582,6 +587,12 @@ function resolveEvent(
       ? Math.max(0, Math.min(1, (state.vinclesSocials ?? 0) + vinclesDelta))
       : state.vinclesSocials
 
+  // Nivell acadèmic (0..1): s'acumula amb l'esforç a la universitat.
+  const nivellAcademic =
+    effect.academicDelta !== undefined
+      ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + effect.academicDelta))
+      : state.nivellAcademic
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
@@ -591,6 +602,7 @@ function resolveEvent(
     ultimAugmentMes,
     salutCronica,
     vinclesSocials,
+    nivellAcademic,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],

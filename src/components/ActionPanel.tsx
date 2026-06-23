@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { MESOS_PER_ANY, SETMANES_ANY } from '../domain/constants'
-import { pagaMensual } from '../domain/stats'
+import { ajudaCasaSetmanes, pagaMensual } from '../domain/stats'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
@@ -20,22 +20,27 @@ export function ActionPanel() {
   const dinersInicials =
     state.person.patrimoni.efectiu + pagaMensual(state.familia) * MESOS_PER_ANY
 
+  // Setmanes ja compromeses ajudant a casa (més en famílies humils): redueixen el temps
+  // lliure disponible per a activitats.
+  const tempsCompromes = ajudaCasaSetmanes(state.familia)
+  const tempsTotal = Math.max(0, SETMANES_ANY - tempsCompromes)
+
   const triades = actions.filter((o) => selected.has(o.action.id))
   const tempsUsat = triades.reduce((s, o) => s + (o.action.setmanes ?? 0), 0)
   const dinersDelta = triades.reduce((s, o) => s + (o.action.effect.efectiu ?? 0), 0)
-  const tempsRestant = SETMANES_ANY - tempsUsat
+  const tempsRestant = tempsTotal - tempsUsat
   const dinersRestants = dinersInicials + dinersDelta
 
   const potAfegir = (id: string, setmanes: number, cost: number) =>
     !selected.has(id) &&
-    tempsUsat + setmanes <= SETMANES_ANY &&
+    tempsUsat + setmanes <= tempsTotal &&
     dinersRestants + cost >= 0
 
   const toggle = (id: string, setmanes: number, cost: number) => {
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
-      else if (tempsUsat + setmanes <= SETMANES_ANY && dinersRestants + cost >= 0)
+      else if (tempsUsat + setmanes <= tempsTotal && dinersRestants + cost >= 0)
         next.add(id)
       return next
     })
@@ -46,7 +51,7 @@ export function ActionPanel() {
     setSelected(new Set())
   }
 
-  const pctTemps = Math.round((tempsUsat / SETMANES_ANY) * 100)
+  const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -57,12 +62,17 @@ export function ActionPanel() {
       <div className="mb-3 space-y-2 rounded-lg bg-slate-900/40 p-3">
         <div className="flex items-baseline justify-between text-xs">
           <span className="text-slate-400">
-            ⏳ {t('action.temps')}: {tempsRestant}/{SETMANES_ANY} {t('action.setmanes')}
+            ⏳ {t('action.temps')}: {tempsRestant}/{tempsTotal} {t('action.setmanes')}
           </span>
           <span className={`font-medium ${dinersRestants < 0 ? 'text-red-400' : 'text-emerald-300'}`}>
             💶 {formatEuros(dinersRestants)}
           </span>
         </div>
+        {tempsCompromes > 0 && (
+          <p className="text-xs text-amber-400/80">
+            🏠 {t('action.ajudaCasa', { setmanes: tempsCompromes })}
+          </p>
+        )}
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
           <div
             className="h-full rounded-full bg-indigo-500 transition-all"

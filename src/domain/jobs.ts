@@ -51,8 +51,16 @@ export function ocupabilitat(state: GameState): number {
   const penalitzacioEdat = clamp((edatAnys(state.person.edatMesos) - 25) / 15, 0, 1) * 0.1
   // Discriminació d'accés per origen (currículums descartats, menys xarxa).
   const penalitzacioOrigen = penalitzacioOcupabilitatOrigen(state.identitat)
+  // Haver estudiat a fons (nivell acadèmic) millora l'accés a feina.
+  const academic = (state.nivellAcademic ?? 0) * 0.15
   return clamp(
-    eduScore(state) + contactes + experiencia + anim - penalitzacioEdat - penalitzacioOrigen,
+    eduScore(state) +
+      contactes +
+      experiencia +
+      anim +
+      academic -
+      penalitzacioEdat -
+      penalitzacioOrigen,
     0,
     1,
   )
@@ -60,7 +68,11 @@ export function ocupabilitat(state: GameState): number {
 
 /** Sou BRUT mensual de referència d'una oferta: el de partida adult millorat per experiència. */
 export function salariBaseOferta(state: GameState): number {
-  const base = salariAdultInicial(state.familia, state.teDiploma ?? false)
+  const base = salariAdultInicial(
+    state.familia,
+    state.teDiploma ?? false,
+    state.nivellAcademic,
+  )
   const ambExperiencia = base * (1 + clamp(anysExperiencia(state) / 10, 0, 1) * 0.4)
   // El sou ofert porta la bretxa de gènere/origen (discriminació salarial).
   return Math.round(ambExperiencia * factorSalariPersonal(state.identitat))

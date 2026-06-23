@@ -609,17 +609,36 @@ export function aportacioFamiliarCarrera(familia: Familia, netMensual: number): 
   return Math.round(mensual) * MESOS_PER_ANY
 }
 
-/** Pressupost mensual per defecte; respecta l'aportació mínima obligatòria a casa. */
-export function defaultBudget(income: number, minCasa = 0): Budget {
-  const round = (n: number) => Math.max(0, Math.round(n / 5) * 5)
-  const casa = Math.max(round(income * 0.1), minCasa)
-  const rest = Math.max(0, income - casa)
-  return {
-    casa,
-    estalvi: round(rest * 0.4),
-    oci: round(rest * 0.35),
-    compres: round(rest * 0.25),
-  }
+/**
+ * Pressupost mensual per defecte: només es pre-omple l'**obligatori** (l'aportació mínima a
+ * casa); tota la resta (estalvi, oci, compres) comença a **0** perquè el jugador el
+ * construeixi des de zero i mai parteixi d'un pressupost que supera l'ingrés.
+ */
+export function defaultBudget(_income: number, minCasa = 0): Budget {
+  return { casa: minCasa, estalvi: 0, oci: 0, compres: 0 }
+}
+
+// Setmanes de l'any (de 52) que un jove ja té compromeses ajudant a casa o al negoci
+// familiar, segons la classe: les famílies humils necessiten que els fills hi ajudin molt,
+// cosa que els deixa MENYS temps lliure per a activitats. És una de les maneres com l'origen
+// limita les oportunitats de la joventut.
+const AJUDA_CASA_SETMANES: Record<FamilyClass, number> = {
+  pobra: 18,
+  treballadora: 12,
+  mitjana: 4,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
+/** Setmanes anuals que el jove dedica obligatòriament a ajudar a casa (per classe). */
+export function ajudaCasaSetmanes(familia: Familia): number {
+  return AJUDA_CASA_SETMANES[familia.classe]
+}
+
+/** Cost de benestar (modest) de l'ajuda obligatòria a casa: menys temps i energia propis. */
+export function ajudaCasaBenestar(familia: Familia): number {
+  return -Math.round(ajudaCasaSetmanes(familia) / 9)
 }
 
 /** Despesa mínima en oci+compres per no perdre benestar (≈ 12% de l'ingrés, acotat). */
@@ -736,14 +755,24 @@ export function balancUniversitatAnual(familia: Familia): number {
  * Les classes pobra i treballadora comencen la vida adulta amb el salari mínim (el títol
  * universitari, si en tenen, s'hi suma per damunt). El salari mínim és el terra per a tothom.
  */
-export function salariAdultInicial(familia: Familia, teDiploma: boolean): number {
+export function salariAdultInicial(
+  familia: Familia,
+  teDiploma: boolean,
+  nivellAcademic = 0,
+): number {
   const premi = teDiploma ? PREMI_DIPLOMA : 0
+  // Bonus per haver estudiat a fons: l'esforç acadèmic es paga amb un sou de partida millor.
+  const bonusAcademic = Math.round(nivellAcademic * 600)
   if (familia.classe === 'pobra' || familia.classe === 'treballadora') {
-    return SALARI_MINIM_MENSUAL + premi
+    return SALARI_MINIM_MENSUAL + premi + bonusAcademic
   }
   const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
   const sou =
-    SALARI_ADULT_BASE + premi + plusContactes - PRECARIETAT_SALARI[familia.classe]
+    SALARI_ADULT_BASE +
+    premi +
+    bonusAcademic +
+    plusContactes -
+    PRECARIETAT_SALARI[familia.classe]
   return Math.max(SALARI_MINIM_MENSUAL, Math.round(sou / 25) * 25)
 }
 

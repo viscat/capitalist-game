@@ -12,6 +12,7 @@ import type { Budget } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { AmountStepper } from './AmountStepper'
 
 const CATEGORIES: (keyof Budget)[] = ['estalvi', 'oci', 'compres', 'casa']
 
@@ -50,13 +51,9 @@ export function BudgetPanel() {
   const minOciCompres = minimOciCompres(income)
 
   const minOf = (k: keyof Budget) => (k === 'casa' ? minCasa : 0)
-
-  const set = (k: keyof Budget, delta: number) => {
-    // Pots assignar per sobre del sou mentre ho cobreixin els teus estalvis.
-    if (delta > 0 && total + delta > assignable) return
-    const next = Math.max(minOf(k), budget[k] + delta)
-    setBudget({ ...budget, [k]: next })
-  }
+  // Marge disponible: el que encara es pot assignar sense passar del que es pot pagar
+  // (ingrés + estalvis). El màxim per partida és el seu valor actual + aquest marge.
+  const marge = Math.max(0, assignable - total)
 
   return (
     <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
@@ -82,25 +79,14 @@ export function BudgetPanel() {
                   : t(`budget.${k}.desc`)}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => set(k, -PAS_PRESSUPOST)}
-                disabled={budget[k] <= minOf(k)}
-                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
-              >
-                −
-              </button>
-              <span className="w-16 text-right font-mono text-sm text-slate-100">
-                {formatEuros(budget[k])}
-              </span>
-              <button
-                onClick={() => set(k, PAS_PRESSUPOST)}
-                disabled={total + PAS_PRESSUPOST > assignable}
-                className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
-              >
-                +
-              </button>
-            </div>
+            <AmountStepper
+              value={budget[k]}
+              min={minOf(k)}
+              max={budget[k] + marge}
+              step={PAS_PRESSUPOST}
+              onChange={(v) => setBudget({ ...budget, [k]: v })}
+              ariaLabel={t(`budget.${k}`)}
+            />
           </div>
         ))}
       </div>

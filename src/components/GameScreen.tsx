@@ -90,6 +90,7 @@ export function GameScreen() {
             benestar={person.stats.benestar}
             vincles={state.vinclesSocials}
             sequela={state.salutCronica}
+            academic={state.nivellAcademic}
           />
           <PatrimoniPanel
             person={person}

@@ -207,6 +207,12 @@ export interface EventEffect {
    * s'està desbordat per la precarietat.
    */
   vinclesDelta?: number
+  /**
+   * Variació del nivell acadèmic (0..1 a `GameState.nivellAcademic`): esforç i rendiment a
+   * la universitat. No dóna benestar immediat, però millora el sou de partida i
+   * l'ocupabilitat en sortir.
+   */
+  academicDelta?: number
 }
 
 export interface EventChoice {
@@ -328,6 +334,11 @@ export interface GameState {
    * monetària (P7) que pot sostenir una vida plena amb poc patrimoni. Absent = 0.
    */
   vinclesSocials?: number
+  /**
+   * Nivell acadèmic (0..1): esforç/rendiment acumulat a la universitat. Millora el sou de
+   * partida i l'ocupabilitat en entrar a la carrera. Absent = 0.
+   */
+  nivellAcademic?: number
   /**
    * El jugador ha triat explícitament una «vida senzilla» (frugalitat per elecció): viure
    * amb el mínim deixa de penalitzar el benestar (no és privació, és tria). Absent = false.
