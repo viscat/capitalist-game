@@ -232,8 +232,9 @@ export function adultBaselineBenestar(state: GameState): number {
   // El patrimoni net ja descompta el deute; pesa menys que abans (P7: 16→10), perquè
   // la riquesa acumulada no és el factor dominant del benestar a la vida adulta.
   const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
-  let base =
-    38 + econ * 30 + wealth * 10 + benestarNivellVida(state.nivellVida, state.vidaSenzilla)
+  // El nivell de vida ja NO desplaça el baseline (es notava massa poc per la deriva):
+  // ara és un delta anual felt a `applyCareerYear`, com l'oci.
+  let base = 38 + econ * 30 + wealth * 10
   if (incomeM === 0) base -= 12
   // Factor NO monetari (P7): vincles, temps, comunitat, sentit. És SUBSTITUTIU, no additiu,
   // per als rics: qui ja té molt patrimoni no acumula benestar per duplicat (el seu wealth
@@ -420,7 +421,7 @@ const FACTOR_HERENCIA_VIDA: Record<FamilyClass, number> = {
   mitjana: 0.005,
   alta: 0.015,
   rica: 0.03,
-  super_rica: 0.025,
+  super_rica: 0.04,
 }
 
 // Impost de successions progressiu (knob redistributiu sobre l'herència en vida, P6):
@@ -481,6 +482,20 @@ export function petjadaEcologicaBenestar(
 ): number {
   const p = (nivell === 'alt' ? 2 : 0) + cases
   return Math.min(p, 5)
+}
+
+/**
+ * Escala un import base segons un multiplicador per classe. Per a esdeveniments el sentit
+ * dels quals depèn del context: una mateixa xifra no significa el mateix per a una família
+ * pobra que per a una de rica (una herència de 8.000 € és transformadora per a l'una i
+ * simbòlica per a l'altra; una "ajuda a la família" no té sentit en una llar super-rica).
+ */
+export function escalaPerClasse(
+  base: number,
+  classe: FamilyClass,
+  mapa: Record<FamilyClass, number>,
+): number {
+  return Math.round(base * mapa[classe])
 }
 
 /**
@@ -742,18 +757,19 @@ export function costVidaAnual(nivell: NivellVida = NIVELL_VIDA_DEFAULT): number 
   return COST_VIDA_NIVELLS[nivell]
 }
 
-// Un nivell de vida més alt (millor menjar, més confort) dóna una mica de benestar;
-// un de mínim, en treu. És el contrapès de gastar més o menys en el dia a dia.
+// Un nivell de vida més alt (millor menjar, més confort) dóna benestar cada any; un de
+// mínim, en treu. És un DELTA ANUAL felt (com l'oci), no una empenta lenta del baseline:
+// així triar el nivell de vida es nota de debò al benestar (viure bé ara vs invertir).
 const COST_VIDA_BENESTAR: Record<NivellVida, number> = {
-  minim: -3,
+  minim: -4,
   mig: 0,
-  alt: 3,
+  alt: 4,
 }
 
 /**
- * Efecte del nivell de vida sobre el benestar de referència adult. Si s'ha triat una
- * «vida senzilla» (frugalitat per elecció), viure amb el mínim deixa de penalitzar: no és
- * privació, és una tria legítima.
+ * Efecte ANUAL del nivell de vida sobre el benestar (s'aplica cada any a `applyCareerYear`,
+ * al costat de l'oci). Si s'ha triat una «vida senzilla» (frugalitat per elecció), viure amb
+ * el mínim deixa de penalitzar: no és privació, és una tria legítima.
  */
 export function benestarNivellVida(
   nivell: NivellVida = NIVELL_VIDA_DEFAULT,
@@ -891,6 +907,7 @@ export function applyCareerYear(
   costHabitatge = 0,
   familia?: Familia,
   aportacioFamilia = 0,
+  benestarNivell = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
   // Sostre del deute: cap entitat presta sense fre. Es pot deure fins a ~2,5 anys
@@ -951,12 +968,13 @@ export function applyCareerYear(
   patrimoni.estalvi = Math.round(estalvi)
   patrimoni.deute = deute > 0 ? Math.round(deute) : undefined
 
-  // El benestar d'aquest any reflecteix l'estil de vida (oci) i el XOC d'un dèficit nou
-  // no finançable. L'estrès CRÒNIC de viure endeutat NO es resta aquí (seria doble
-  // comptabilitat): ja rebaixa la referència a `adultBaselineBenestar`, cap a la qual
-  // deriva el benestar.
+  // El benestar d'aquest any reflecteix l'estil de vida (oci + nivell de vida) i el XOC
+  // d'un dèficit nou no finançable. L'estrès CRÒNIC de viure endeutat NO es resta aquí
+  // (seria doble comptabilitat): ja rebaixa la referència a `adultBaselineBenestar`.
   const deltaBenestar =
-    benestarOciAnual(pla.oci, annualIncome) - penalitzacioDescobert(nouDescobert)
+    benestarOciAnual(pla.oci, annualIncome) +
+    benestarNivell -
+    penalitzacioDescobert(nouDescobert)
   const stats = {
     ...person.stats,
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),

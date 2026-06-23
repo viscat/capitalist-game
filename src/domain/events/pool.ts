@@ -1,5 +1,15 @@
-import { careScore, econSecurity } from '../stats'
-import type { GameEvent } from '../types'
+import { careScore, econSecurity, escalaPerClasse } from '../stats'
+import type { FamilyClass, GameEvent } from '../types'
+
+// L'herència escala amb el patrimoni de la família d'origen (com a la vida adulta).
+const HERENCIA_PES: Record<FamilyClass, number> = {
+  pobra: 0.4,
+  treballadora: 0.6,
+  mitjana: 1,
+  alta: 2,
+  rica: 4,
+  super_rica: 8,
+}
 
 // Catàleg d'esdeveniments de la fase d'infància (0-12 anys, 1 torn = 1 any).
 // El `weight` pondera la probabilitat segons el context familiar: així el mateix
@@ -99,9 +109,11 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
     category: 'regal',
     titleKey: 'event.herencia.title',
     descKey: 'event.herencia.desc',
-    params: { amount: 500 },
     weight: () => 0.4,
-    effect: { estalvi: 500, benestar: -3 },
+    resolve: (s) => ({
+      estalvi: escalaPerClasse(500, s.familia.classe, HERENCIA_PES),
+      benestar: -3,
+    }),
   },
   {
     id: 'malaltia_lleu',
@@ -169,6 +181,66 @@ export const CHILDHOOD_EVENTS: GameEvent[] = [
       {
         id: 'no',
         labelKey: 'event.extraescolar.choice.no',
+        effect: { benestar: -1 },
+      },
+    ],
+  },
+  // Decisions de la infància (P3/WS3): donen agència a una etapa abans passiva. Les
+  // oportunitats d'enriquiment es ponderen pels recursos (els fills de llars acomodades en
+  // reben més); les de caràcter/comunitat (fer pinya) són per a tothom i teixeixen vincles.
+  {
+    id: 'equip_esport',
+    category: 'escola',
+    titleKey: 'event.equip_esport.title',
+    descKey: 'event.equip_esport.desc',
+    weight: (f) => 1 + econSecurity(f) * 1.5,
+    choices: [
+      {
+        id: 'apuntar',
+        labelKey: 'event.equip_esport.choice.apuntar',
+        effect: { benestar: 7, vinclesDelta: 0.05 },
+      },
+      {
+        id: 'ara_no',
+        labelKey: 'event.equip_esport.choice.ara_no',
+        effect: { benestar: -1 },
+      },
+    ],
+  },
+  {
+    id: 'instrument',
+    category: 'escola',
+    titleKey: 'event.instrument.title',
+    descKey: 'event.instrument.desc',
+    weight: (f) => 0.6 + econSecurity(f) * 2,
+    choices: [
+      {
+        id: 'aprendre',
+        labelKey: 'event.instrument.choice.aprendre',
+        effect: { benestar: 6 },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.instrument.choice.no',
+        effect: { benestar: 0 },
+      },
+    ],
+  },
+  {
+    id: 'fer_pinya',
+    category: 'familia',
+    titleKey: 'event.fer_pinya.title',
+    descKey: 'event.fer_pinya.desc',
+    weight: () => 1.2,
+    choices: [
+      {
+        id: 'ajudar',
+        labelKey: 'event.fer_pinya.choice.ajudar',
+        effect: { benestar: 4, vinclesDelta: 0.06 },
+      },
+      {
+        id: 'passar',
+        labelKey: 'event.fer_pinya.choice.passar',
         effect: { benestar: -1 },
       },
     ],

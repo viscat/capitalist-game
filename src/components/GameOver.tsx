@@ -1,4 +1,5 @@
 import { patrimoniTotal } from '../domain/stats'
+import { InvestmentChart } from './InvestmentChart'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { benestarLevelKey, formatEuros } from '../lib/format'
@@ -104,6 +105,12 @@ export function GameOver() {
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
         </div>
+
+        {state.patrimoniHist && state.patrimoniHist.length >= 2 && (
+          <div className="mt-4 text-left">
+            <InvestmentChart hist={state.patrimoniHist} />
+          </div>
+        )}
 
         <p className="mt-6 text-sm italic text-slate-500">{t('gameover.soon')}</p>
         <button

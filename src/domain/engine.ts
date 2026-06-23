@@ -12,7 +12,8 @@ import {
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
 import { generaOfertes } from './jobs'
-import { ADOLESCENCE_ACTIONS, findAction } from './actions/adolescencia'
+import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
+import { UNIVERSITY_ACTIONS } from './actions/universitat'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
 import { ATUR_ADULT_EVENTS, CARRERA_EVENTS, UNIVERSITAT_EVENTS } from './events/adult'
@@ -34,6 +35,7 @@ import {
   applyEffect,
   balancUniversitatAnual,
   baselineBenestar,
+  benestarNivellVida,
   clampBenestar,
   costVidaPropi,
   defaultBudget,
@@ -58,6 +60,7 @@ import type {
   ActionOption,
   EventEffect,
   FamilyClass,
+  GameAction,
   GameEvent,
   GameState,
   Identitat,
@@ -182,9 +185,21 @@ function turnMonths(): number {
   return MESOS_PER_ANY
 }
 
-/** Fases en què el jugador tria una acció de targeta cada torn. */
+/** Fases en què el jugador tria accions de targeta cada torn. */
 function isActionStage(stage: LifeStage): boolean {
-  return stage === 'adolescencia' || stage === 'estudis_post'
+  return (
+    stage === 'adolescencia' || stage === 'estudis_post' || stage === 'universitat'
+  )
+}
+
+/** Catàleg d'accions corresponent a la fase d'acció actual. */
+function stageActions(state: GameState): GameAction[] {
+  switch (state.lifeStage) {
+    case 'universitat':
+      return UNIVERSITY_ACTIONS
+    default:
+      return ADOLESCENCE_ACTIONS
+  }
 }
 
 /**
@@ -247,8 +262,10 @@ function resolveEffect(
 }
 
 /**
- * Totes les accions de targeta amb el seu estat. No s'amaguen: les que no es
- * poden fer es retornen `disabled` amb el motiu (temporada, diners o benestar).
+ * Accions disponibles a la fase d'acció actual. Només es marquen `disabled` per
+ * disponibilitat de context (p. ex. temporada); el cost en diners i temps el gestiona
+ * la UI de manera acumulada (multiselecció), ja que se'n poden triar diverses l'any.
+ * No triar res sempre és vàlid (temps lliure), així que el torn mai es bloqueja.
  * Buit fora de les fases d'acció.
  */
 export function actionOptions(state: GameState): ActionOption[] {
@@ -260,34 +277,12 @@ export function actionOptions(state: GameState): ActionOption[] {
   ) {
     return []
   }
-  // Caixa prevista després d'ingressar la paga de l'any (no hi ha deute).
-  const caixaPrevista =
-    state.person.patrimoni.efectiu +
-    pagaMensual(state.familia) * MESOS_PER_ANY
-  const benestar = state.person.stats.benestar
-
-  const options = ADOLESCENCE_ACTIONS.map((action): ActionOption => {
+  return stageActions(state).map((action): ActionOption => {
     if (action.available && !action.available(state)) {
       return { action, disabled: true, reasonKey: action.lockedReasonKey }
     }
-    const cost = action.effect.efectiu ?? 0
-    if (cost < 0 && caixaPrevista + cost < 0) {
-      return { action, disabled: true, reasonKey: 'action.locked.diners' }
-    }
-    const deltaBenestar = action.effect.benestar ?? 0
-    if (deltaBenestar < 0 && benestar + deltaBenestar < 0) {
-      return { action, disabled: true, reasonKey: 'action.locked.benestar' }
-    }
     return { action, disabled: false }
   })
-
-  // Garantia: sempre hi ha d'haver una opció jugable (l'any tranquil),
-  // perquè el torn mai es bloquegi del tot.
-  if (options.every((o) => o.disabled)) {
-    const fallback = options.find((o) => o.action.id === 'mes_tranquil')
-    if (fallback) fallback.disabled = false
-  }
-  return options
 }
 
 /**
@@ -298,7 +293,7 @@ export function actionOptions(state: GameState): ActionOption[] {
  * Després pot saltar un esdeveniment; si requereix decisió, queda pendent fins a
  * `applyChoice`.
  */
-export function advanceTurn(state: GameState, actionId?: string): GameState {
+export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   if (state.acabat || state.pendingEvent || state.pendingMilestone) return state
 
   const stage = state.lifeStage
@@ -327,6 +322,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     stats: { ...state.person.stats, benestar },
   }
   let habitatge = state.habitatge
+  let patrimoniHist = state.patrimoniHist
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -381,7 +377,18 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
       costHabitatgeAnual(habitatge),
       state.familia,
       aportacioFamiliarCarrera(state.familia, netMensual(state.salari ?? 0)),
+      benestarNivellVida(state.nivellVida, state.vidaSenzilla),
     )
+    // Instantània anual del patrimoni invertit, per al gràfic de rendiment.
+    patrimoniHist = [
+      ...(state.patrimoniHist ?? []),
+      {
+        edat: anys,
+        fonsIndexat: person.patrimoni.fonsIndexat,
+        fonsPensions: person.patrimoni.fonsPensions,
+        estalvi: person.patrimoni.estalvi,
+      },
+    ]
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi
     // es decideixen en mensual i s'ingressen per tot l'any (× 12).
@@ -420,10 +427,12 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
 
   const entries: LogEntry[] = []
 
-  // Acció voluntària (fases d'estudi).
-  if (isActionStage(stage) && actionId) {
-    const action = findAction(actionId)
-    if (action) {
+  // Accions voluntàries de l'any (fases d'acció): se'n poden haver triat diverses.
+  if (isActionStage(stage) && actionIds) {
+    const cataleg = stageActions(state)
+    for (const actionId of actionIds) {
+      const action = cataleg.find((a) => a.id === actionId)
+      if (!action) continue
       person = applyEffect(person, action.effect)
       entries.push({
         torn,
@@ -450,6 +459,7 @@ export function advanceTurn(state: GameState, actionId?: string): GameState {
     torn,
     person,
     habitatge,
+    patrimoniHist,
     anysExperiencia,
     rngState: nextRng,
     ultimEventId: event.id,

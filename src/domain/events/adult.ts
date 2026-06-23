@@ -1,5 +1,29 @@
-import { augmentSou } from '../stats'
+import { augmentSou, escalaPerClasse } from '../stats'
 import type { FamilyClass, GameEvent } from '../types'
+
+// Probabilitat que la família d'origen et demani ajuda econòmica, per classe: alta per a
+// les llars precàries (la teva renda hi és necessària), gairebé nul·la per a les acomodades
+// (els pares no et demanen diners; si de cas, te'n donen). Corregeix la incoherència que una
+// família super-rica "passi un mal moment" i et demani diners.
+const AJUT_FAMILIA_PES: Record<FamilyClass, number> = {
+  pobra: 1,
+  treballadora: 0.9,
+  mitjana: 0.6,
+  alta: 0.3,
+  rica: 0.1,
+  super_rica: 0.05,
+}
+
+// L'herència escala amb el patrimoni de la família d'origen: petita per a les llars
+// humils, gran per a les riques. Una mateixa xifra no és coherent per a totes les classes.
+const HERENCIA_PES: Record<FamilyClass, number> = {
+  pobra: 0.4,
+  treballadora: 0.6,
+  mitjana: 1,
+  alta: 2,
+  rica: 4,
+  super_rica: 8,
+}
 
 // Exposició a xocs de salut segons la classe d'origen (P5). La precarietat —pitjor
 // feina, més estrès físic, menys prevenció, pitjor entorn— hi exposa MÉS. No és una
@@ -320,9 +344,12 @@ export const CARRERA_EVENTS: GameEvent[] = [
     category: 'regal',
     titleKey: 'event.herencia_adult.title',
     descKey: 'event.herencia_adult.desc',
-    params: { amount: 8000 },
     weight: () => 0.4,
-    effect: { estalvi: 8000, benestar: -4 },
+    // L'import heretat escala amb la riquesa de la família d'origen.
+    resolve: (s) => ({
+      estalvi: escalaPerClasse(8000, s.familia.classe, HERENCIA_PES),
+      benestar: -4,
+    }),
   },
   // --- Salut (P5): catàstrofe per al ric, erosió estructural per al pobre ---
   {
@@ -390,7 +417,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
     titleKey: 'event.ajudar_familia_adult.title',
     descKey: 'event.ajudar_familia_adult.desc',
     params: { amount: 3000 },
-    weight: () => 0.9,
+    weight: (f) => 0.9 * AJUT_FAMILIA_PES[f.classe],
     choices: [
       {
         id: 'ajudar',

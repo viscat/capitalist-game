@@ -94,7 +94,7 @@ function jugaPartida(s0: GameState, estrategia: Estrategia): {
         const jugable = opcions.find((o) => !o.disabled)
         // A les fases d'acció SEMPRE hi ha d'haver almenys una acció jugable.
         expect(jugable, `cap acció jugable a ${s.lifeStage}`).toBeTruthy()
-        s = advanceTurn(s, jugable!.action.id)
+        s = advanceTurn(s, [jugable!.action.id])
       } else {
         s = advanceTurn(s)
       }

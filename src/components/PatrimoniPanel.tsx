@@ -2,6 +2,7 @@ import {
   balancUniversitatAnual,
   desglosNominaMensual,
   estalviAnualCriatura,
+  factorSalariPersonal,
   pagaMensual,
   patrimoniTotal,
 } from '../domain/stats'
@@ -175,6 +176,13 @@ export function PatrimoniPanel({
           )}
           {identitat?.origen && (
             <Row label={t('create.origen')} value={t(`origen.${identitat.origen}`)} />
+          )}
+          {esAdult && factorSalariPersonal(identitat) < 1 && (
+            <p className="text-xs text-amber-400/80">
+              ⚖️ {t('patrimoni.bretxa', {
+                pct: Math.round((1 - factorSalariPersonal(identitat)) * 100),
+              })}
+            </p>
           )}
           {identitat && (
             <>

@@ -64,6 +64,8 @@ export const ca: Record<string, string> = {
     'Comences la teva vida en aquesta família. Prem «Següent any» per créixer.',
 
   'stat.benestar': 'Benestar',
+  'stat.benestar.tip':
+    'El benestar gravita cap a la teva referència d’entorn: es recupera lentament i cau de pressa (un cop dolent costa de remuntar).',
   'stat.vincles': 'Vincles',
   'stat.sequela': 'Seqüeles',
   'benestar.molt_baix': 'En la misèria',
@@ -81,6 +83,8 @@ export const ca: Record<string, string> = {
   'patrimoni.cases': 'Cases',
   'patrimoni.deute': 'Deute',
   'patrimoni.total': 'Patrimoni net',
+  'patrimoni.bretxa':
+    'Bretxa de gènere/origen: cobres ~{pct}% menys que algú altre amb el mateix currículum.',
 
   'context.title': 'Context familiar',
   'context.ingressos': 'Ingressos de la llar',
@@ -280,10 +284,24 @@ export const ca: Record<string, string> = {
     'No cobreixes {amount}/mes ni amb estalvis ni amb la família: es convertirà en deute.',
   'pla.deute': 'Deute pendent',
   'pla.deute.nota':
-    'Deus {amount}. Compon al {pct}% l’any i el teu marge va a pagar-lo: no pots invertir fins a saldar-lo.',
+    'Deus {amount}. Compon al {pct}% l’any i el teu marge va a pagar-lo: no pots invertir fins a saldar-lo. Hi ha un límit de préstec (uns 2,5 anys d’ingrés); el que no es pot ni finançar et resta benestar.',
+  'pla.sobrecost':
+    'La teva família paga un sobrecost pel mateix consum (habitatge precari, sense marge per negociar): la pobresa surt cara.',
   'pla.nota':
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',
+
+  'chart.title': 'Evolució de les teves inversions',
+
+  // Dedicació de l'any d'universitat
+  'uni.title': 'Com vius aquest curs?',
+  'uni.nota': 'Tria com enfoques l’any: cada opció té els seus pros i contres.',
+  'uni.estudis.label': 'Estudiar a fons',
+  'uni.estudis.desc': 'T’hi dediques de ple. Bones notes i propòsit, sense ingressos extra.',
+  'uni.treball.label': 'Treballar i estudiar',
+  'uni.treball.desc': 'Compagines una feineta amb els estudis: uns diners, però esgota.',
+  'uni.social.label': 'Vida universitària',
+  'uni.social.desc': 'Surts, fas pinya, potser un Erasmus. Vincles per a tota la vida.',
 
   // Cerca de feina (carrera a l'atur: entrada al món laboral o després d'un acomiadament)
   'jobsearch.title': 'Busques feina',
@@ -339,14 +357,20 @@ export const ca: Record<string, string> = {
 
   // Accions (adolescència) — un torn = un any
   'action.title': 'Què fas aquest any?',
-  'action.nota': 'Tria una cosa per a l’any. En triar-la, avances 12 mesos.',
+  'action.nota':
+    'Tria les coses que vols fer aquest any: pots combinar-ne diverses mentre tinguis temps i diners.',
+  'action.temps': 'Temps',
+  'action.setmanes': 'setm.',
+  'action.viu': 'Viu aquest any →',
+  'action.viuLliure': 'Un any tranquil →',
   'action.sortir_amics.label': 'Sortir amb els amics',
   'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
-  'action.mes_tranquil.label': 'Any tranquil',
-  'action.mes_tranquil.desc':
-    'Deixes passar l’any sense complicar-te. Una mica d’avorriment.',
+  'action.hobby.label': 'Una afició',
+  'action.hobby.desc': 'Música, esport, dibuix... Hi dediques temps i et fa feliç.',
   'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
   'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
+  'action.vendre_coses.label': 'Vendre coses de segona mà',
+  'action.vendre_coses.desc': 'Et treus uns calerons venent el que ja no fas servir.',
   'action.caprici.label': 'Donar-te un caprici',
   'action.caprici.desc': 'Aquella cosa que tant vols. Alegria immediata, butxaca buida.',
   'action.feina_estiu.label': 'Feina d’estiu',
@@ -451,7 +475,7 @@ export const ca: Record<string, string> = {
 
   'event.herencia.title': 'Una petita herència',
   'event.herencia.desc':
-    'Ha mort un familiar i t’ha deixat {amount} € al teu compte. Tristesa i diners alhora.',
+    'Ha mort un familiar i t’ha deixat uns diners al teu compte. Tristesa i diners alhora.',
 
   'event.malaltia_lleu.title': 'Has agafat la grip',
   'event.malaltia_lleu.desc':
@@ -481,6 +505,22 @@ export const ca: Record<string, string> = {
     'Pots apuntar-te a una activitat que t’agrada (esport, música...). T’hi apuntes?',
   'event.extraescolar.choice.apuntar': 'Apuntar-m’hi',
   'event.extraescolar.choice.no': 'Deixar-ho passar',
+
+  'event.equip_esport.title': 'Un equip d’esport',
+  'event.equip_esport.desc':
+    'Pots entrar a l’equip del barri: entrenaments, partits i colla nova. T’hi apuntes?',
+  'event.equip_esport.choice.apuntar': 'Apuntar-m’hi',
+  'event.equip_esport.choice.ara_no': 'Ara no',
+  'event.instrument.title': 'Aprendre un instrument',
+  'event.instrument.desc':
+    'Hi ha l’opció d’aprendre música. Costa constància, però omple.',
+  'event.instrument.choice.aprendre': 'Aprendre’n',
+  'event.instrument.choice.no': 'No, ara no',
+  'event.fer_pinya.title': 'Un amic ho passa malament',
+  'event.fer_pinya.desc':
+    'Un company de classe necessita una mà. L’ajudes encara que et costi temps?',
+  'event.fer_pinya.choice.ajudar': 'Ajudar-lo',
+  'event.fer_pinya.choice.passar': 'Passar-ne',
 
   // --- Esdeveniments d'adolescència (ESO) ---
   'event.examens.title': 'Època d’exàmens',
@@ -769,7 +809,7 @@ export const ca: Record<string, string> = {
 
   'event.herencia_adult.title': 'Una herència',
   'event.herencia_adult.desc':
-    'Es mor un familiar i t’hereta {amount} €. Tristesa i, alhora, un coixí.',
+    'Es mor un familiar i t’hereta el que tenia. Tristesa i, alhora, un coixí.',
 
   'event.ajudar_familia_adult.title': 'La família necessita ajuda',
   'event.ajudar_familia_adult.desc':

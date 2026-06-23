@@ -70,7 +70,8 @@ function step(s: GameState, itinerari = 'batxillerat'): GameState {
     return acceptarOferta(s, s.ofertesFeina[0].id)
   }
   if (s.lifeStage === 'adolescencia' || s.lifeStage === 'estudis_post') {
-    return advanceTurn(s, firstEnabled(s))
+    const a = firstEnabled(s)
+    return advanceTurn(s, a ? [a] : [])
   }
   return advanceTurn(s)
 }

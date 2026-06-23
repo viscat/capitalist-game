@@ -1,9 +1,10 @@
 import type { GameAction } from '../types'
 
-// Accions que l'adolescent pot triar cada any (un torn = un any). El nucli del joc
-// en aquesta fase és la tensió entre gastar (benestar immediat) i estalviar /
-// ingressar. Cada acció representa la decisió destacada de l'any (no és recurrent
-// mensual), per això els imports són puntuals.
+// Accions que el jove pot triar cada any (un torn = un any). Com que l'any és llarg,
+// se'n poden encadenar DIVERSES fins a esgotar el pressupost de TEMPS (setmanes) o de
+// DINERS: la tensió és repartir temps/diners entre gaudir, ingressar i descansar. Cada
+// acció té un cost de temps (`setmanes`) a banda del seu efecte econòmic/benestar.
+// No triar res = temps lliure (l'any passa sense efectes actius).
 export const ADOLESCENCE_ACTIONS: GameAction[] = [
   {
     id: 'sortir_amics',
@@ -11,20 +12,15 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     labelKey: 'action.sortir_amics.label',
     descKey: 'action.sortir_amics.desc',
     effect: { efectiu: -45, benestar: 6 },
+    setmanes: 10,
   },
   {
-    id: 'mes_tranquil',
-    category: 'familia',
-    labelKey: 'action.mes_tranquil.label',
-    descKey: 'action.mes_tranquil.desc',
-    effect: { benestar: -1 },
-  },
-  {
-    id: 'ajudar_casa',
-    category: 'economia',
-    labelKey: 'action.ajudar_casa.label',
-    descKey: 'action.ajudar_casa.desc',
-    effect: { efectiu: 60, benestar: -3 },
+    id: 'hobby',
+    category: 'escola',
+    labelKey: 'action.hobby.label',
+    descKey: 'action.hobby.desc',
+    effect: { efectiu: -60, benestar: 5 },
+    setmanes: 12,
   },
   {
     id: 'caprici',
@@ -32,6 +28,23 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     labelKey: 'action.caprici.label',
     descKey: 'action.caprici.desc',
     effect: { efectiu: -150, benestar: 9 },
+    setmanes: 4,
+  },
+  {
+    id: 'ajudar_casa',
+    category: 'economia',
+    labelKey: 'action.ajudar_casa.label',
+    descKey: 'action.ajudar_casa.desc',
+    effect: { efectiu: 60, benestar: -3 },
+    setmanes: 8,
+  },
+  {
+    id: 'vendre_coses',
+    category: 'economia',
+    labelKey: 'action.vendre_coses.label',
+    descKey: 'action.vendre_coses.desc',
+    effect: { efectiu: 40, benestar: -1 },
+    setmanes: 4,
   },
   {
     id: 'feina_estiu',
@@ -39,6 +52,7 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     labelKey: 'action.feina_estiu.label',
     descKey: 'action.feina_estiu.desc',
     effect: { efectiu: 700, benestar: -6 },
+    setmanes: 20,
   },
 ]
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ca } from './locales/ca'
 import { ADOLESCENCE_ACTIONS } from '../domain/actions/adolescencia'
+import { UNIVERSITY_ACTIONS } from '../domain/actions/universitat'
 import { ADOLESCENCE_EVENTS } from '../domain/events/adolescencia'
 import {
   ATUR_ADULT_EVENTS,
@@ -88,7 +89,7 @@ describe('cobertura i18n (català)', () => {
 
   it('totes les accions tenen etiqueta, descripció i motiu de bloqueig', () => {
     const missing: string[] = []
-    for (const a of ADOLESCENCE_ACTIONS) {
+    for (const a of [...ADOLESCENCE_ACTIONS, ...UNIVERSITY_ACTIONS]) {
       if (!has(a.labelKey)) missing.push(a.labelKey)
       if (!has(a.descKey)) missing.push(a.descKey)
       if (a.lockedReasonKey && !has(a.lockedReasonKey)) {

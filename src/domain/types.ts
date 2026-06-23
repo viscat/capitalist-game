@@ -246,6 +246,11 @@ export interface GameAction {
   labelKey: string
   descKey: string
   effect: EventEffect
+  /**
+   * Cost de TEMPS de l'acció en setmanes (sobre un pressupost anual de `SETMANES_ANY`).
+   * Permet triar diverses accions l'any fins que s'esgota el temps (o els diners).
+   */
+  setmanes?: number
   /** Disponible només si es compleix la condició de context (p. ex. estiu). */
   available?: (state: GameState) => boolean
   /** Motiu (clau i18n) que s'ensenya quan `available` falla. */
@@ -328,8 +333,21 @@ export interface GameState {
    * amb el mínim deixa de penalitzar el benestar (no és privació, és tria). Absent = false.
    */
   vidaSenzilla?: boolean
+  /**
+   * Instantànies anuals del patrimoni invertit (fase de carrera), per dibuixar-ne l'evolució
+   * en un gràfic. Una entrada per any viscut a la carrera.
+   */
+  patrimoniHist?: PatrimoniSnapshot[]
   historial: LogEntry[]
   acabat: boolean
+}
+
+/** Instantània anual del patrimoni invertit (per al gràfic de rendiment). */
+export interface PatrimoniSnapshot {
+  edat: number
+  fonsIndexat: number
+  fonsPensions: number
+  estalvi: number
 }
 
 /** Una acció amb el seu estat de disponibilitat per a la UI. */

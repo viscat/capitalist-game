@@ -25,7 +25,10 @@ export function StatBar({
           {t(benestarLevelKey(value))} · {value}/100
         </span>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-700">
+      <div
+        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
+        title={t('stat.benestar.tip')}
+      >
         <div
           className={`h-full rounded-full transition-all duration-500 ${benestarColor(value)}`}
           style={{ width: `${value}%` }}

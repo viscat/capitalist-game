@@ -6,6 +6,9 @@ export const BENESTAR_MAX = 100
 
 export const MESOS_PER_ANY = 12
 
+/** Pressupost de temps anual (setmanes) per a les accions de les fases joves. */
+export const SETMANES_ANY = 52
+
 /** Edat (en anys) a la qual la infància dóna pas a l'adolescència (institut). */
 export const EDAT_FI_INFANCIA = 12
 
