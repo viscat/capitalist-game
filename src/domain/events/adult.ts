@@ -6,9 +6,9 @@ import type { FamilyClass, GameEvent } from '../types'
 // (els pares no et demanen diners; si de cas, te'n donen). Corregeix la incoherència que una
 // família super-rica "passi un mal moment" i et demani diners.
 const AJUT_FAMILIA_PES: Record<FamilyClass, number> = {
-  pobra: 1.6,
-  treballadora: 1.3,
-  mitjana: 0.8,
+  pobra: 1,
+  treballadora: 0.9,
+  mitjana: 0.6,
   alta: 0.3,
   rica: 0.1,
   super_rica: 0.05,
