@@ -179,6 +179,10 @@ export function InvestmentPanel() {
               🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
             </p>
           )}
+          {(state.familia.classe === 'pobra' ||
+            state.familia.classe === 'treballadora') && (
+            <p className="mt-1 text-xs text-amber-400/80">💸 {t('pla.sobrecost')}</p>
+          )}
         </div>
 
         {/* Habitatge (lloguer o hipoteca): obligatori, no es pot modificar. */}

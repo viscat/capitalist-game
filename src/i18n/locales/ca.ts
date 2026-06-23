@@ -64,6 +64,8 @@ export const ca: Record<string, string> = {
     'Comences la teva vida en aquesta família. Prem «Següent any» per créixer.',
 
   'stat.benestar': 'Benestar',
+  'stat.benestar.tip':
+    'El benestar gravita cap a la teva referència d’entorn: es recupera lentament i cau de pressa (un cop dolent costa de remuntar).',
   'stat.vincles': 'Vincles',
   'stat.sequela': 'Seqüeles',
   'benestar.molt_baix': 'En la misèria',
@@ -81,6 +83,8 @@ export const ca: Record<string, string> = {
   'patrimoni.cases': 'Cases',
   'patrimoni.deute': 'Deute',
   'patrimoni.total': 'Patrimoni net',
+  'patrimoni.bretxa':
+    'Bretxa de gènere/origen: cobres ~{pct}% menys que algú altre amb el mateix currículum.',
 
   'context.title': 'Context familiar',
   'context.ingressos': 'Ingressos de la llar',
@@ -280,7 +284,9 @@ export const ca: Record<string, string> = {
     'No cobreixes {amount}/mes ni amb estalvis ni amb la família: es convertirà en deute.',
   'pla.deute': 'Deute pendent',
   'pla.deute.nota':
-    'Deus {amount}. Compon al {pct}% l’any i el teu marge va a pagar-lo: no pots invertir fins a saldar-lo.',
+    'Deus {amount}. Compon al {pct}% l’any i el teu marge va a pagar-lo: no pots invertir fins a saldar-lo. Hi ha un límit de préstec (uns 2,5 anys d’ingrés); el que no es pot ni finançar et resta benestar.',
+  'pla.sobrecost':
+    'La teva família paga un sobrecost pel mateix consum (habitatge precari, sense marge per negociar): la pobresa surt cara.',
   'pla.nota':
     'El pla és anual, però aquí els imports es mostren per mes (l’any sencer = × 12).',
   'pla.nextYear': 'Viu un any →',
