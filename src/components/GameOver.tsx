@@ -1,4 +1,13 @@
-import { patrimoniTotal } from '../domain/stats'
+import {
+  costVidaPropi,
+  patrimoniTotal,
+  pensioPublicaAnual,
+  rendaJubilacioAnual,
+  rendaPatrimoniAnual,
+  veredicteJubilacio,
+} from '../domain/stats'
+import { costHabitatgeAnual } from '../domain/housing'
+import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
 import { useGame } from '../state/GameContext'
@@ -31,16 +40,37 @@ export function GameOver() {
 
   const vincles = state.vinclesSocials ?? 0
   const sequela = state.salutCronica ?? 0
-  // Tipus de final. L'ESPIRAL (benestar arribat a 0) és una derrota i preval sobre tot:
-  // la partida ha acabat abans d'hora. La resta tenen la mateixa dignitat: una vida PLENA
-  // no-monetària (poc patrimoni però benestar i vincles forts) val tant com una de sòlida.
-  const finalTipus: 'espiral' | 'plena' | 'solid' | 'precaria' = state.espiral
+
+  // Balanç de jubilació (final als 67): renda de jubilació vs. necessitats anuals.
+  const pensioAnual = pensioPublicaAnual(state)
+  const rendaPatrimoni = rendaPatrimoniAnual(state.person)
+  const rendaAnual = rendaJubilacioAnual(state)
+  const necessitatsAnual =
+    costVidaPropi(state.familia, state.habitatge, state.nivellVida) +
+    costHabitatgeAnual(state.habitatge)
+  const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
+
+  // Tipus de final. L'ESPIRAL (benestar 0) és una derrota i preval. Si t'has jubilat (67),
+  // el veredicte és el balanç econòmic de la jubilació, EXCEPTE si has fet una "vida plena"
+  // no-monetària (benestar i vincles forts amb poc patrimoni), que es reconeix amb dignitat.
+  const finalTipus:
+    | 'espiral'
+    | 'plena'
+    | 'jub_daurada'
+    | 'jub_tranquila'
+    | 'jub_precaria'
+    | 'solid'
+    | 'precaria' = state.espiral
     ? 'espiral'
-    : benestar >= 55 && vincles >= 0.45 && total < 100_000
-      ? 'plena'
-      : total >= 150_000 || benestar >= 65
-        ? 'solid'
-        : 'precaria'
+    : state.jubilat
+      ? benestar >= 55 && vincles >= 0.45 && total < 100_000
+        ? 'plena'
+        : (`jub_${veredicte}` as const)
+      : benestar >= 55 && vincles >= 0.45 && total < 100_000
+        ? 'plena'
+        : total >= 150_000 || benestar >= 65
+          ? 'solid'
+          : 'precaria'
 
   return (
     <div className="flex min-h-full items-center justify-center p-6">
@@ -112,6 +142,40 @@ export function GameOver() {
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
         </div>
+
+        {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}
+        {state.jubilat && (
+          <div className="mt-4 rounded-xl bg-slate-800/60 p-5 text-left">
+            <h2 className="mb-3 text-sm font-semibold text-slate-300">
+              {t('gameover.jubilacio.titol')}
+            </h2>
+            <div className="space-y-1.5">
+              <Line
+                label={t('gameover.jubilacio.pensio')}
+                value={`${formatEuros(Math.round(pensioAnual / MESOS_PER_ANY))}/mes`}
+              />
+              <Line
+                label={t('gameover.jubilacio.rendaPatrimoni')}
+                value={`${formatEuros(Math.round(rendaPatrimoni / MESOS_PER_ANY))}/mes`}
+              />
+              <div className="flex justify-between border-t border-slate-700/60 pt-1.5 text-sm">
+                <span className="font-semibold text-slate-200">
+                  {t('gameover.jubilacio.total')}
+                </span>
+                <span className="font-bold text-emerald-300">
+                  {formatEuros(Math.round(rendaAnual / MESOS_PER_ANY))}/mes
+                </span>
+              </div>
+              <Line
+                label={t('gameover.jubilacio.necessitats')}
+                value={`${formatEuros(Math.round(necessitatsAnual / MESOS_PER_ANY))}/mes`}
+              />
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-amber-300/90">
+              {t(`gameover.jubilacio.${veredicte}`)}
+            </p>
+          </div>
+        )}
 
         {state.patrimoniHist && state.patrimoniHist.length >= 2 && (
           <div className="mt-4 text-left">

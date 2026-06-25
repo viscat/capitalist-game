@@ -70,6 +70,14 @@ function milestoneChoice(state: GameState, policy: SimPolicy): string {
       return policy.majoria
     case 'fi_uni':
       return 'comencar_carrera'
+    // Fites de mitja carrera: el jugador simulat prioritza el benestar (la mètrica de
+    // victòria), com fa `eventChoice`, així que tria l'opció que el cuida (menys sou).
+    case 'cruilla_40':
+      return 'conciliar'
+    case 'revisio_50':
+      return 'cuidar_se'
+    case 'recta_60':
+      return 'desaccelerar'
     default:
       return ''
   }

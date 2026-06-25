@@ -48,6 +48,10 @@ export type MilestoneId =
   | 'postobligatori'
   | 'majoria'
   | 'fi_uni'
+  // Fites de mitja carrera (no canvien de fase: mantenen `carrera` i apliquen un efecte).
+  | 'cruilla_40'
+  | 'revisio_50'
+  | 'recta_60'
 
 /** Pressupost mensual de la fase laboral (imports en €). El sobrant va a efectiu. */
 export interface Budget {
@@ -353,10 +357,15 @@ export interface GameState {
   acabat: boolean
   /**
    * La partida ha acabat per ESPIRAL de destrucció: el benestar ha arribat a 0 (la persona
-   * entra en una espiral de la qual no se'n surt). A diferència del final per edat (35
-   * anys), és una derrota: la precarietat acaba la partida abans d'hora. Absent = false.
+   * entra en una espiral de la qual no se'n surt). A diferència del final per edat
+   * (jubilació), és una derrota: la precarietat acaba la partida abans d'hora. Absent = false.
    */
   espiral?: boolean
+  /**
+   * La partida ha acabat per JUBILACIÓ (s'ha arribat als 67): final "normal" amb el balanç
+   * de jubilació (pensió pública + pla de pensions + rendes del patrimoni). Absent = false.
+   */
+  jubilat?: boolean
 }
 
 /** Instantània anual del patrimoni invertit (per al gràfic de rendiment). */

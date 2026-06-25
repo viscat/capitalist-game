@@ -1,11 +1,14 @@
 import {
   DERIVA_BAIXA,
   DERIVA_PUJADA,
+  EDAT_CRUILLA_40,
   EDAT_FI_ADOLESCENCIA,
-  EDAT_FI_CARRERA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
   EDAT_FI_UNIVERSITAT,
+  EDAT_JUBILACIO,
+  EDAT_RECTA_60,
+  EDAT_REVISIO_50,
   INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
@@ -18,7 +21,12 @@ import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
 import { UNIVERSITY_ACTIONS } from './actions/universitat'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
-import { ATUR_ADULT_EVENTS, CARRERA_EVENTS, UNIVERSITAT_EVENTS } from './events/adult'
+import {
+  ATUR_ADULT_EVENTS,
+  CARRERA_EVENTS,
+  SALUT_EDAT_EVENTS,
+  UNIVERSITAT_EVENTS,
+} from './events/adult'
 import {
   ATUR_EVENTS,
   COMMON_LIFE_EVENTS,
@@ -61,6 +69,7 @@ import {
   resolveDespesaGreu,
   salariAdultInicial,
   salariInicial,
+  sostreSalari,
 } from './stats'
 import { edatAnys } from './time'
 import type {
@@ -234,11 +243,18 @@ function eventPool(state: GameState): GameEvent[] {
       return [...ADOLESCENCE_EVENTS, ...COMMON_LIFE_EVENTS]
     case 'universitat':
       return [...UNIVERSITAT_EVENTS, ...COMMON_LIFE_EVENTS]
-    case 'carrera':
+    case 'carrera': {
       // A l'atur (sou 0), prioritza tornar a treballar; si no, vida laboral normal.
-      return (state.salari ?? 0) > 0
-        ? [...CARRERA_EVENTS, ...COMMON_LIFE_EVENTS]
-        : [...ATUR_ADULT_EVENTS, ...COMMON_LIFE_EVENTS]
+      const base =
+        (state.salari ?? 0) > 0
+          ? [...CARRERA_EVENTS, ...COMMON_LIFE_EVENTS]
+          : [...ATUR_ADULT_EVENTS, ...COMMON_LIFE_EVENTS]
+      // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
+      // s'afegeix al pool: el cos passa factura amb els anys.
+      return edatAnys(state.person.edatMesos) >= EDAT_REVISIO_50
+        ? [...base, ...SALUT_EDAT_EVENTS]
+        : base
+    }
     case 'laboral': {
       const base =
         state.itinerari === 'nini'
@@ -605,6 +621,14 @@ function resolveEvent(
   } else if (effect.salariDelta) {
     salari = Math.max(0, Math.round((salari ?? 0) + effect.salariDelta))
   }
+  // Sostre salarial: la carrera fa plateau (no s'infla indefinidament en 49 anys de vida
+  // laboral). Cap el sou a un múltiple realista del de partida; no afecta el 0 (atur).
+  if (salari !== undefined && salari > 0) {
+    salari = Math.min(
+      salari,
+      sostreSalari(state.familia, state.teDiploma ?? false, state.nivellAcademic),
+    )
+  }
 
   const entry: LogEntry = {
     torn: state.torn,
@@ -623,16 +647,26 @@ function resolveEvent(
 
   // Fites i final segons l'edat i la fase assolida.
   const mesos = person.edatMesos
+  // Una fita de mitja carrera es dispara EXACTAMENT en creuar el llindar (aquest torn ha
+  // passat de sota a sobre de l'edat), de manera que es dispari una sola vegada sense
+  // necessitat d'estat extra (la fase es manté `carrera`, no pot servir-ne de guarda).
+  const creua = (edat: number) =>
+    state.lifeStage === 'carrera' &&
+    mesos >= edat * MESOS_PER_ANY &&
+    mesos - MESOS_PER_ANY < edat * MESOS_PER_ANY
   let acabat = false
   // Espiral de destrucció (a qualsevol edat): si el benestar arriba a 0, la partida
-  // acaba. No és el final per edat (35), és una derrota: la precarietat t'arrossega.
+  // acaba. No és el final per edat (jubilació), és una derrota: la precarietat t'arrossega.
   let espiral = state.espiral ?? false
+  let jubilat = state.jubilat ?? false
   let pendingMilestone = state.pendingMilestone
   if (person.stats.benestar <= 0) {
     acabat = true
     espiral = true
-  } else if (mesos >= EDAT_FI_CARRERA * MESOS_PER_ANY) {
+  } else if (mesos >= EDAT_JUBILACIO * MESOS_PER_ANY) {
+    // Jubilació als 67: final "normal" amb el balanç de jubilació.
     acabat = true
+    jubilat = true
   } else if (
     state.lifeStage === 'infancia' &&
     mesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
@@ -653,6 +687,12 @@ function resolveEvent(
     mesos >= EDAT_FI_UNIVERSITAT * MESOS_PER_ANY
   ) {
     pendingMilestone = 'fi_uni'
+  } else if (creua(EDAT_CRUILLA_40)) {
+    pendingMilestone = 'cruilla_40'
+  } else if (creua(EDAT_REVISIO_50)) {
+    pendingMilestone = 'revisio_50'
+  } else if (creua(EDAT_RECTA_60)) {
+    pendingMilestone = 'recta_60'
   }
 
   // Cooldown de l'augment de sou demanat.
@@ -701,6 +741,7 @@ function resolveEvent(
     historial: [...state.historial, entry],
     acabat,
     espiral,
+    jubilat,
   })
 }
 
@@ -734,10 +775,11 @@ export function applyMilestoneChoice(
       next.itinerari === 'treball' ? aportacioMinima(next.familia, income) : 0
     next.pressupost = defaultBudget(income, minCasa)
   }
-  // Entrada a la vida adulta: NO et regalen feina. Comences a l'atur (sou 0) i has
-  // de buscar-la; les ofertes les genera `ambOfertes` al final. El pla d'inversió es
-  // fixa en acceptar una oferta (quan ja hi ha sou).
-  if (option.lifeStage === 'carrera') {
+  // ENTRADA a la carrera (només quan es ve d'una altra fase): NO et regalen feina.
+  // Comences a l'atur (sou 0) i has de buscar-la; les ofertes les genera `ambOfertes` al
+  // final. El pla d'inversió es fixa en acceptar una oferta (quan ja hi ha sou).
+  const entraCarrera = option.lifeStage === 'carrera' && state.lifeStage !== 'carrera'
+  if (entraCarrera) {
     next.teDiploma = option.teDiploma ?? state.teDiploma ?? false
     next.salari = next.salariBase = 0
     next.nivellVida = NIVELL_VIDA_DEFAULT
@@ -757,10 +799,35 @@ export function applyMilestoneChoice(
   // En entrar a la vida adulta (18+), per defecte es viu amb els pares fins que
   // es decideix llogar o comprar.
   if (
-    (option.lifeStage === 'universitat' || option.lifeStage === 'carrera') &&
+    (option.lifeStage === 'universitat' || entraCarrera) &&
     !next.habitatge
   ) {
     next.habitatge = { tipus: 'amb_pares' }
+  }
+  // Fites de mitja carrera (40/50/60): apliquen un EventEffect (trade-off de sou/benestar/
+  // vincles/salut) sense canviar de fase. Es resol com a `resolveEvent`.
+  if (option.effect && !entraCarrera) {
+    const eff = option.effect
+    next.person = applyEffect(next.person, eff)
+    if (eff.salariNou !== undefined) {
+      next.salari = Math.max(0, Math.round(eff.salariNou))
+    } else if (eff.salariDelta) {
+      next.salari = Math.max(0, Math.round((next.salari ?? 0) + eff.salariDelta))
+    }
+    if (eff.salutCronicaDelta) {
+      next.salutCronica = Math.min(
+        40,
+        Math.max(0, (state.salutCronica ?? 0) + eff.salutCronicaDelta),
+      )
+    }
+    // Vincles: el guany es redueix molt si es viu endeutat (com a `resolveEvent`).
+    let vinclesDelta = eff.vinclesDelta
+    if (vinclesDelta !== undefined && vinclesDelta > 0 && (next.person.patrimoni.deute ?? 0) > 0) {
+      vinclesDelta *= 0.3
+    }
+    if (vinclesDelta !== undefined) {
+      next.vinclesSocials = Math.max(0, Math.min(1, (state.vinclesSocials ?? 0) + vinclesDelta))
+    }
   }
   const entry: LogEntry = {
     torn: state.torn,
@@ -770,7 +837,7 @@ export function applyMilestoneChoice(
     descKey: option.descKey,
     category: 'escola',
     kind: 'event',
-    effect: {},
+    effect: !entraCarrera && option.effect ? option.effect : {},
   }
   next.historial = [...state.historial, entry]
   // En entrar a la carrera a l'atur, genera el primer lot d'ofertes de feina.

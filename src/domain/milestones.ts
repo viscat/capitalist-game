@@ -1,4 +1,4 @@
-import type { Itinerari, LifeStage, MilestoneId } from './types'
+import type { EventEffect, Itinerari, LifeStage, MilestoneId } from './types'
 
 export interface MilestoneOption {
   id: string
@@ -8,6 +8,12 @@ export interface MilestoneOption {
   itinerari?: Itinerari
   /** En entrar a la carrera: marca si la persona té títol universitari (premi de sou). */
   teDiploma?: boolean
+  /**
+   * Efecte que aplica l'opció (fites de mitja carrera 40/50/60: no canvien de fase, sinó que
+   * apliquen un *trade-off* sobre sou/benestar/vincles/salut). El motor el resol a
+   * `applyMilestoneChoice` com un `EventEffect` qualsevol.
+   */
+  effect?: EventEffect
 }
 
 export interface MilestoneDef {
@@ -121,6 +127,83 @@ export const MILESTONES: Record<MilestoneId, MilestoneDef> = {
         descKey: 'cami.carrera_titulat.desc',
         lifeStage: 'carrera',
         teDiploma: true,
+      },
+    ],
+  },
+  // --- Fites de mitja carrera (40/50/60): no canvien de fase (segueix `carrera`), apliquen
+  // un trade-off que influeix el benestar i la preparació per a la jubilació. ---
+  cruilla_40: {
+    id: 'cruilla_40',
+    kickerKey: 'milestone.cruilla_40.kicker',
+    titleKey: 'milestone.cruilla_40.title',
+    summaryTitleKey: 'milestone.cruilla_40.summaryTitle',
+    summaryPrefix: 'milestone.cruilla_40.summary',
+    loreTitleKey: 'milestone.cruilla_40.loreTitle',
+    loreKeys: ['milestone.cruilla_40.lore1', 'milestone.cruilla_40.lore2'],
+    options: [
+      {
+        id: 'premer',
+        labelKey: 'milestone.cruilla_40.premer.label',
+        descKey: 'milestone.cruilla_40.premer.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: 250, benestar: -5 },
+      },
+      {
+        id: 'conciliar',
+        labelKey: 'milestone.cruilla_40.conciliar.label',
+        descKey: 'milestone.cruilla_40.conciliar.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: -150, benestar: 6, vinclesDelta: 0.12 },
+      },
+    ],
+  },
+  revisio_50: {
+    id: 'revisio_50',
+    kickerKey: 'milestone.revisio_50.kicker',
+    titleKey: 'milestone.revisio_50.title',
+    summaryTitleKey: 'milestone.revisio_50.summaryTitle',
+    summaryPrefix: 'milestone.revisio_50.summary',
+    loreTitleKey: 'milestone.revisio_50.loreTitle',
+    loreKeys: ['milestone.revisio_50.lore1', 'milestone.revisio_50.lore2'],
+    options: [
+      {
+        id: 'aguantar',
+        labelKey: 'milestone.revisio_50.aguantar.label',
+        descKey: 'milestone.revisio_50.aguantar.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: 150, salutCronicaDelta: 5, benestar: -4 },
+      },
+      {
+        id: 'cuidar_se',
+        labelKey: 'milestone.revisio_50.cuidar_se.label',
+        descKey: 'milestone.revisio_50.cuidar_se.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: -200, benestar: 6, vinclesDelta: 0.1 },
+      },
+    ],
+  },
+  recta_60: {
+    id: 'recta_60',
+    kickerKey: 'milestone.recta_60.kicker',
+    titleKey: 'milestone.recta_60.title',
+    summaryTitleKey: 'milestone.recta_60.summaryTitle',
+    summaryPrefix: 'milestone.recta_60.summary',
+    loreTitleKey: 'milestone.recta_60.loreTitle',
+    loreKeys: ['milestone.recta_60.lore1', 'milestone.recta_60.lore2'],
+    options: [
+      {
+        id: 'seguir_fort',
+        labelKey: 'milestone.recta_60.seguir_fort.label',
+        descKey: 'milestone.recta_60.seguir_fort.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: 100, salutCronicaDelta: 3, benestar: -3 },
+      },
+      {
+        id: 'desaccelerar',
+        labelKey: 'milestone.recta_60.desaccelerar.label',
+        descKey: 'milestone.recta_60.desaccelerar.desc',
+        lifeStage: 'carrera',
+        effect: { salariDelta: -250, benestar: 5, vinclesDelta: 0.12 },
       },
     ],
   },

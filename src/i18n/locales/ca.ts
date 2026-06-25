@@ -229,6 +229,82 @@ export const ca: Record<string, string> = {
   'milestone.fi_uni.lore2':
     'Entres al món laboral adult: cada any decidiràs quant gastes i quant —i com— inverteixes per al teu futur.',
 
+  // --- Fites de mitja carrera (40 / 50 / 60) ---
+  'milestone.cruilla_40.kicker': 'Fas 40 anys',
+  'milestone.cruilla_40.title': 'La cruïlla dels 40',
+  'milestone.cruilla_40.summaryTitle': 'On ets a meitat de camí',
+  'milestone.cruilla_40.summary.molt_baix':
+    'Arribes als 40 cremat i sense gaire marge: la vida t’ha anat passant per sobre.',
+  'milestone.cruilla_40.summary.baix':
+    'Als 40 vas tirant, però amb la sensació que sempre vas just.',
+  'milestone.cruilla_40.summary.mig':
+    'A meitat de camí, amb una vida més o menys encarrilada i decisions per prendre.',
+  'milestone.cruilla_40.summary.alt':
+    'Arribes als 40 en bon moment, amb una base sòlida sota els peus.',
+  'milestone.cruilla_40.summary.molt_alt':
+    'Els 40 t’agafen en plena forma, amb temps, recursos i opcions.',
+  'milestone.cruilla_40.loreTitle': 'Carrera o vida',
+  'milestone.cruilla_40.lore1':
+    'És el moment de decidir cap on tira la dècada: prémer l’accelerador a la feina o fer lloc a la resta de la vida.',
+  'milestone.cruilla_40.lore2':
+    'No hi ha resposta correcta: més sou ara o més temps i vincles que sostenen el benestar a la llarga.',
+  'milestone.cruilla_40.premer.label': 'Prémer la carrera',
+  'milestone.cruilla_40.premer.desc':
+    'Hores i ambició: el sou puja, però el pagues amb desgast i menys vida personal.',
+  'milestone.cruilla_40.conciliar.label': 'Conciliar i cuidar els vincles',
+  'milestone.cruilla_40.conciliar.desc':
+    'Baixes una marxa a la feina (menys sou) per guanyar benestar i relacions.',
+
+  'milestone.revisio_50.kicker': 'Fas 50 anys',
+  'milestone.revisio_50.title': 'La revisió dels 50',
+  'milestone.revisio_50.summaryTitle': 'Com et trobes als 50',
+  'milestone.revisio_50.summary.molt_baix':
+    'Arribes als 50 esgotat; el cos i l’ànim comencen a passar factura.',
+  'milestone.revisio_50.summary.baix':
+    'Als 50 notes el cansament acumulat, però segueixes endavant.',
+  'milestone.revisio_50.summary.mig':
+    'Mitja vida feta: toca decidir a quin ritme vols afrontar l’última etapa laboral.',
+  'milestone.revisio_50.summary.alt':
+    'Arribes als 50 en bona forma, amb experiència i marge per triar.',
+  'milestone.revisio_50.summary.molt_alt':
+    'Els 50 t’agafen fort, amb salut i una posició consolidada.',
+  'milestone.revisio_50.loreTitle': 'Aguantar o cuidar-se',
+  'milestone.revisio_50.lore1':
+    'L’última etapa laboral és exigent. Pots esprémer-la al màxim o baixar el ritme per arribar sencer a la jubilació.',
+  'milestone.revisio_50.lore2':
+    'El que decideixis ara marcarà com hi arribes: amb més diners o amb més salut i serenor.',
+  'milestone.revisio_50.aguantar.label': 'Aguantar el ritme',
+  'milestone.revisio_50.aguantar.desc':
+    'Segueixes a tope: una mica més de sou, a canvi de desgast físic (seqüela) i benestar.',
+  'milestone.revisio_50.cuidar_se.label': 'Cuidar-se i baixar el ritme',
+  'milestone.revisio_50.cuidar_se.desc':
+    'Prioritzes la salut i la vida: menys sou, però més benestar i vincles.',
+
+  'milestone.recta_60.kicker': 'Fas 60 anys',
+  'milestone.recta_60.title': 'La recta final',
+  'milestone.recta_60.summaryTitle': 'A les portes de la jubilació',
+  'milestone.recta_60.summary.molt_baix':
+    'Arribes als 60 just i tocat, amb la jubilació com una incògnita angoixant.',
+  'milestone.recta_60.summary.baix':
+    'Als 60, amb la recta final a la vista i pocs estalvis de marge.',
+  'milestone.recta_60.summary.mig':
+    'La jubilació ja es veu a l’horitzó: toca decidir com encares els últims anys de feina.',
+  'milestone.recta_60.summary.alt':
+    'Arribes als 60 amb una bona base i la jubilació ben encaminada.',
+  'milestone.recta_60.summary.molt_alt':
+    'Els 60 t’agafen tranquil, amb el futur ben resolt.',
+  'milestone.recta_60.loreTitle': 'Esprémer o desaccelerar',
+  'milestone.recta_60.lore1':
+    'Els últims anys de cotització compten per a la pensió. Pots estirar-los per arribar amb més coixí o anar deixant pas.',
+  'milestone.recta_60.lore2':
+    'És l’últim tram: o un esforç final per la pensió, o gaudir del temps que et queda abans de plegar.',
+  'milestone.recta_60.seguir_fort.label': 'Esprémer els últims anys',
+  'milestone.recta_60.seguir_fort.desc':
+    'Estires la carrera per millorar la pensió: una mica més de sou, a canvi de salut i benestar.',
+  'milestone.recta_60.desaccelerar.label': 'Desaccelerar cap a la jubilació',
+  'milestone.recta_60.desaccelerar.desc':
+    'Vas deixant pas: menys sou, però arribes a la jubilació amb més benestar i vincles.',
+
   // Pressupost mensual (fase laboral)
   'budget.title': 'El teu pressupost mensual',
   'budget.income': 'Ingrés net',
@@ -430,10 +506,10 @@ export const ca: Record<string, string> = {
   'category.salut': 'Salut',
   'category.escola': 'Escola',
 
-  // Final d'aquesta iteració (35 anys)
-  'gameover.title': 'Fas 35 anys',
+  // Final de la partida (jubilació als 67)
+  'gameover.title': 'Et jubiles als 67',
   'gameover.subtitle':
-    'Ja ets una persona adulta amb una vida feta. És moment de mirar enrere i veure on t’han portat les teves decisions.',
+    'Després de tota una vida laboral, ha arribat el moment de plegar. És hora de mirar enrere i veure on t’han portat les teves decisions.',
   'gameover.final.solid.title': 'Una vida assentada',
   'gameover.final.solid.desc':
     'Arribes a la vida adulta amb una base sòlida. El camí ha donat fruits: tens marge i tranquil·litat.',
@@ -446,13 +522,34 @@ export const ca: Record<string, string> = {
   'gameover.final.espiral.title': 'L’espiral',
   'gameover.final.espiral.desc':
     'Als {edat} anys, el benestar s’ha esfondrat del tot. La precarietat, els cops i el cansament s’han acumulat fins que ja no hi havia marge per aixecar-se: una espiral de la qual no se’n surt. La partida acaba aquí.',
+  'gameover.final.jub_daurada.title': 'Una jubilació daurada',
+  'gameover.final.jub_daurada.desc':
+    'Arribes als 67 amb la vida resolta: la pensió i les rendes del teu patrimoni cobreixen de sobres el que necessites. Pots gaudir d’aquests anys sense neguit.',
+  'gameover.final.jub_tranquila.title': 'Una jubilació tranquil·la',
+  'gameover.final.jub_tranquila.desc':
+    'Et jubiles amb el just per viure amb dignitat: la pensió i els estalvis cobreixen el dia a dia. No t’ha sobrat, però te’n surts.',
+  'gameover.final.jub_precaria.title': 'Una jubilació precària',
+  'gameover.final.jub_precaria.desc':
+    'Després de tota una vida, la jubilació torna a ser una lluita: la pensió no arriba i amb prou feines tens coixí. La precarietat t’ha acompanyat fins al final.',
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',
   'gameover.notaInversio':
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
+  // Balanç de jubilació
+  'gameover.jubilacio.titol': 'D’on viuràs a partir d’ara',
+  'gameover.jubilacio.pensio': '🏛️ Pensió pública',
+  'gameover.jubilacio.rendaPatrimoni': '📈 Rendes del patrimoni',
+  'gameover.jubilacio.total': 'Renda total',
+  'gameover.jubilacio.necessitats': 'El que necessites per viure',
+  'gameover.jubilacio.daurada':
+    'La teva renda de jubilació supera de sobres les teves necessitats: has construït un coixí sòlid.',
+  'gameover.jubilacio.tranquila':
+    'La teva renda de jubilació cobreix el que necessites per viure. Just, però suficient.',
+  'gameover.jubilacio.precaria':
+    'La teva renda de jubilació NO arriba al que necessites per viure: la vellesa serà ajustada i dependràs del que puguis estirar.',
   'gameover.soon':
-    'La resta de la vida adulta (habitatge, família, jubilació...) arribarà en una futura versió.',
+    'Els anys de jubilació (com gastes el que has estalviat, la salut, els néts...) arribaran en una futura versió.',
   'gameover.restart': 'Tornar a començar',
 
   // --- Esdeveniments ---
@@ -847,6 +944,18 @@ export const ca: Record<string, string> = {
   'event.incapacitat.title': 'Una incapacitat',
   'event.incapacitat.desc':
     'Un accident o una malaltia greu et deixen seqüeles permanents. {cost} € de despeses i una vida que ja no torna a ser igual.',
+  // Salut per edat (50+)
+  'event.xacra_edat.title': 'El cos passa factura',
+  'event.xacra_edat.desc':
+    'Amb els anys apareixen xacres: l’esquena, les articulacions, el cansament. Res greu, però hi conviuràs a partir d’ara.',
+  'event.operacio.title': 'Cal passar pel quiròfan',
+  'event.operacio.desc':
+    'Una operació que no pot esperar: {cost} € entre intervenció i recuperació, i una temporada tocat. Et deixa alguna seqüela.',
+  'event.cura_pares_grans.title': 'Els pares es fan grans',
+  'event.cura_pares_grans.desc':
+    'Els teus pares ja no es valen sols i necessiten cures. Has de decidir com els atens (uns {amount} € de despesa).',
+  'event.cura_pares_grans.choice.cuidar': 'Cuidar-los tu mateix',
+  'event.cura_pares_grans.choice.residencia': 'Pagar una residència',
   'event.parella_estable.title': 'Una relació que arrela',
   'event.parella_estable.desc':
     'Trobes algú amb qui compartir la vida. No ho compra el sou: és de les coses que més pesen al benestar.',
