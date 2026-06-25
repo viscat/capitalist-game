@@ -83,6 +83,10 @@ Transicions (fites):
   que dóna un premi de sou.
 - Als **35** → `acabat = true` → pantalla `GameOver` (la resta de la vida adulta
   arribarà més endavant).
+- **A qualsevol edat**, si el `benestar` arriba a **0** → `acabat = true` + `espiral = true`
+  → **espiral de destrucció**: la partida acaba abans d'hora (és una derrota, no el final
+  per edat). Es comprova a `resolveEvent`, abans del final per edat. `GameOver` mostra un
+  quart tipus de final (`espiral`).
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.
@@ -95,7 +99,8 @@ Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 6. Si l'esdeveniment té `choices`, el deixa com a `pendingEvent` i espera
    `applyChoice`. Si no, el resol immediatament (`resolveEvent`).
 7. `resolveEvent` aplica efectes, persisteix canvis de sou, escriu al `historial` i
-   marca fita/final segons l'edat.
+   marca fita/final. **Si el `benestar` ha arribat a 0**, acaba la partida com a **espiral**
+   (`acabat` + `espiral`); si no, comprova el final per edat (35) i les fites del llindar.
 
 Punts clau perquè res no es bloquegi:
 - A les fases d'acció, **sempre hi ha almenys una acció jugable**: si totes queden
@@ -140,7 +145,8 @@ Punts clau perquè res no es bloquegi:
   negatiu. És la trampa estructural de la pobresa (vegeu DESIGN.md §8). A les fases prèvies
   (infància, laboral) el que no es pot pagar encara es modela com a *descobert* puntual
   (`penalitzacioDescobert`), no com a deute acumulat.
-- **El benestar sempre 0..100** (`clampBenestar`).
+- **El benestar sempre 0..100** (`clampBenestar`). Però **arribar a 0 acaba la partida**
+  (espiral de destrucció): no és un estat estable del qual es remunti, és una derrota.
 
 ## Model econòmic i de benestar (la “física” del joc)
 
@@ -284,7 +290,11 @@ Duplica `src/i18n/locales/ca.ts`, tradueix els valors, registra'l a `LOCALES` i 
 - `domain/sim/harness.ts` + `harness.test.ts` són el **harness de simulació**: juguen
   centenars de partides completes (0→35) per classe i n'imprimeixen la distribució
   d'outcomes (benestar/patrimoni als 35). És l'eina per validar la **corba objectiu** de
-  DESIGN.md §8.4 amb dades, no amb arguments, en tocar el balanceig de `stats.ts`.
+  DESIGN.md §8.4 amb dades, no amb arguments, en tocar el balanceig de `stats.ts`. El
+  jugador simulat és **passiu** per defecte (no tria accions); la política amb `actiu:
+  true` (p. ex. `estudis_actiu`) fa que estudiï a fons a la universitat (`uni_estudis`),
+  que és **la via d'escapada** per mesurar la cua de mobilitat del pobre (§8.4). Sense
+  joc actiu, l'origen humil queda condemnat.
 
 ## Desplegament
 

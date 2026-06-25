@@ -234,6 +234,27 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
+describe('espiral de destrucció (benestar 0 = fi)', () => {
+  it('quan el benestar arriba a 0, la partida acaba marcada com a espiral', () => {
+    let s = laboralTreball()
+    // Deixem el benestar molt baix i apliquem un cop que el porta a 0.
+    s = { ...s, person: { ...s.person, stats: { benestar: 4 } } }
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -10 } }])
+    expect(after.person.stats.benestar).toBe(0)
+    expect(after.acabat).toBe(true)
+    expect(after.espiral).toBe(true)
+  })
+
+  it('un cop dur que NO arriba a 0 no acaba la partida', () => {
+    let s = laboralTreball()
+    s = { ...s, person: { ...s.person, stats: { benestar: 30 } } }
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -10 } }])
+    expect(after.person.stats.benestar).toBeGreaterThan(0)
+    expect(after.acabat).toBe(false)
+    expect(after.espiral ?? false).toBe(false)
+  })
+})
+
 describe('final als 35', () => {
   it('la branca universitària passa per la uni i acaba als 35', () => {
     const s = playToEnd('mitjana', 11, 'batxillerat')

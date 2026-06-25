@@ -112,16 +112,25 @@ describe('simulació de partides completes (naixement → 35)', () => {
           const ctx = `${classe}/${nom}/seed${seed}`
           const { estat, fites } = jugaPartida(newGame(classe, seed), estrategia)
 
-          expect(edatAnys(estat.person.edatMesos), `${ctx}: acaba a ${EDAT_FI_CARRERA}`).toBe(
-            EDAT_FI_CARRERA,
-          )
           expect(estat.acabat, `${ctx}: partida acabada`).toBe(true)
 
+          const edatFinal = edatAnys(estat.person.edatMesos)
           const ids = fites.map((f) => f.id)
-          expect(ids, `${ctx}: passa per la fita d'institut`).toContain('institut')
-          expect(ids, `${ctx}: passa per la fita de postobligatori`).toContain('postobligatori')
+          if (estat.espiral) {
+            // Espiral de destrucció: el benestar ha arribat a 0 i la partida s'acaba abans
+            // (o just) als 35, sense haver de completar totes les fases.
+            expect(edatFinal, `${ctx}: espiral acaba abans dels ${EDAT_FI_CARRERA}`)
+              .toBeLessThanOrEqual(EDAT_FI_CARRERA)
+            expect(Math.round(estat.person.stats.benestar), `${ctx}: espiral amb benestar 0`)
+              .toBe(0)
+          } else {
+            // Partida completa: arriba als 35 i passa per les fites obligatòries.
+            expect(edatFinal, `${ctx}: acaba a ${EDAT_FI_CARRERA}`).toBe(EDAT_FI_CARRERA)
+            expect(ids, `${ctx}: passa per la fita d'institut`).toContain('institut')
+            expect(ids, `${ctx}: passa per la fita de postobligatori`).toContain('postobligatori')
+          }
 
-          // Les fites es disparen exactament a l'edat llindar.
+          // Les fites que s'hagin disparat ho fan exactament a l'edat llindar.
           for (const f of fites) {
             if (f.id === 'institut') expect(f.edat, `${ctx}: institut als 12`).toBe(12)
             if (f.id === 'postobligatori') expect(f.edat, `${ctx}: postobligatori als 16`).toBe(16)

@@ -382,8 +382,9 @@ export const ca: Record<string, string> = {
   'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
   'action.hobby.label': 'Una afició',
   'action.hobby.desc': 'Música, esport, dibuix... Hi dediques temps i et fa feliç.',
-  'action.ajudar_casa.label': 'Ajudar a casa per una paga extra',
-  'action.ajudar_casa.desc': 'Feines i encàrrecs a canvi d’uns diners.',
+  'action.ajudar_casa.label': 'Ajudar a casa',
+  'action.ajudar_casa.desc':
+    'Feines i encàrrecs a la llar. A les famílies amb marge, et cau una paga; a les que van justes, és ajuda necessària i no remunerada.',
   'action.vendre_coses.label': 'Vendre coses de segona mà',
   'action.vendre_coses.desc': 'Et treus uns calerons venent el que ja no fas servir.',
   'action.caprici.label': 'Donar-te un caprici',
@@ -442,6 +443,9 @@ export const ca: Record<string, string> = {
   'gameover.final.precaria.title': 'Anys de lluita',
   'gameover.final.precaria.desc':
     'Han estat anys durs i el marge segueix sent escàs. L’origen ha pesat, i remar a contracorrent esgota.',
+  'gameover.final.espiral.title': 'L’espiral',
+  'gameover.final.espiral.desc':
+    'Als {edat} anys, el benestar s’ha esfondrat del tot. La precarietat, els cops i el cansament s’han acumulat fins que ja no hi havia marge per aixecar-se: una espiral de la qual no se’n surt. La partida acaba aquí.',
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',

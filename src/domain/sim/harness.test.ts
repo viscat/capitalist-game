@@ -17,6 +17,9 @@ const N = 400
 const POLICIES: Record<string, SimPolicy> = {
   estudis: { postobligatori: 'batxillerat', majoria: 'universitat' },
   treball: { postobligatori: 'treball', majoria: 'carrera' },
+  // Jugador ACTIU per la via educativa (estudia a fons a la universitat): mesura la cua de
+  // mobilitat de §8.4. És la millor jugada possible per a un origen humil.
+  estudis_actiu: { postobligatori: 'batxillerat', majoria: 'universitat', actiu: true },
 }
 
 function pct(x: number): string {

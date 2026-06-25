@@ -428,6 +428,7 @@ Refinament de la premissa de §1 (**confirmat** com a direcció de producte):
 
 - **Cua de mobilitat ascendent ~3–5%**, no 0% — *verificable per simulació multi-llavor*.
   Ni 0% (indefensable empíricament — liberal) ni gran (dilueix la tesi — marxista).
+  *(Recalibrat a la ronda actual a **~1–2%** i només per la via educativa activa; vegeu §8.6.)*
 - **Amb cicatrius:** qui escapa ho fa amb **benestar terminal acotat (~≤65)**, no la vida
   «resolta» del ric. La mobilitat real té cost (sobre-esforç, pèrdua de xarxa). *(marxista)*
 - **Via principal: educació pública** (`FACTOR_BECA` + bona seqüència d'estudis), no
@@ -486,22 +487,42 @@ sobre de 60 de benestar). La física no produïa la corba objectiu.
 | Victòria no-monetària (final «vida plena») | ✅ | `components/GameOver.tsx` |
 | Frugalitat declarada (`vidaSenzilla`) | ✅ | `stats.ts` `benestarNivellVida`, UI |
 | Indicador ecològic (cosmètic) | ✅ | `components/InvestmentPanel.tsx` |
+| **Espiral de destrucció (benestar 0 = fi de partida)** | ✅ | `engine.ts` `resolveEvent`, `GameOver.tsx` |
+| **Residu de precarietat ADULT (sostre baix per a classes baixes)** | ✅ | `stats.ts` `PRECARIETAT_BENESTAR_ADULT` |
+| **Ajuda a casa no remunerada (pobra/treballadora)** | ✅ | `stats.ts` `pagaPerAjudaCasa`, `engine.ts` |
 
-**Corba mesurada final** — 400 llavors/classe:
+**Espiral de destrucció (nova condició de DERROTA).** El benestar segueix acotat a 0..100,
+però **arribar a 0 acaba la partida a qualsevol edat** (`acabat` + `espiral`): no és un
+estat estable del qual la deriva remunti, és el punt sense retorn. Combinada amb la deriva
+asimètrica (cau ràpid) i un sostre baix, fa que les classes baixes no només acabin «pitjor»
+sinó que sovint **no arribin als 35**. És el gir que fa la precarietat *letal*, no només
+incòmoda. Mesurar la mediana ja no amaga el problema: una vida que toca fons s'acaba a 0.
+
+**Corba mesurada final** — 400 llavors/classe (passiu = no tria accions; *actiu* = estudia
+a fons a la universitat, la via d'escapada de §8.4):
 
 | Classe | benestar (mediana) | patrimoni | cua ≥60 | objectiu §8.4 |
 |--------|--------------------|-----------|---------|----------------|
-| **pobra (via estudis)** | **12** | **−35.000 €** | **3,0%** | ≤20 / ~0 / 3–5% ✅ |
-| pobra (via treball, sense títol) | 3 | −39.000 € | 0% | enfonsada, sense via d'escapada ✅ |
-| treballadora | 45–54 | ~90.000 € | — | moderat |
-| mitjana | 51–62 | ~195.000 € | — | franja mitjana |
-| rica | 66–75 | ~500.000 € | 69–90% (p10 49–60) | alt + cua de mala sort ✅ |
-| super-rica | 68–78 | ~2,0 M€ (amb herència) | 78–92% | alt ✅ |
+| **pobra (passiu, estudis/treball)** | **0** | ~−35.000 € | **0%** | enfonsada, espiral ✅ |
+| **pobra (actiu, via estudis)** | 0 | ~−4.000 € | **2,0%** (p90 39) | ~1% cua d'escapada amb cicatrius ✅ |
+| treballadora (passiu) | 30–37 | ~35.000 € | 0–3% | **molt dura però viable** ✅ |
+| treballadora (actiu) | 45 | ~70.000 € | 17% (p90 63) | sostre ~50–60 fins i tot jugant perfecte ✅ |
+| mitjana | 53–71 | ~195–250.000 € | 29–80% | franja mitjana |
+| rica | 67–80 | ~500.000 € | 70–94% | alt + cua de mala sort ✅ |
+| super-rica | 69–82 | ~2,0 M€ (amb herència) | 80–97% | alt ✅ |
+
+> **Recalibratge (ronda actual).** El target de §8.4 s'endureix per decisió de producte: la
+> **treballadora** passa de «moderat» (mediana ~50, còmoda) a **precària estable** (mediana
+> ~30, sostre ~50–60 amb joc perfecte), i la **cua del pobre** es retalla de 3–5% a **~1–2%**
+> i només per la via educativa activa. El pobre **passiu** queda condemnat a l'espiral.
 
 **Com encaixa tot (claus de calibratge):**
-- El desavantatge del pobre és **emergent** (deute + cost diferencial + obligació familiar
-  + deriva asimètrica), no per etiqueta — el gir de §8.1. `PRECARIETAT_BENESTAR` queda com a
-  residu petit (P4): la corba no canvia, el model és més honest.
+- El desavantatge del pobre és en bona part **emergent** (deute + cost diferencial +
+  obligació familiar + deriva asimètrica + l'espiral que el remata), no només per etiqueta —
+  el gir de §8.1. Però el recalibratge actual **augmenta el residu de classe** com a palanca
+  directa: `PRECARIETAT_BENESTAR` (jove) puja a 10/7 i s'afegeix `PRECARIETAT_BENESTAR_ADULT`
+  (16/11) que **rebaixa el sostre adult sostenible** de pobra/treballadora. És el lever que
+  capa el joc perfecte: per molt bé que jugui, la treballadora gravita a una referència baixa.
 - **La capa pública (P8) no aixeca el sostre.** L'IMV és un terra de *darrera instància*:
   només per a qui té poc patrimoni **i** ingressos molt baixos (atur), no per al treballador
   pobre (que segueix atrapat). La prestació d'atur depèn d'haver cotitzat. Així el retorn
