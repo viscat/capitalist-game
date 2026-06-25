@@ -75,6 +75,9 @@ export const ca: Record<string, string> = {
   'stat.academic': 'Nivell acadèmic',
   'stat.academic.tip':
     'Esforç i rendiment a la universitat. No dóna benestar immediat, però millora el sou de partida i les ofertes de feina en sortir.',
+  'stat.fills': 'Fills',
+  'stat.fills.tip':
+    'La teva descendència. Donen sentit i vincles, però tenen un cost de criança durant molts anys que pesa més com menys marge tens.',
   'benestar.molt_baix': 'En la misèria',
   'benestar.baix': 'Malament',
   'benestar.mig': 'Regular',
@@ -351,6 +354,9 @@ export const ca: Record<string, string> = {
   'pla.notaPensions': 'Desgravació fiscal: et tornen {amount} a efectiu.',
   'pla.costHabitatge': 'Habitatge',
   'pla.costHabitatge.desc': 'Lloguer o hipoteca. Obligatori, no es pot modificar.',
+  'pla.costFills': 'Criança ({fills} fill/s)',
+  'pla.costFills.desc':
+    'Cost net de criar els fills dependents (ja descomptada la prestació pública). Obligatori.',
   'pla.aportacioFamilia': 'Ajuda a la família',
   'pla.aportacioFamilia.desc':
     'Una part del sou se’n va a casa. Obligatori mentre la família et necessiti.',
@@ -536,6 +542,8 @@ export const ca: Record<string, string> = {
   'gameover.desglos': 'De què es compon el teu patrimoni',
   'gameover.notaInversio':
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
+  'gameover.notaLlegat':
+    'Deixes {fills} fill/s. A cada un li tocaria un llegat d’uns {llegat}: com tu vas arrencar d’on et van deixar els teus pares, ells arrenquen d’aquí. Així es transmet (o no) l’avantatge entre generacions.',
   // Balanç de jubilació
   'gameover.jubilacio.titol': 'D’on viuràs a partir d’ara',
   'gameover.jubilacio.pensio': '🏛️ Pensió pública',
@@ -956,6 +964,12 @@ export const ca: Record<string, string> = {
     'Els teus pares ja no es valen sols i necessiten cures. Has de decidir com els atens (uns {amount} € de despesa).',
   'event.cura_pares_grans.choice.cuidar': 'Cuidar-los tu mateix',
   'event.cura_pares_grans.choice.residencia': 'Pagar una residència',
+  // Descendència
+  'event.tenir_fill.title': 'Voleu tenir un fill?',
+  'event.tenir_fill.desc':
+    'És el moment de plantejar-vos formar una família. Un fill omple la vida de sentit i vincles, però també porta una despesa important durant molts anys.',
+  'event.tenir_fill.choice.si': 'Sí, endavant',
+  'event.tenir_fill.choice.no': 'Ara no toca',
   'event.parella_estable.title': 'Una relació que arrela',
   'event.parella_estable.desc':
     'Trobes algú amb qui compartir la vida. No ho compra el sou: és de les coses que més pesen al benestar.',

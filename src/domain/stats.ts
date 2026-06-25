@@ -1,7 +1,9 @@
 import {
   BENESTAR_MAX,
   BENESTAR_MIN,
+  COST_FILL_ANUAL,
   COST_VIDA_NIVELLS,
+  DEPENDENCIA_FILLS_ANYS,
   NIVELL_VIDA_DEFAULT,
   DESGRAVACIO_PENSIONS,
   IMV_ANUAL,
@@ -1034,6 +1036,7 @@ export function applyCareerYear(
   familia?: Familia,
   aportacioFamilia = 0,
   benestarNivell = 0,
+  costFills = 0,
 ): Person {
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
   // Sostre del deute: cap entitat presta sense fre. Es pot deure fins a ~2,5 anys
@@ -1044,8 +1047,9 @@ export function applyCareerYear(
     Math.round((patrimoni.deute ?? 0) * (1 + INTERES_DEUTE)),
     maxDeute,
   )
-  // Necessitats de l'any: consum + habitatge + oci + aportació a la família d'origen.
-  const necessitats = costVida + costHabitatge + pla.oci + aportacioFamilia
+  // Necessitats de l'any: consum + habitatge + oci + aportació a la família d'origen +
+  // criança dels fills dependents.
+  const necessitats = costVida + costHabitatge + pla.oci + aportacioFamilia + costFills
   const caixa = patrimoni.efectiu + annualIncome
   let estalvi = patrimoni.estalvi
   let nouDescobert = 0
@@ -1106,6 +1110,65 @@ export function applyCareerYear(
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),
   }
   return { ...person, stats, patrimoni }
+}
+
+// --- Descendència (tenir fills, a la vida adulta) ---
+// Els fills són una font de benestar i vincles (P7, no monetària) però amb un cost econòmic
+// recurrent durant la criança. Aquí l'origen torna a pesar: per a una llar humil un fill és
+// una càrrega que pot empènyer cap al deute i l'espiral; per a una de rica, és assumible.
+// I al final, el patrimoni es transmet als fills (herència) → reproducció de classe.
+
+/** Nombre de fills encara dependents (en edat de criança) en aquest moment. */
+export function fillsDependents(state: GameState): number {
+  const naixements = state.fillsNaixement ?? []
+  const llindar = DEPENDENCIA_FILLS_ANYS * MESOS_PER_ANY
+  return naixements.filter((b) => state.person.edatMesos - b < llindar).length
+}
+
+/** Prestació pública màxima anual per fill dependent (per a renda baixa). */
+const AJUT_FILL_MAX = 2_500
+/** Renda neta anual a partir de la qual la prestació per fill ja és nul·la. */
+const AJUT_FILL_LLINDAR = 55_000
+
+/**
+ * Prestació pública ANUAL per fills dependents (tipus ajut per criança): **means-tested**,
+ * plena per a rendes baixes i s'esvaeix cap a rendes mitjanes-altes. És el suport de l'estat
+ * del benestar a les famílies, que alleuja —sense rescatar del tot— la càrrega del pobre i el
+ * treballador (que altrament no es podrien permetre fills). Per als acomodats, ~0.
+ */
+export function ajutFillsAnual(state: GameState): number {
+  const deps = fillsDependents(state)
+  if (deps === 0) return 0
+  const net = netAnual((state.salari ?? 0) * MESOS_PER_ANY)
+  const perFill = clamp(AJUT_FILL_MAX * (1 - net / AJUT_FILL_LLINDAR), 0, AJUT_FILL_MAX)
+  return Math.round(deps * perFill)
+}
+
+/**
+ * Cost NET ANUAL de criança dels fills dependents (cost brut − prestació pública). Escala
+ * amb el nivell de vida, però NO amb el sobrecost de classe: l'escola i la sanitat públiques
+ * aplanen força el cost dels fills entre classes (a diferència del consum general). Així
+ * tenir un fill és una tensió real per a la classe treballadora —drena el marge i pot
+ * empènyer cap al deute i l'espiral— però no una condemna automàtica.
+ */
+export function costFillsAnual(state: GameState): number {
+  const deps = fillsDependents(state)
+  if (deps === 0) return 0
+  const factorNivell =
+    state.nivellVida === 'alt' ? 1.2 : state.nivellVida === 'minim' ? 0.85 : 1
+  const brut = deps * COST_FILL_ANUAL * factorNivell
+  return Math.max(0, Math.round(brut - ajutFillsAnual(state)))
+}
+
+/**
+ * Llegat per fill: el patrimoni net que cada fill heretaria al final de la partida. Tanca el
+ * cercle de la reproducció de classe (com l'`herenciaVida` que la persona va rebre als 18):
+ * el que has pogut acumular el transmets, i els teus fills arrenquen des d'aquí.
+ */
+export function llegatPerFill(state: GameState): number {
+  const fills = state.fills ?? 0
+  if (fills === 0) return 0
+  return Math.round(Math.max(0, patrimoniTotal(state.person)) / fills / 100) * 100
 }
 
 // --- Jubilació (als 67): el balanç financer final, el clímax del joc ---

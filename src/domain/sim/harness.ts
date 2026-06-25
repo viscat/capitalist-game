@@ -90,6 +90,16 @@ function milestoneChoice(state: GameState, policy: SimPolicy): string {
  */
 function eventChoice(state: GameState): string {
   const choices = state.pendingEvent?.choices ?? []
+  // Descendència: un jugador raonable no té un fill quan està financerament contra les
+  // cordes (deute, benestar baix o sense coixí líquid). Si va bé, sí que en té.
+  if (state.pendingEvent?.id === 'tenir_fill') {
+    const p = state.person.patrimoni
+    const precari =
+      (p.deute ?? 0) > 0 ||
+      state.person.stats.benestar < 35 ||
+      p.efectiu + p.estalvi < 5000
+    return precari ? 'no' : 'si'
+  }
   let best = choices[0]
   let bestScore = -Infinity
   for (const c of choices) {

@@ -239,6 +239,36 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
+describe('descendència', () => {
+  it('tenir un fill incrementa els fills i en registra el naixement', () => {
+    const s = newGameAtCarrera('mitjana', 3)
+    const after = resolWith(s, [
+      { id: 'a', labelKey: 'x', effect: { fillsDelta: 1, benestar: 6 } },
+    ])
+    expect(after.fills).toBe(1)
+    expect(after.fillsNaixement).toEqual([s.person.edatMesos])
+    expect(after.person.stats.benestar).toBeGreaterThan(s.person.stats.benestar)
+  })
+
+  it('el cost de criança redueix el patrimoni en avançar un any de carrera', () => {
+    let s = newGameAtCarrera('mitjana', 3)
+    // Dona efectiu per cobrir el cost i un fill petit (dependent).
+    s = {
+      ...s,
+      fills: 1,
+      fillsNaixement: [s.person.edatMesos],
+      plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+      person: { ...s.person, patrimoni: { ...s.person.patrimoni, efectiu: 40_000 } },
+    }
+    const senseFill = advanceTurn({ ...s, fills: 0, fillsNaixement: [] })
+    const ambFill = advanceTurn(s)
+    // Amb un fill dependent es gasta més (queda menys efectiu) que sense.
+    expect(ambFill.person.patrimoni.efectiu).toBeLessThan(
+      senseFill.person.patrimoni.efectiu,
+    )
+  })
+})
+
 describe('espiral de destrucció (benestar 0 = fi)', () => {
   it('quan el benestar arriba a 0, la partida acaba marcada com a espiral', () => {
     let s = laboralTreball()

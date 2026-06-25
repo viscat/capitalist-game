@@ -6,6 +6,7 @@ import { ADOLESCENCE_EVENTS } from '../domain/events/adolescencia'
 import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
+  DESCENDENCIA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from '../domain/events/adult'
@@ -44,6 +45,7 @@ const ALL_EVENTS: GameEvent[] = [
   ...UNIVERSITAT_EVENTS,
   ...CARRERA_EVENTS,
   ...SALUT_EDAT_EVENTS,
+  ...DESCENDENCIA_EVENTS,
   ...ATUR_ADULT_EVENTS,
   ...COMMON_LIFE_EVENTS,
 ]

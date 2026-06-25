@@ -1,5 +1,6 @@
 import {
   costVidaPropi,
+  llegatPerFill,
   patrimoniTotal,
   pensioPublicaAnual,
   rendaJubilacioAnual,
@@ -40,6 +41,8 @@ export function GameOver() {
 
   const vincles = state.vinclesSocials ?? 0
   const sequela = state.salutCronica ?? 0
+  const fills = state.fills ?? 0
+  const llegat = llegatPerFill(state)
 
   // Balanç de jubilació (final als 67): renda de jubilació vs. necessitats anuals.
   const pensioAnual = pensioPublicaAnual(state)
@@ -131,6 +134,9 @@ export function GameOver() {
               label={`🤝 ${t('stat.vincles')}`}
               value={`${Math.round(vincles * 100)}%`}
             />
+            {fills > 0 && (
+              <Line label={`👶 ${t('stat.fills')}`} value={String(fills)} />
+            )}
             {sequela > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-red-300">🩹 {t('stat.sequela')}</span>
@@ -141,6 +147,11 @@ export function GameOver() {
           <p className="mt-3 text-xs leading-relaxed text-sky-300/90">
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
+          {fills > 0 && (
+            <p className="mt-2 text-xs leading-relaxed text-rose-300/90">
+              👨‍👩‍👧 {t('gameover.notaLlegat', { fills, llegat: formatEuros(llegat) })}
+            </p>
+          )}
         </div>
 
         {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}

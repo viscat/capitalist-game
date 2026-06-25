@@ -2,6 +2,8 @@ import {
   DERIVA_BAIXA,
   DERIVA_PUJADA,
   EDAT_CRUILLA_40,
+  EDAT_FERTIL_MAX,
+  EDAT_FERTIL_MIN,
   EDAT_FI_ADOLESCENCIA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
@@ -9,6 +11,7 @@ import {
   EDAT_JUBILACIO,
   EDAT_RECTA_60,
   EDAT_REVISIO_50,
+  MAX_FILLS,
   INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
@@ -24,6 +27,7 @@ import { ADOLESCENCE_EVENTS } from './events/adolescencia'
 import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
+  DESCENDENCIA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from './events/adult'
@@ -49,6 +53,7 @@ import {
   benestarNivellVida,
   clampBenestar,
   contribucioLlar,
+  costFillsAnual,
   costVidaAnual,
   costVidaPropi,
   defaultBudget,
@@ -249,11 +254,21 @@ function eventPool(state: GameState): GameEvent[] {
         (state.salari ?? 0) > 0
           ? [...CARRERA_EVENTS, ...COMMON_LIFE_EVENTS]
           : [...ATUR_ADULT_EVENTS, ...COMMON_LIFE_EVENTS]
+      const edat = edatAnys(state.person.edatMesos)
+      const pool = [...base]
       // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
       // s'afegeix al pool: el cos passa factura amb els anys.
-      return edatAnys(state.person.edatMesos) >= EDAT_REVISIO_50
-        ? [...base, ...SALUT_EDAT_EVENTS]
-        : base
+      if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
+      // Dins de la finestra fèrtil i sense haver arribat al màxim de fills, pot aparèixer
+      // l'oportunitat de tenir descendència.
+      if (
+        edat >= EDAT_FERTIL_MIN &&
+        edat <= EDAT_FERTIL_MAX &&
+        (state.fills ?? 0) < MAX_FILLS
+      ) {
+        pool.push(...DESCENDENCIA_EVENTS)
+      }
+      return pool
     }
     case 'laboral': {
       const base =
@@ -443,6 +458,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       state.familia,
       0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
       ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
+      costFillsAnual(state), // criança dels fills dependents
     )
     // Aportació REAL d'enguany al fons indexat + pensions = valor nou − valor crescut (el
     // que ha pujat pel rendiment no és aportació). Acumulada, és el «que has posat» que es
@@ -726,6 +742,17 @@ function resolveEvent(
       ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + effect.academicDelta))
       : state.nivellAcademic
 
+  // Descendència: si l'efecte porta un fill, l'incrementem i registrem l'edat (mesos) del
+  // progenitor al naixement, per calcular els anys de criança (cost recurrent).
+  let fills = state.fills
+  let fillsNaixement = state.fillsNaixement
+  if (effect.fillsDelta && effect.fillsDelta > 0) {
+    fills = (state.fills ?? 0) + effect.fillsDelta
+    const naixements = [...(state.fillsNaixement ?? [])]
+    for (let i = 0; i < effect.fillsDelta; i++) naixements.push(person.edatMesos)
+    fillsNaixement = naixements
+  }
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
@@ -736,6 +763,8 @@ function resolveEvent(
     salutCronica,
     vinclesSocials,
     nivellAcademic,
+    fills,
+    fillsNaixement,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],

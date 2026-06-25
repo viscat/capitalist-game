@@ -486,6 +486,34 @@ export const SALUT_EDAT_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * Descendència: l'oportunitat de tenir un fill, dins de la finestra fèrtil (vegeu
+ * `eventPool`). És una decisió: el fill dóna benestar i vincles (P7, no monetari) però porta
+ * un cost de criança recurrent (vegeu `costFillsAnual`) que pesa molt més en una llar humil.
+ */
+export const DESCENDENCIA_EVENTS: GameEvent[] = [
+  {
+    id: 'tenir_fill',
+    category: 'familia',
+    titleKey: 'event.tenir_fill.title',
+    descKey: 'event.tenir_fill.desc',
+    weight: () => 3,
+    choices: [
+      {
+        id: 'si',
+        labelKey: 'event.tenir_fill.choice.si',
+        // Alegria i vincle forts; el cost econòmic arriba després, any rere any.
+        effect: { benestar: 6, vinclesDelta: 0.15, fillsDelta: 1 },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.tenir_fill.choice.no',
+        effect: {},
+      },
+    ],
+  },
+]
+
+/**
  * A l'atur durant la carrera (sou 0), mentre es busca feina. Aquí NO s'hi troba
  * feina (això es fa al panell de cerca, segons l'ocupabilitat): són esdeveniments de
  * color de la temporada d'atur (un ajut econòmic, el desànim de la cerca llarga).
