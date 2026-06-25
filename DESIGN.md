@@ -561,3 +561,42 @@ dignitat —sòlid, **vida plena** (no-monetari) i precari— (`GameOver`).
 La tesi de §1 s'amplia: no només la **classe** condiciona el punt de sortida, sinó també
 el **gènere** i l'**origen**, i els tres eixos es reforcen. La corba es valida contínuament
 amb `domain/sim/harness.test.ts` (inclou ara una comparació de discriminació).
+
+### 8.8 La vida laboral completa: fins a la jubilació (67 anys)
+
+El joc s'estén dels 35 als **67 anys (jubilació)**. La fase `carrera` cobreix tota la vida
+laboral adulta; **la jubilació és el clímax financer**: als 67 «es cobra» tot l'estalvi i la
+inversió de la vida.
+
+- **Final als 67** (`engine.ts` `resolveEvent`, `EDAT_JUBILACIO`): `acabat` + `jubilat`. La
+  pantalla de `GameOver` mostra el **balanç de jubilació** (`stats.ts`):
+  - **Pensió pública** (`pensioPublicaAnual`): contributiva tipus Espanya. Cal un mínim
+    d'anys cotitzats (`anysExperiencia ≥ 15`); la taxa de reemplaçament va del 50% (15 anys)
+    al 100% (36 anys) sobre la base reguladora, amb mínim (~700 €/mes) i màxim (~3.000 €/mes).
+    La precarietat laboral (carreres curtes, atur) també es paga a la vellesa.
+  - **Renda del patrimoni** (`rendaPatrimoniAnual`): retirada segura (~4%/any) del pla de
+    pensions —ara **desbloquejat**— + estalvi + fons indexat + inversions. La recompensa de
+    l'interès compost.
+  - **Veredicte** (`veredicteJubilacio`): renda vs. necessitats → jubilació *daurada* /
+    *tranquil·la* / *precària* (i la *vida plena* no-monetària segueix valent).
+- **Fites de mitja carrera** (40 / 50 / 60): decisions de *trade-off* (sou ↔ benestar/vincles/
+  salut) que donen textura i preparen —o no— la jubilació. Mantenen la fase `carrera`.
+- **Reajustos per edat** (realisme a edats altes): **sostre salarial** (`sostreSalari`, el sou
+  no s'infla indefinidament), **plateau de pujades** (`augmentSou` decreix amb l'edat),
+  **cerca de feina molt més dura als 55+** (`jobs.ts`), i **risc de salut creixent**
+  (`SALUT_EDAT_EVENTS` als 50+, ponderat per `EXPOSICIO_SALUT`).
+
+**Corba mesurada a la jubilació (67)** — l'horitzó llarg amplifica la tesi: l'interès compost
+distancia encara més els rics, i l'espiral (benestar 0) sobre 49 anys de vida adulta fa que
+les classes baixes sovint **ni arribin a jubilar-se**:
+
+| Classe | % que arriba als 67 | Jubilació (renda típica) |
+|--------|---------------------|--------------------------|
+| **pobra** | **0–11%** (espiral als 20–30) | precària si hi arriba |
+| **treballadora** | **36–53%** (molt dura però viable) | pensió ~2.200 €/mes; renda ~3.000–5.700 €/mes |
+| mitjana | ~98–100% | tranquil·la / daurada |
+| rica / super-rica | 100% | daurada (renda 8–15k €/mes per l'interès compost) |
+
+> La permadeath per espiral sobre un horitzó de 49 anys adults fa, per disseny, que el pobre
+> gairebé mai es jubili i que la meitat de la classe treballadora no hi arribi: la precarietat
+> no és només viure pitjor, és **no arribar a la vellesa amb dignitat**.

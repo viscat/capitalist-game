@@ -12,7 +12,7 @@ import { MILESTONES } from './milestones'
 import { FAMILY_PRESET_ORDER } from './family/presets'
 import { comprarCasa } from './housing'
 import { edatAnys } from './time'
-import { EDAT_FI_CARRERA } from './constants'
+import { EDAT_JUBILACIO } from './constants'
 import type { GameState, MilestoneId } from './types'
 
 // Bateria de simulació: juga partides COMPLETES de debò (resolent fites i decisions)
@@ -118,14 +118,15 @@ describe('simulació de partides completes (naixement → 35)', () => {
           const ids = fites.map((f) => f.id)
           if (estat.espiral) {
             // Espiral de destrucció: el benestar ha arribat a 0 i la partida s'acaba abans
-            // (o just) als 35, sense haver de completar totes les fases.
-            expect(edatFinal, `${ctx}: espiral acaba abans dels ${EDAT_FI_CARRERA}`)
-              .toBeLessThanOrEqual(EDAT_FI_CARRERA)
+            // (o just) als 67, sense haver de completar totes les fases.
+            expect(edatFinal, `${ctx}: espiral acaba abans dels ${EDAT_JUBILACIO}`)
+              .toBeLessThanOrEqual(EDAT_JUBILACIO)
             expect(Math.round(estat.person.stats.benestar), `${ctx}: espiral amb benestar 0`)
               .toBe(0)
           } else {
-            // Partida completa: arriba als 35 i passa per les fites obligatòries.
-            expect(edatFinal, `${ctx}: acaba a ${EDAT_FI_CARRERA}`).toBe(EDAT_FI_CARRERA)
+            // Partida completa: es jubila als 67 i passa per les fites obligatòries.
+            expect(edatFinal, `${ctx}: es jubila a ${EDAT_JUBILACIO}`).toBe(EDAT_JUBILACIO)
+            expect(estat.jubilat, `${ctx}: marcat com a jubilat`).toBe(true)
             expect(ids, `${ctx}: passa per la fita d'institut`).toContain('institut')
             expect(ids, `${ctx}: passa per la fita de postobligatori`).toContain('postobligatori')
           }

@@ -25,13 +25,16 @@ import {
   pagaMensual,
   pagaPerAjudaCasa,
   penalitzacioDescobert,
+  pensioPublicaAnual,
+  rendaPatrimoniAnual,
   resolveDespesaGreu,
   salariAdultInicial,
   salariInicial,
+  veredicteJubilacio,
 } from './stats'
 import { FAMILY_PRESETS } from './family/presets'
 import { SALARI_MINIM_MENSUAL } from './constants'
-import type { Patrimoni, Person } from './types'
+import type { GameState, Patrimoni, Person } from './types'
 
 const person: Person = {
   edatMesos: 0,
@@ -122,6 +125,50 @@ describe('estalviAnualCriatura', () => {
     const rica = estalviAnualCriatura(FAMILY_PRESETS.rica.familia)
     expect(pobra).toBeLessThan(rica)
     expect(pobra).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('jubilació', () => {
+  // Estat mínim de jubilació: només els camps que llegeixen les funcions de pensió.
+  const stateJub = (over: Partial<GameState>): GameState =>
+    ({
+      familia: FAMILY_PRESETS.mitjana.familia,
+      person,
+      anysExperiencia: 40,
+      salari: 2500,
+      salariBase: 2500,
+      ...over,
+    }) as GameState
+
+  it('sense prou anys cotitzats no hi ha pensió contributiva', () => {
+    expect(pensioPublicaAnual(stateJub({ anysExperiencia: 10 }))).toBe(0)
+    expect(pensioPublicaAnual(stateJub({ anysExperiencia: 20 }))).toBeGreaterThan(0)
+  })
+
+  it('més anys cotitzats i més base ⇒ més pensió (amb topall)', () => {
+    const pocs = pensioPublicaAnual(stateJub({ anysExperiencia: 16, salari: 2000, salariBase: 2000 }))
+    const molts = pensioPublicaAnual(stateJub({ anysExperiencia: 40, salari: 2000, salariBase: 2000 }))
+    expect(molts).toBeGreaterThan(pocs)
+    // El topall acota la pensió per molt alt que sigui el sou.
+    const altissim = pensioPublicaAnual(stateJub({ anysExperiencia: 40, salari: 99_999, salariBase: 99_999 }))
+    const normal = pensioPublicaAnual(stateJub({ anysExperiencia: 40, salari: 6000, salariBase: 6000 }))
+    expect(altissim).toBe(normal) // tots dos al màxim
+  })
+
+  it('la renda del patrimoni creix amb el patrimoni invertit', () => {
+    const pobre = rendaPatrimoniAnual(person)
+    const ric = rendaPatrimoniAnual({
+      ...person,
+      patrimoni: { ...person.patrimoni, fonsPensions: 200_000, fonsIndexat: 100_000 },
+    })
+    expect(pobre).toBe(0)
+    expect(ric).toBeGreaterThan(0)
+  })
+
+  it('el veredicte depèn de la ràtio renda/necessitats', () => {
+    expect(veredicteJubilacio(20_000, 10_000)).toBe('daurada')
+    expect(veredicteJubilacio(11_000, 10_000)).toBe('tranquila')
+    expect(veredicteJubilacio(6_000, 10_000)).toBe('precaria')
   })
 })
 

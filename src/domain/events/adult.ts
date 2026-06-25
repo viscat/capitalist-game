@@ -1,4 +1,5 @@
 import { augmentSou, escalaPerClasse } from '../stats'
+import { edatAnys } from '../time'
 import type { FamilyClass, GameEvent } from '../types'
 
 // Probabilitat que la família d'origen et demani ajuda econòmica, per classe: alta per a
@@ -184,7 +185,11 @@ export const CARRERA_EVENTS: GameEvent[] = [
         labelKey: 'event.negociar_sou.choice.negociar',
         effect: { benestar: -2 },
         resolve: (s) => ({
-          salariDelta: augmentSou(s.salari ?? 0, s.person.stats.benestar),
+          salariDelta: augmentSou(
+            s.salari ?? 0,
+            s.person.stats.benestar,
+            edatAnys(s.person.edatMesos),
+          ),
           benestar: -2,
         }),
       },
@@ -428,6 +433,53 @@ export const CARRERA_EVENTS: GameEvent[] = [
         id: 'no_puc',
         labelKey: 'event.ajudar_familia_adult.choice.no_puc',
         effect: { benestar: -4 },
+      },
+    ],
+  },
+]
+
+/**
+ * Xocs de salut propis de l'EDAT (50+): el cos passa factura i arriba la cura dels pares
+ * grans. S'afegeixen al pool de la carrera a partir dels ~50 (`eventPool`), ponderats per
+ * l'exposició de classe (la precarietat envelleix pitjor: pitjor feina, menys prevenció).
+ * Modelen el risc de salut CREIXENT amb l'edat, que els pesos estàtics no capturaven.
+ */
+export const SALUT_EDAT_EVENTS: GameEvent[] = [
+  {
+    id: 'xacra_edat',
+    category: 'salut',
+    titleKey: 'event.xacra_edat.title',
+    descKey: 'event.xacra_edat.desc',
+    weight: (f) => 0.8 * EXPOSICIO_SALUT[f.classe],
+    effect: { benestar: -6, salutCronicaDelta: 4 },
+  },
+  {
+    id: 'operacio',
+    category: 'salut',
+    titleKey: 'event.operacio.title',
+    descKey: 'event.operacio.desc',
+    params: { cost: 5000 },
+    weight: (f) => 0.6 * EXPOSICIO_SALUT[f.classe],
+    effect: { despesaGreu: 5000, benestar: -12, salutCronicaDelta: 6 },
+  },
+  {
+    id: 'cura_pares_grans',
+    category: 'familia',
+    titleKey: 'event.cura_pares_grans.title',
+    descKey: 'event.cura_pares_grans.desc',
+    params: { amount: 4000 },
+    // La cura dels pares grans recau més sobre les llars humils (menys recursos per delegar).
+    weight: (f) => 0.9 * AJUT_FAMILIA_PES[f.classe],
+    choices: [
+      {
+        id: 'cuidar',
+        labelKey: 'event.cura_pares_grans.choice.cuidar',
+        effect: { despesaGreu: 4000, benestar: -4, vinclesDelta: 0.06 },
+      },
+      {
+        id: 'residencia',
+        labelKey: 'event.cura_pares_grans.choice.residencia',
+        effect: { despesaGreu: 8000, benestar: -2 },
       },
     ],
   },

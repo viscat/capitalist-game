@@ -6,7 +6,7 @@ l'arquitectura, el model de joc i les receptes per estendre'l sense trencar res.
 ## Què és
 
 **Capitalist Game** és un joc per torns sobre la **vida financera d'una persona**, des
-del naixement fins (de moment) als 18 anys. La tesi de disseny: **l'origen familiar
+del naixement fins a la jubilació (67 anys). La tesi de disseny: **l'origen familiar
 condiciona el punt de sortida**, però el benestar no es compra només amb diners (el
 temps i la cura dels pares hi pesen molt, amb rendiments decreixents per la riquesa).
 
@@ -71,7 +71,7 @@ la UI ho fa explícit amb una nota a cada panell.
 | `estudis_post` | 16–18 (batxillerat / grau mitjà) | una **acció** de targeta cada any |
 | `laboral` | 16–18 (treball / nini) | ajusta el **pressupost** mensual (s'aplica × 12) |
 | `universitat` | 18–22 | només «Següent any» (suport familiar − matrícula) |
-| `carrera` | 18/22–35 | ajusta el **pla d'inversió** (mensual; s'aplica × 12) |
+| `carrera` | 18/22–**67** | ajusta el **pla d'inversió** (mensual; s'aplica × 12) |
 
 Transicions (fites):
 - Als **12** → fita `institut` (una sola opció: continuar) → passa a `adolescencia`.
@@ -81,12 +81,18 @@ Transicions (fites):
   adulta amb inversions). Qui entra directament a `carrera` ho fa **sense títol**.
 - Als **22** → fita `fi_uni` (una sola opció) → `carrera` **amb títol** (`teDiploma`),
   que dóna un premi de sou.
-- Als **35** → `acabat = true` → pantalla `GameOver` (la resta de la vida adulta
-  arribarà més endavant).
+- Als **40 / 50 / 60** → fites de **mitja carrera** (`cruilla_40`, `revisio_50`, `recta_60`):
+  **no canvien de fase** (segueix `carrera`), apliquen un `EventEffect` de *trade-off*
+  (sou ↔ benestar/vincles/salut). Es disparen **exactament en creuar el llindar** (vegeu
+  `resolveEvent`), una sola vegada. La tria s'aplica a `applyMilestoneChoice` (camp
+  `MilestoneOption.effect`).
+- Als **67** → **jubilació**: `acabat = true` + `jubilat = true` → `GameOver` amb el
+  **balanç de jubilació** (pensió pública + pla de pensions + rendes del patrimoni vs.
+  necessitats). És el clímax financer: aquí «es cobra» tot l'estalvi i la inversió.
 - **A qualsevol edat**, si el `benestar` arriba a **0** → `acabat = true` + `espiral = true`
   → **espiral de destrucció**: la partida acaba abans d'hora (és una derrota, no el final
-  per edat). Es comprova a `resolveEvent`, abans del final per edat. `GameOver` mostra un
-  quart tipus de final (`espiral`).
+  per edat). Es comprova a `resolveEvent` **abans** del final per edat. La precarietat fa
+  que les classes baixes sovint ni arribin als 67.
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.
@@ -98,9 +104,10 @@ Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 5. **Selecciona un esdeveniment** ponderat (`selectEvent`) del pool de la fase.
 6. Si l'esdeveniment té `choices`, el deixa com a `pendingEvent` i espera
    `applyChoice`. Si no, el resol immediatament (`resolveEvent`).
-7. `resolveEvent` aplica efectes, persisteix canvis de sou, escriu al `historial` i
-   marca fita/final. **Si el `benestar` ha arribat a 0**, acaba la partida com a **espiral**
-   (`acabat` + `espiral`); si no, comprova el final per edat (35) i les fites del llindar.
+7. `resolveEvent` aplica efectes, persisteix canvis de sou (amb **sostre salarial**),
+   escriu al `historial` i marca fita/final. **Si el `benestar` ha arribat a 0**, acaba la
+   partida com a **espiral** (`acabat` + `espiral`); si no, comprova la **jubilació als 67**
+   (`acabat` + `jubilat`) i les fites del llindar (incloses 40/50/60).
 
 Punts clau perquè res no es bloquegi:
 - A les fases d'acció, **sempre hi ha almenys una acció jugable**: si totes queden
@@ -288,8 +295,8 @@ Duplica `src/i18n/locales/ca.ts`, tradueix els valors, registra'l a `LOCALES` i 
 - `App.test.tsx` és un smoke test del flux de pantalles.
 - `i18n/coverage.test.ts` blinda la cobertura de claus.
 - `domain/sim/harness.ts` + `harness.test.ts` són el **harness de simulació**: juguen
-  centenars de partides completes (0→35) per classe i n'imprimeixen la distribució
-  d'outcomes (benestar/patrimoni als 35). És l'eina per validar la **corba objectiu** de
+  centenars de partides completes (0→67) per classe i n'imprimeixen la distribució
+  d'outcomes (benestar/patrimoni a la jubilació). És l'eina per validar la **corba objectiu** de
   DESIGN.md §8.4 amb dades, no amb arguments, en tocar el balanceig de `stats.ts`. El
   jugador simulat és **passiu** per defecte (no tria accions); la política amb `actiu:
   true` (p. ex. `estudis_actiu`) fa que estudiï a fons a la universitat (`uni_estudis`),

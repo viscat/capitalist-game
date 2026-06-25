@@ -16,12 +16,13 @@ import {
   ingressosMensuals16,
   salariInicial,
 } from './stats'
+import { MILESTONES } from './milestones'
 import { edatAnys } from './time'
 import {
   EDAT_FI_ADOLESCENCIA,
-  EDAT_FI_CARRERA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
+  EDAT_JUBILACIO,
   MESOS_PER_ANY,
 } from './constants'
 import type { GameEvent, GameState } from './types'
@@ -64,6 +65,10 @@ function step(s: GameState, itinerari = 'batxillerat'): GameState {
   }
   if (s.pendingMilestone === 'fi_uni') {
     return applyMilestoneChoice(s, 'comencar_carrera')
+  }
+  // Fites de mitja carrera (40/50/60) o qualsevol altra: resol amb la primera opció.
+  if (s.pendingMilestone) {
+    return applyMilestoneChoice(s, MILESTONES[s.pendingMilestone].options[0].id)
   }
   // A l'atur a la carrera, accepta la primera oferta (la cerca de feina no es bloqueja).
   if (s.lifeStage === 'carrera' && (s.salari ?? 0) === 0 && s.ofertesFeina?.length) {
@@ -255,19 +260,25 @@ describe('espiral de destrucció (benestar 0 = fi)', () => {
   })
 })
 
-describe('final als 35', () => {
-  it('la branca universitària passa per la uni i acaba als 35', () => {
+describe('final als 67 (jubilació)', () => {
+  it('la branca universitària passa per la uni i es jubila als 67', () => {
     const s = playToEnd('mitjana', 11, 'batxillerat')
     expect(s.acabat).toBe(true)
     expect(s.teDiploma).toBe(true)
-    expect(s.person.edatMesos).toBe(EDAT_FI_CARRERA * MESOS_PER_ANY)
+    // Si no ha caigut en espiral, la jubilació arriba exactament als 67.
+    if (!s.espiral) {
+      expect(s.jubilat).toBe(true)
+      expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
+    }
   })
 
-  it('la branca laboral acaba als 35 amb benestar i comptes acotats', () => {
+  it('la branca laboral acaba als 67 (o espiral) amb benestar i comptes acotats', () => {
     const s = playToEnd('treballadora', 5, 'treball')
     expect(s.acabat).toBe(true)
     expect(s.teDiploma).toBe(false) // ha entrat a la carrera sense passar per la uni
-    expect(s.person.edatMesos).toBe(EDAT_FI_CARRERA * MESOS_PER_ANY)
+    if (!s.espiral) {
+      expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
+    }
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
     expect(s.person.stats.benestar).toBeLessThanOrEqual(100)
     expect(s.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)

@@ -21,8 +21,17 @@ export const EDAT_FI_POSTOBLIGATORI = 18
 /** Edat (en anys) a la qual s'acaba la carrera universitària (18→22). */
 export const EDAT_FI_UNIVERSITAT = 22
 
-/** Edat (en anys) a la qual acaba aquesta iteració de la vida adulta. */
-export const EDAT_FI_CARRERA = 35
+/**
+ * Edat (en anys) de la JUBILACIÓ: fi de la vida laboral i de la partida. La carrera
+ * adulta s'estén fins aquí; als 67 es fa el balanç de jubilació (pensió pública + pla de
+ * pensions + rendes del patrimoni). L'espiral (benestar 0) pot acabar la partida abans.
+ */
+export const EDAT_JUBILACIO = 67
+
+/** Fites de decisió a mitja carrera (donen textura i preparen la jubilació). */
+export const EDAT_CRUILLA_40 = 40
+export const EDAT_REVISIO_50 = 50
+export const EDAT_RECTA_60 = 60
 
 /** Sou BRUT mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
 export const SALARI_BASE_16 = 800

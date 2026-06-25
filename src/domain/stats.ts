@@ -606,10 +606,32 @@ export function resolveDespesaGreu(
   }
 }
 
-/** Augment de sou en demanar-ne un: entre el 2% (benestar 0) i el 10% (benestar 100). */
-export function augmentSou(salari: number, benestar: number): number {
+/**
+ * Augment de sou en demanar-ne un: entre el 2% (benestar 0) i el 10% (benestar 100). Es
+ * **redueix amb l'edat**: les grans pujades s'acaben cap als 60 (la carrera fa plateau;
+ * passats els 50 els ascensos i les negociacions rendeixen molt menys).
+ */
+export function augmentSou(salari: number, benestar: number, edat = 35): number {
   const pct = 0.02 + (clampBenestar(benestar) / 100) * 0.08
-  return Math.round((salari * pct) / 5) * 5
+  const factorEdat = clamp(1 - (edat - 50) / 15, 0.2, 1)
+  return Math.round((salari * pct * factorEdat) / 5) * 5
+}
+
+/**
+ * Sostre realista del sou BRUT mensual al llarg de la carrera: el sou pot créixer amb
+ * ascensos i negociacions, però no indefinidament. Es deriva del sou de partida adult
+ * (que ja porta classe, títol i nivell acadèmic): una carrera pot arribar a multiplicar-lo
+ * ~2,5×, no convertir un sou mínim en un sou directiu. Evita la inflació salarial irreal en
+ * estendre la vida laboral fins als 67. Manté la desigualtat d'origen (el sostre del pobre
+ * és més baix). Mai per sota del salari mínim.
+ */
+export function sostreSalari(
+  familia: Familia,
+  teDiploma = false,
+  nivellAcademic = 0,
+): number {
+  const base = salariAdultInicial(familia, teDiploma, nivellAcademic)
+  return Math.max(SALARI_MINIM_MENSUAL, Math.round((base * 2.5) / 25) * 25)
 }
 
 // Mentre es viu a casa, l'aportació a la família és obligatòria i més alta com més
@@ -1084,4 +1106,72 @@ export function applyCareerYear(
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),
   }
   return { ...person, stats, patrimoni }
+}
+
+// --- Jubilació (als 67): el balanç financer final, el clímax del joc ---
+// Aquí "es cobra" tot l'estalvi i la inversió de la vida: la pensió pública (segons el que
+// has cotitzat) i la renda del teu patrimoni (pla de pensions ja desbloquejat + inversions).
+// Qui ha pogut compondre patrimoni i cotitzar de forma estable es jubila tranquil; qui ha
+// quedat atrapat en la precarietat (o no hi ha arribat: espiral) es jubila al mínim o pitjor.
+
+/** Pensió pública mínima i màxima mensuals (model tipus Espanya, simplificat). */
+const PENSIO_MIN_MENSUAL = 700
+const PENSIO_MAX_MENSUAL = 3000
+/** Anys cotitzats per tenir-hi dret i per cobrar el 100% de la base reguladora. */
+const ANYS_COTITZATS_MIN = 15
+const ANYS_COTITZATS_PLENA = 36
+/** Taxa de retirada anual "segura" del patrimoni acumulat (regla del ~4%). */
+const TAXA_RETIRADA_SEGURA = 0.04
+
+/**
+ * Pensió pública NETA anual de jubilació. És contributiva: depèn dels **anys cotitzats**
+ * (`anysExperiencia`) i d'una base reguladora (el sou de referència de la carrera). Sense
+ * un mínim d'anys cotitzats no hi ha dret a pensió contributiva (queda la xarxa mínima, que
+ * el joc modela com a 0 aquí: la precarietat laboral es paga també a la vellesa). Amb dret,
+ * va d'un mínim (≈700 €/mes) a un màxim (≈3.000 €/mes) segons la base i els anys.
+ */
+export function pensioPublicaAnual(state: GameState): number {
+  const anys = state.anysExperiencia ?? 0
+  if (anys < ANYS_COTITZATS_MIN) return 0
+  const baseMensual = Math.max(state.salari ?? 0, state.salariBase ?? 0)
+  const taxa = clamp(
+    0.5 +
+      ((anys - ANYS_COTITZATS_MIN) / (ANYS_COTITZATS_PLENA - ANYS_COTITZATS_MIN)) * 0.5,
+    0.5,
+    1,
+  )
+  const brutMensual = clamp(baseMensual * taxa, PENSIO_MIN_MENSUAL, PENSIO_MAX_MENSUAL)
+  return netAnual(brutMensual * MESOS_PER_ANY)
+}
+
+/**
+ * Renda anual que genera el patrimoni a la jubilació: el pla de pensions (ara desbloquejat),
+ * l'estalvi, el fons indexat i les inversions, aplicant-hi una retirada segura (~4%/any). És
+ * la recompensa de l'interès compost: qui ha pogut invertir hi té una renda complementària.
+ */
+export function rendaPatrimoniAnual(person: Person): number {
+  const { fonsPensions, estalvi, fonsIndexat, inversions } = person.patrimoni
+  return Math.round(
+    (fonsPensions + estalvi + fonsIndexat + inversions) * TAXA_RETIRADA_SEGURA,
+  )
+}
+
+/** Renda total anual de jubilació = pensió pública + renda del patrimoni. */
+export function rendaJubilacioAnual(state: GameState): number {
+  return pensioPublicaAnual(state) + rendaPatrimoniAnual(state.person)
+}
+
+/**
+ * Veredicte monetari de la jubilació: compara la renda de jubilació amb les necessitats
+ * anuals (cost de vida + habitatge). Daurada (renda folgada), tranquil·la (cobreix) o
+ * precària (no arriba: la vellesa torna a ser una lluita).
+ */
+export function veredicteJubilacio(
+  rendaAnual: number,
+  necessitatsAnual: number,
+): 'daurada' | 'tranquila' | 'precaria' {
+  const ratio = necessitatsAnual > 0 ? rendaAnual / necessitatsAnual : 2
+  if (ratio >= 1.5) return 'daurada'
+  if (ratio >= 1) return 'tranquila'
+  return 'precaria'
 }

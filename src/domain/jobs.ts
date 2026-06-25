@@ -48,7 +48,12 @@ export function ocupabilitat(state: GameState): number {
   const contactes = clamp(state.familia.patrimoni / 800_000, 0, 1) * 0.2
   const experiencia = clamp(anysExperiencia(state) / 8, 0, 1) * 0.25
   const anim = (state.person.stats.benestar / 100) * 0.05
-  const penalitzacioEdat = clamp((edatAnys(state.person.edatMesos) - 25) / 15, 0, 1) * 0.1
+  const edat = edatAnys(state.person.edatMesos)
+  // Penalització d'edat: lleu en començar tard (25→40), i MOLT més dura als 50+
+  // (discriminació d'edat severa). Buscar feina a prop de la jubilació és perillós: encara
+  // hi ha ≥1 oferta (mai bloqueja), però poques i dolentes.
+  const penalitzacioEdat =
+    clamp((edat - 25) / 15, 0, 1) * 0.1 + clamp((edat - 50) / 15, 0, 1) * 0.25
   // Discriminació d'accés per origen (currículums descartats, menys xarxa).
   const penalitzacioOrigen = penalitzacioOcupabilitatOrigen(state.identitat)
   // Haver estudiat a fons (nivell acadèmic) millora l'accés a feina.
