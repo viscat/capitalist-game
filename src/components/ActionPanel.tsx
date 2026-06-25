@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { MESOS_PER_ANY, SETMANES_ANY } from '../domain/constants'
-import { ajudaCasaSetmanes, pagaMensual } from '../domain/stats'
+import { ajudaCasaSetmanes, pagaMensual, pagaPerAjudaCasa } from '../domain/stats'
+import type { GameAction } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
@@ -26,13 +27,20 @@ export function ActionPanel() {
   const tempsCompromes = ajudaCasaSetmanes(state.familia)
   const tempsTotal = Math.max(0, SETMANES_ANY - tempsCompromes)
 
+  // Efecte EFECTIU d'una acció segons la família: «ajudar a casa» no es remunera a la
+  // pobra/treballadora, així que mostrem i pressupostem 0 € (coherent amb el motor).
+  const effEffect = (action: GameAction) =>
+    action.id === 'ajudar_casa'
+      ? { ...action.effect, efectiu: pagaPerAjudaCasa(state.familia) }
+      : action.effect
+
   const countOf = (id: string) => counts[id] ?? 0
   const tempsUsat = actions.reduce(
     (s, o) => s + countOf(o.action.id) * (o.action.setmanes ?? 0),
     0,
   )
   const dinersDelta = actions.reduce(
-    (s, o) => s + countOf(o.action.id) * (o.action.effect.efectiu ?? 0),
+    (s, o) => s + countOf(o.action.id) * (effEffect(o.action).efectiu ?? 0),
     0,
   )
   const tempsRestant = tempsTotal - tempsUsat
@@ -100,7 +108,8 @@ export function ActionPanel() {
       <div className="grid gap-2 sm:grid-cols-2">
         {actions.map(({ action, disabled, reasonKey }) => {
           const setmanes = action.setmanes ?? 0
-          const cost = action.effect.efectiu ?? 0
+          const effecte = effEffect(action)
+          const cost = effecte.efectiu ?? 0
           const n = countOf(action.id)
           const isSel = n > 0
           const canAdd = !disabled && potAfegir(setmanes, cost)
@@ -130,7 +139,7 @@ export function ActionPanel() {
               ) : (
                 <span className="text-xs text-slate-400">{t(action.descKey)}</span>
               )}
-              <EffectList effect={action.effect} />
+              <EffectList effect={effecte} />
               {!disabled && (
                 <div className="mt-1 flex items-center justify-end gap-2">
                   <button

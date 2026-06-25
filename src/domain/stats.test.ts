@@ -23,6 +23,7 @@ import {
   estalviAnualCriatura,
   familyBaselineBenestar,
   pagaMensual,
+  pagaPerAjudaCasa,
   penalitzacioDescobert,
   resolveDespesaGreu,
   salariAdultInicial,
@@ -84,6 +85,15 @@ describe('pagaMensual', () => {
     expect(pobra).toBeLessThan(mitjana)
     expect(mitjana).toBeLessThan(rica)
     expect(pobra).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('pagaPerAjudaCasa', () => {
+  it('és 0 per a pobra i treballadora (ajuda no remunerada) i positiva de la mitjana amunt', () => {
+    expect(pagaPerAjudaCasa(FAMILY_PRESETS.pobra.familia)).toBe(0)
+    expect(pagaPerAjudaCasa(FAMILY_PRESETS.treballadora.familia)).toBe(0)
+    expect(pagaPerAjudaCasa(FAMILY_PRESETS.mitjana.familia)).toBeGreaterThan(0)
+    expect(pagaPerAjudaCasa(FAMILY_PRESETS.alta.familia)).toBeGreaterThan(0)
   })
 })
 

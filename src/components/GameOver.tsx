@@ -1,4 +1,5 @@
 import { patrimoniTotal } from '../domain/stats'
+import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -30,10 +31,12 @@ export function GameOver() {
 
   const vincles = state.vinclesSocials ?? 0
   const sequela = state.salutCronica ?? 0
-  // Tipus de final, amb la mateixa dignitat: una vida PLENA no-monetària (poc patrimoni
-  // però benestar i vincles forts) val tant com una de patrimoni sòlid.
-  const finalTipus: 'plena' | 'solid' | 'precaria' =
-    benestar >= 55 && vincles >= 0.45 && total < 100_000
+  // Tipus de final. L'ESPIRAL (benestar arribat a 0) és una derrota i preval sobre tot:
+  // la partida ha acabat abans d'hora. La resta tenen la mateixa dignitat: una vida PLENA
+  // no-monetària (poc patrimoni però benestar i vincles forts) val tant com una de sòlida.
+  const finalTipus: 'espiral' | 'plena' | 'solid' | 'precaria' = state.espiral
+    ? 'espiral'
+    : benestar >= 55 && vincles >= 0.45 && total < 100_000
       ? 'plena'
       : total >= 150_000 || benestar >= 65
         ? 'solid'
@@ -45,7 +48,11 @@ export function GameOver() {
         <h1 className="text-4xl font-black text-slate-100">
           {t(`gameover.final.${finalTipus}.title`)}
         </h1>
-        <p className="mt-3 text-slate-400">{t(`gameover.final.${finalTipus}.desc`)}</p>
+        <p className="mt-3 text-slate-400">
+          {finalTipus === 'espiral'
+            ? t('gameover.final.espiral.desc', { edat: edatAnys(state.person.edatMesos) })
+            : t(`gameover.final.${finalTipus}.desc`)}
+        </p>
 
         <div className="mt-8 grid grid-cols-2 gap-4">
           <div className="rounded-xl bg-slate-800/70 p-5">
@@ -112,7 +119,9 @@ export function GameOver() {
           </div>
         )}
 
-        <p className="mt-6 text-sm italic text-slate-500">{t('gameover.soon')}</p>
+        {finalTipus !== 'espiral' && (
+          <p className="mt-6 text-sm italic text-slate-500">{t('gameover.soon')}</p>
+        )}
         <button
           onClick={reset}
           className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500"

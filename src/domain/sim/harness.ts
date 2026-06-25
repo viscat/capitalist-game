@@ -7,6 +7,7 @@
 
 import {
   acceptarOferta,
+  actionOptions,
   advanceTurn,
   applyChoice,
   applyMilestoneChoice,
@@ -27,6 +28,27 @@ export interface SimPolicy {
   postobligatori: Itinerari
   /** Tria als 18 (fita `majoria`): seguir estudiant o entrar a la carrera. */
   majoria: 'universitat' | 'carrera'
+  /**
+   * Jugador ACTIU: a la universitat dedica l'any a estudiar a fons (`uni_estudis`), que
+   * apuja el nivell acadèmic i, per tant, el sou de partida i l'ocupabilitat. És la via
+   * d'escapada principal de DESIGN §8.4 (educació pública); sense això, el jugador simulat
+   * és passiu (no tria cap acció) i no pot accedir a la cua de mobilitat.
+   */
+  actiu?: boolean
+}
+
+/**
+ * Accions que tria el jugador ACTIU en una fase d'acció. Es concentra en la via d'escapada
+ * realista: estudiar a fons a la universitat (puja `nivellAcademic` → millor sou). A les
+ * fases joves no tria res (evita el cost de benestar d'activitats que, amb l'espiral, poden
+ * enfonsar una vida ja precària).
+ */
+function activeActions(state: GameState): string[] {
+  if (state.lifeStage !== 'universitat') return []
+  const estudia = actionOptions(state).find(
+    (o) => o.action.id === 'uni_estudis' && !o.disabled,
+  )
+  return estudia ? ['uni_estudis'] : []
 }
 
 /** Efecte immediat d'una opció d'esdeveniment (dinàmic si té `resolve`). */
@@ -106,7 +128,7 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
       s = { ...s, plaInversio: defaultPlaInversio(ingressosAnualsCarrera(s)) }
       continue
     }
-    s = advanceTurn(s)
+    s = advanceTurn(s, policy.actiu ? activeActions(s) : undefined)
   }
   return s
 }

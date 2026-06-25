@@ -351,6 +351,12 @@ export interface GameState {
   patrimoniHist?: PatrimoniSnapshot[]
   historial: LogEntry[]
   acabat: boolean
+  /**
+   * La partida ha acabat per ESPIRAL de destrucció: el benestar ha arribat a 0 (la persona
+   * entra en una espiral de la qual no se'n surt). A diferència del final per edat (35
+   * anys), és una derrota: la precarietat acaba la partida abans d'hora. Absent = false.
+   */
+  espiral?: boolean
 }
 
 /** Instantània anual del patrimoni invertit (per al gràfic de rendiment). */

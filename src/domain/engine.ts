@@ -53,6 +53,7 @@ import {
   ingressosMensuals16,
   netMensual,
   pagaMensual,
+  pagaPerAjudaCasa,
   patrimoniTotal,
   prestacioAturAnual,
   rendimentIndexAnual,
@@ -498,10 +499,16 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     for (const actionId of actionIds) {
       const action = cataleg.find((a) => a.id === actionId)
       if (!action) continue
-      person = applyEffect(person, action.effect)
-      accAcademic += action.effect.academicDelta ?? 0
-      accVincles += action.effect.vinclesDelta ?? 0
-      accSalut += action.effect.salutCronicaDelta ?? 0
+      // «Ajudar a casa» només es remunera de la mitjana amunt: per a la pobra i la
+      // treballadora és ajuda no pagada (la família ho necessita), així que dóna 0 €.
+      const effect =
+        action.id === 'ajudar_casa'
+          ? { ...action.effect, efectiu: pagaPerAjudaCasa(state.familia) }
+          : action.effect
+      person = applyEffect(person, effect)
+      accAcademic += effect.academicDelta ?? 0
+      accVincles += effect.vinclesDelta ?? 0
+      accSalut += effect.salutCronicaDelta ?? 0
       entries.push({
         torn,
         edatAnys: anys,
@@ -510,7 +517,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         descKey: action.descKey,
         category: action.category,
         kind: 'action',
-        effect: action.effect,
+        effect,
       })
     }
   }
@@ -617,8 +624,14 @@ function resolveEvent(
   // Fites i final segons l'edat i la fase assolida.
   const mesos = person.edatMesos
   let acabat = false
+  // Espiral de destrucció (a qualsevol edat): si el benestar arriba a 0, la partida
+  // acaba. No és el final per edat (35), és una derrota: la precarietat t'arrossega.
+  let espiral = state.espiral ?? false
   let pendingMilestone = state.pendingMilestone
-  if (mesos >= EDAT_FI_CARRERA * MESOS_PER_ANY) {
+  if (person.stats.benestar <= 0) {
+    acabat = true
+    espiral = true
+  } else if (mesos >= EDAT_FI_CARRERA * MESOS_PER_ANY) {
     acabat = true
   } else if (
     state.lifeStage === 'infancia' &&
@@ -687,6 +700,7 @@ function resolveEvent(
     pendingMilestone,
     historial: [...state.historial, entry],
     acabat,
+    espiral,
   })
 }
 

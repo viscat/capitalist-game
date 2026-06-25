@@ -78,8 +78,8 @@ export function wealthComfort(familia: Familia): number {
 // crònic de la inestabilitat que els indicadors econòmics no capturen del tot. Així el
 // model deixa de "decretar" el destí per etiqueta i el fa emergir.
 const PRECARIETAT_BENESTAR: Record<FamilyClass, number> = {
-  pobra: 6,
-  treballadora: 3,
+  pobra: 10,
+  treballadora: 7,
   mitjana: 0,
   alta: 0,
   rica: 0,
@@ -124,6 +124,25 @@ export function pagaMensual(familia: Familia): number {
   const perIngressos = familia.ingressosMensuals * 0.008
   const perPatrimoni = Math.min(familia.patrimoni, 2_000_000) * 0.00015
   return Math.round((perIngressos + perPatrimoni) / 5) * 5
+}
+
+// Diners que la criatura rep per l'acció «ajudar a casa». A les famílies pobra i
+// treballadora l'ajuda NO es remunera: la família ho necessita (no és una feineta amb
+// mesada, és sostenir la llar), de manera que ajudar resta temps i benestar però no dóna
+// res. De la mitjana amunt, en canvi, «ajudar a casa» és una feineta amb una petita paga.
+// Reforça la tesi del punt 1: els pares pobres no poden pagar l'ajuda dels fills.
+const PAGA_AJUDA_CASA: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0,
+  mitjana: 40,
+  alta: 60,
+  rica: 60,
+  super_rica: 60,
+}
+
+/** Diners que rep el jove per l'acció «ajudar a casa» (0 per a pobra/treballadora). */
+export function pagaPerAjudaCasa(familia: Familia): number {
+  return PAGA_AJUDA_CASA[familia.classe]
 }
 
 /** Aplica un EventEffect a una persona retornant una còpia nova (immutable). */
@@ -232,6 +251,22 @@ export function benestarHabitatge(habitatge?: Habitatge): number {
   }
 }
 
+// Residu de precarietat de classe a la VIDA ADULTA (carrera). A diferència de l'etapa jove
+// (`PRECARIETAT_BENESTAR`), aquí abans no n'hi havia cap: el desavantatge adult emergia tot
+// de mecanismes (deute, cost diferencial, obligació familiar). Però això deixava la
+// treballadora massa còmoda (mediana ~50). Aquest residu rebaixa el SOSTRE adult sostenible
+// de les classes baixes —l'objectiu de la deriva—, de manera que ni jugant perfecte no s'hi
+// viu bé: l'estrès crònic de l'origen humil (inestabilitat, manca de xarxa, expectatives)
+// que els indicadors d'ingrés/patrimoni no capturen. Per a la mitjana amunt és 0.
+const PRECARIETAT_BENESTAR_ADULT: Record<FamilyClass, number> = {
+  pobra: 16,
+  treballadora: 11,
+  mitjana: 0,
+  alta: 0,
+  rica: 0,
+  super_rica: 0,
+}
+
 export function adultBaselineBenestar(state: GameState): number {
   // La seguretat econòmica depèn del que es cobra de veritat (net), no del brut.
   const incomeM = netMensual(state.salari ?? 0)
@@ -254,6 +289,8 @@ export function adultBaselineBenestar(state: GameState): number {
   base -= state.salutCronica ?? 0
   // Cost ecològic del consum: un nivell de vida alt i l'acumulació material pesen una mica.
   base -= petjadaEcologicaBenestar(state.nivellVida, state.person.patrimoni.cases.length)
+  // Residu de precarietat de classe (rebaixa el sostre adult de les classes baixes).
+  base -= PRECARIETAT_BENESTAR_ADULT[state.familia.classe]
   return clampBenestar(Math.round(base))
 }
 
@@ -601,8 +638,8 @@ export function aportacioMinima(familia: Familia, income: number): number {
 // mantenir ningú; els pares, fins i tot, els donen un coixí). Drena el marge d'estalvi del
 // pobre adult i és una de les vies per les quals no pot acumular.
 const APORTACIO_CARRERA: Record<FamilyClass, number> = {
-  pobra: 0.35,
-  treballadora: 0.2,
+  pobra: 0.4,
+  treballadora: 0.3,
   mitjana: 0.05,
   alta: 0,
   rica: 0,
@@ -864,8 +901,8 @@ const COBERTURA_VIDA_FAMILIAR: Record<FamilyClass, number> = {
 // sobre el cost base COMPARTIT, no un cost independent per classe: el mercat extreu renda
 // a qui no pot negociar. Mitjana i amunt no paguen sobrecost.
 const COST_VIDA_FACTOR_CLASSE: Record<FamilyClass, number> = {
-  pobra: 1.25,
-  treballadora: 1.12,
+  pobra: 1.35,
+  treballadora: 1.2,
   mitjana: 1,
   alta: 1,
   rica: 1,
