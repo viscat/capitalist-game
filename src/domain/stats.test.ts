@@ -22,6 +22,10 @@ import {
   minimOciCompres,
   estalviAnualCriatura,
   familyBaselineBenestar,
+  ajutFillsAnual,
+  costFillsAnual,
+  fillsDependents,
+  llegatPerFill,
   pagaMensual,
   pagaPerAjudaCasa,
   penalitzacioDescobert,
@@ -125,6 +129,55 @@ describe('estalviAnualCriatura', () => {
     const rica = estalviAnualCriatura(FAMILY_PRESETS.rica.familia)
     expect(pobra).toBeLessThan(rica)
     expect(pobra).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('descendència', () => {
+  // Estat amb fills: persona de 40 anys; els naixements són edats (mesos) del progenitor.
+  const stateFills = (over: Partial<GameState>): GameState =>
+    ({
+      familia: FAMILY_PRESETS.mitjana.familia,
+      person: { ...person, edatMesos: 40 * 12 },
+      salari: 2500,
+      nivellVida: 'mig',
+      ...over,
+    }) as GameState
+
+  it('compta com a dependents només els fills dins de la finestra de criança', () => {
+    // Fill nascut quan el progenitor tenia 30 (fa 10 anys): dependent. Un altre als 12
+    // (fa 28 anys, ja gran): no dependent.
+    const s = stateFills({ fills: 2, fillsNaixement: [30 * 12, 12 * 12] })
+    expect(fillsDependents(s)).toBe(1)
+  })
+
+  it('el cost de criança és 0 sense fills i creix amb els fills dependents', () => {
+    expect(costFillsAnual(stateFills({}))).toBe(0)
+    const un = costFillsAnual(stateFills({ fills: 1, fillsNaixement: [35 * 12] }))
+    const dos = costFillsAnual(stateFills({ fills: 2, fillsNaixement: [35 * 12, 34 * 12] }))
+    expect(un).toBeGreaterThan(0)
+    expect(dos).toBeGreaterThan(un)
+  })
+
+  it('la prestació per fill és més alta com més baixa és la renda (means-tested)', () => {
+    const naix = { fills: 1, fillsNaixement: [35 * 12] }
+    const baixa = ajutFillsAnual(stateFills({ ...naix, salari: 1300 }))
+    const alta = ajutFillsAnual(stateFills({ ...naix, salari: 6000 }))
+    expect(baixa).toBeGreaterThan(alta)
+    // Amb prestació, el cost net del pobre és menor que el del ric (mateixos fills).
+    const costBaixa = costFillsAnual(stateFills({ ...naix, salari: 1300 }))
+    const costAlta = costFillsAnual(stateFills({ ...naix, salari: 6000 }))
+    expect(costBaixa).toBeLessThan(costAlta)
+  })
+
+  it('el llegat per fill reparteix el patrimoni net entre els fills', () => {
+    const ric = {
+      ...person,
+      edatMesos: 40 * 12,
+      patrimoni: { ...person.patrimoni, estalvi: 200_000 },
+    }
+    const s = stateFills({ person: ric, fills: 2, fillsNaixement: [35 * 12, 34 * 12] })
+    expect(llegatPerFill(s)).toBeGreaterThan(0)
+    expect(llegatPerFill(stateFills({ fills: 0 }))).toBe(0)
   })
 })
 

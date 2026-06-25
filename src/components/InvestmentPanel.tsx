@@ -12,8 +12,10 @@ import {
   benestarOciAnual,
   cobreixVidaFamiliar,
   contribucioLlar,
+  costFillsAnual,
   costVidaPropi,
   defaultPlaInversio,
+  fillsDependents,
   desgravacioPensions,
   ingressosAnualsCarrera,
   minimOciAnual,
@@ -63,7 +65,11 @@ export function InvestmentPanel() {
     ? 0
     : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
   const costHab = ambPares ? 0 : costHabitatgeAnual(state.habitatge)
-  const obligatori = costVida + costHab
+  // Criança dels fills dependents (cost net, ja descomptada la prestació pública): és una
+  // despesa obligatòria de l'any, com l'habitatge.
+  const costFills = costFillsAnual(state)
+  const fillsDeps = fillsDependents(state)
+  const obligatori = costVida + costHab + costFills
   const efectiu = state.person.patrimoni.efectiu
   const estalvi = state.person.patrimoni.estalvi
   // Pots repartir el sou + els teus estalvis (efectiu + estalvi), per damunt del sou.
@@ -226,6 +232,26 @@ export function InvestmentPanel() {
               </span>
               <span className="w-20 text-right font-mono text-sm text-amber-300/90">
                 {formatEuros(perMes(costHab))}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Criança dels fills dependents: obligatori, no es pot modificar. */}
+        {costFills > 0 && (
+          <div className="flex items-center justify-between gap-3 opacity-90">
+            <div className="min-w-0">
+              <div className="text-sm font-medium text-slate-300">
+                👶 {t('pla.costFills', { fills: fillsDeps })}
+              </div>
+              <div className="text-xs text-slate-500">{t('pla.costFills.desc')}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500" aria-hidden>
+                🔒
+              </span>
+              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+                {formatEuros(perMes(costFills))}
               </span>
             </div>
           </div>

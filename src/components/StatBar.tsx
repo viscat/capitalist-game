@@ -6,6 +6,7 @@ export function StatBar({
   vincles = 0,
   sequela = 0,
   academic = 0,
+  fills = 0,
 }: {
   benestar: number
   /** Vincles socials 0..1 (font de benestar no monetària). */
@@ -14,6 +15,8 @@ export function StatBar({
   sequela?: number
   /** Nivell acadèmic 0..1 (millora sou i ocupabilitat en sortir de la universitat). */
   academic?: number
+  /** Nombre de fills (descendència). */
+  fills?: number
 }) {
   const { t } = useT()
   const value = Math.round(benestar)
@@ -38,8 +41,16 @@ export function StatBar({
           style={{ width: `${value}%` }}
         />
       </div>
-      {(vinclesPct > 0 || sequela > 0 || academicPct > 0) && (
+      {(vinclesPct > 0 || sequela > 0 || academicPct > 0 || fills > 0) && (
         <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-2.5">
+          {fills > 0 && (
+            <div className="flex items-baseline justify-between text-xs">
+              <span className="text-slate-400" title={t('stat.fills.tip')}>
+                👶 {t('stat.fills')}
+              </span>
+              <span className="font-medium text-slate-200">{fills}</span>
+            </div>
+          )}
           {vinclesPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">

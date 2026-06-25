@@ -33,6 +33,22 @@ export const EDAT_CRUILLA_40 = 40
 export const EDAT_REVISIO_50 = 50
 export const EDAT_RECTA_60 = 60
 
+// --- Descendència (tenir fills, a la vida adulta) ---
+
+/** Finestra d'edat en què pot aparèixer l'opció de tenir un fill. */
+export const EDAT_FERTIL_MIN = 26
+export const EDAT_FERTIL_MAX = 42
+/** Nombre màxim de fills. */
+export const MAX_FILLS = 3
+/** Anys que un fill és dependent (genera cost de criança al progenitor). */
+export const DEPENDENCIA_FILLS_ANYS = 22
+/**
+ * Cost anual base de criar un fill dependent (alimentació, roba, escola, extraescolars...).
+ * S'escala amb el nivell de vida i amb el sobrecost de classe ("la pobresa surt cara"): per
+ * a una llar humil un fill pesa molt més en proporció. Ordre de magnitud realista (Espanya).
+ */
+export const COST_FILL_ANUAL = 4_000
+
 /** Sou BRUT mensual base d'una primera feina als 16-18 (s'hi suma un plus per família). */
 export const SALARI_BASE_16 = 800
 

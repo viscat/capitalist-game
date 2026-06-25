@@ -89,6 +89,11 @@ Transicions (fites):
 - Als **67** → **jubilació**: `acabat = true` + `jubilat = true` → `GameOver` amb el
   **balanç de jubilació** (pensió pública + pla de pensions + rendes del patrimoni vs.
   necessitats). És el clímax financer: aquí «es cobra» tot l'estalvi i la inversió.
+- **Descendència**: dins de la **finestra fèrtil** (26–42) i fins a `MAX_FILLS`, pot sortir
+  l'esdeveniment `tenir_fill` (decisió). Un fill dóna benestar i vincles, però afegeix un
+  **cost de criança net** anual (`costFillsAnual` = cost − prestació pública `ajutFillsAnual`)
+  a les necessitats de la carrera mentre és dependent (~22 anys). El `GameOver` mostra els
+  fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
 - **A qualsevol edat**, si el `benestar` arriba a **0** → `acabat = true` + `espiral = true`
   → **espiral de destrucció**: la partida acaba abans d'hora (és una derrota, no el final
   per edat). Es comprova a `resolveEvent` **abans** del final per edat. La precarietat fa

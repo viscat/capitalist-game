@@ -217,6 +217,12 @@ export interface EventEffect {
    * l'ocupabilitat en sortir.
    */
   academicDelta?: number
+  /**
+   * Nombre de fills que afegeix aquest efecte (descendència): normalment 1. El motor
+   * incrementa `GameState.fills` i registra l'edat (en mesos) del progenitor al naixement
+   * a `GameState.fillsNaixement` per calcular els anys de criança (cost recurrent).
+   */
+  fillsDelta?: number
 }
 
 export interface EventChoice {
@@ -366,6 +372,13 @@ export interface GameState {
    * de jubilació (pensió pública + pla de pensions + rendes del patrimoni). Absent = false.
    */
   jubilat?: boolean
+  /** Nombre de fills tinguts (descendència). Absent = 0. */
+  fills?: number
+  /**
+   * Edat (en mesos) del progenitor al naixement de cada fill. Permet saber quants fills són
+   * encara dependents (criança) i, per tant, el cost recurrent anual. Una entrada per fill.
+   */
+  fillsNaixement?: number[]
 }
 
 /** Instantània anual del patrimoni invertit (per al gràfic de rendiment). */

@@ -600,3 +600,33 @@ les classes baixes sovint **ni arribin a jubilar-se**:
 > La permadeath per espiral sobre un horitzó de 49 anys adults fa, per disseny, que el pobre
 > gairebé mai es jubili i que la meitat de la classe treballadora no hi arribi: la precarietat
 > no és només viure pitjor, és **no arribar a la vellesa amb dignitat**.
+
+### 8.9 Descendència: la família com a privilegi de classe
+
+A la vida adulta, dins d'una **finestra fèrtil** (26–42 anys) i fins a un màxim de fills, pot
+aparèixer la decisió de **tenir un fill** (`DESCENDENCIA_EVENTS`, gated a `eventPool`). El fill
+és una font de **benestar i vincles** (P7, no monetària) però amb un **cost de criança recurrent**
+mentre és dependent (`costFillsAnual`, ~22 anys):
+
+- **Cost net** = cost brut (`COST_FILL_ANUAL`, escalat pel nivell de vida) − **prestació pública
+  per fill** (`ajutFillsAnual`, *means-tested*: plena per a renda baixa, ~0 per als acomodats).
+  A diferència del consum general, **no** s'hi aplica el sobrecost de classe (l'escola i la
+  sanitat públiques aplanen el cost dels fills): així tenir un fill és una tensió real, no una
+  condemna automàtica per als humils.
+- **Llegat** (`llegatPerFill`, mostrat a `GameOver`): el patrimoni net es reparteix entre els
+  fills. Tanca el cercle de la reproducció de classe (com l'`herenciaVida` rebuda als 18): els
+  fills arrenquen d'on tu els deixes.
+
+**El missatge** (verificat per simulació, jugador raonable que no té fills si va contra les
+cordes): la **capacitat de formar família està estratificada per classe**.
+
+| Classe | Fills (mitjana) | Tenen fills |
+|--------|-----------------|-------------|
+| rica / super-rica | ~1,9 | ~90% |
+| mitjana | ~1,8 | ~88% |
+| treballadora | ~0,3 | ~16–20% (només quan estan estables) |
+| pobra | ~0 | gairebé mai (no arriben a una posició prou estable) |
+
+> La descendència **no trenca** la corba de classe ni la viabilitat de la treballadora: qui
+> pot permetre-s'ho té família i en gaudeix; qui va just hi renuncia o ho paga car. El dret a
+> tenir fills, com tota la resta, depèn del punt de sortida.
