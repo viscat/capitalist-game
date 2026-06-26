@@ -6,6 +6,7 @@ import {
   advanceTurn,
   applyChoice,
   applyMilestoneChoice,
+  continuaGeneracio,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -69,6 +70,8 @@ interface GameContextValue {
   comprarCasa: (propietatId: string, anys: number) => void
   /** Torna a viure amb els pares (deixa el lloguer). */
   tornarAmbPares: () => void
+  /** En morir amb descendents: continua la dinastia amb un fill (nova generació). */
+  continuarGeneracio: () => void
   reset: () => void
   actions: ActionOption[]
 }
@@ -124,6 +127,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
       tornarAmbPares: () => setState((s) => (s ? tornarAmbPares(s) : s)),
+      continuarGeneracio: () => setState((s) => (s ? continuaGeneracio(s) : s)),
       reset: () => {
         try {
           localStorage.removeItem(STORAGE_KEY)

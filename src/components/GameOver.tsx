@@ -26,8 +26,10 @@ function Line({ label, value }: { label: string; value: string }) {
 
 export function GameOver() {
   const { t } = useT()
-  const { state, reset } = useGame()
+  const { state, reset, continuarGeneracio } = useGame()
   if (!state) return null
+
+  const generacio = state.generacio ?? 1
 
   const benestar = Math.round(state.person.stats.benestar)
   const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
@@ -150,11 +152,6 @@ export function GameOver() {
           <p className="mt-3 text-xs leading-relaxed text-sky-300/90">
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
-          {fills > 0 && (
-            <p className="mt-2 text-xs leading-relaxed text-rose-300/90">
-              👨‍👩‍👧 {t('gameover.notaLlegat', { fills, llegat: formatEuros(llegat) })}
-            </p>
-          )}
         </div>
 
         {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}
@@ -197,12 +194,29 @@ export function GameOver() {
           </div>
         )}
 
-        {finalTipus !== 'mort' && (
-          <p className="mt-6 text-sm italic text-slate-500">{t('gameover.soon')}</p>
+        {/* Herència i dinastia: si deixes descendència, pots continuar amb la generació següent. */}
+        {fills > 0 && (
+          <div className="mt-4 rounded-xl bg-indigo-950/40 p-5 text-left ring-1 ring-indigo-800/50">
+            <h2 className="mb-2 text-sm font-semibold text-indigo-200">
+              👨‍👩‍👧 {t('gameover.dinastia.titol')}
+            </h2>
+            <p className="text-sm text-slate-300">
+              {t('gameover.dinastia.herencia', {
+                fills,
+                llegat: formatEuros(llegat),
+              })}
+            </p>
+            <button
+              onClick={continuarGeneracio}
+              className="mt-3 w-full rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500"
+            >
+              {t('gameover.dinastia.continuar', { generacio: generacio + 1 })}
+            </button>
+          </div>
         )}
         <button
           onClick={reset}
-          className="mt-6 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500"
+          className="mt-4 rounded-xl bg-slate-700 px-6 py-3 font-semibold text-white transition hover:bg-slate-600"
         >
           {t('gameover.restart')}
         </button>

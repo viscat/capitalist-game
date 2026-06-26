@@ -5,6 +5,9 @@ import {
   advanceTurn,
   applyChoice,
   applyMilestoneChoice,
+  classePerPatrimoni,
+  continuaGeneracio,
+  familiaHereva,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -22,7 +25,6 @@ import {
   EDAT_FI_ADOLESCENCIA,
   EDAT_FI_INFANCIA,
   EDAT_FI_POSTOBLIGATORI,
-  EDAT_JUBILACIO,
   MESOS_PER_ANY,
 } from './constants'
 import type { GameEvent, GameState } from './types'
@@ -239,6 +241,69 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
+describe('dinastia i herència', () => {
+  it('classePerPatrimoni mapeja la riquesa heretada a una classe', () => {
+    expect(classePerPatrimoni(0)).toBe('pobra')
+    expect(classePerPatrimoni(20_000)).toBe('treballadora')
+    expect(classePerPatrimoni(100_000)).toBe('mitjana')
+    expect(classePerPatrimoni(2_000_000)).toBe('rica')
+  })
+
+  it('familiaHereva: més herència ⇒ classe més alta i el patrimoni real heretat', () => {
+    const pobre = familiaHereva(0)
+    const ric = familiaHereva(1_500_000)
+    expect(pobre.classe).toBe('pobra')
+    expect(ric.classe).toBe('rica')
+    expect(ric.patrimoni).toBe(1_500_000)
+  })
+
+  it('herència en vida: transfereix patrimoni al pot de llegat i el treu del teu', () => {
+    let s = newGameAtCarrera('rica', 3)
+    s = {
+      ...s,
+      fills: 1,
+      fillsNaixement: [s.person.edatMesos],
+      person: {
+        ...s.person,
+        patrimoni: { ...s.person.patrimoni, estalvi: 100_000 },
+      },
+    }
+    const after = resolWith(s, [
+      { id: 'd', labelKey: 'x', effect: { llegatEnVidaDelta: 30_000 } },
+    ])
+    expect(after.llegatEnVida).toBe(30_000)
+    // El patrimoni líquid ha baixat en la mateixa quantitat.
+    const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.estalvi
+    const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.estalvi
+    expect(liquidAbans - liquidDespres).toBe(30_000)
+  })
+
+  it('continuaGeneracio comença una vida nova amb la família heretada', () => {
+    // Estat "mort" amb fills i patrimoni: el descendent neix en una llar rica.
+    let s = newGameAtCarrera('mitjana', 3)
+    s = {
+      ...s,
+      acabat: true,
+      mort: true,
+      fills: 2,
+      fillsNaixement: [s.person.edatMesos - 30 * 12, s.person.edatMesos - 28 * 12],
+      person: {
+        ...s.person,
+        edatMesos: 80 * 12,
+        patrimoni: { ...s.person.patrimoni, estalvi: 1_000_000 },
+      },
+    }
+    const gen2 = continuaGeneracio(s)
+    expect(gen2.acabat).toBe(false)
+    expect(gen2.lifeStage).toBe('infancia')
+    expect(gen2.person.edatMesos).toBe(0)
+    expect(gen2.generacio).toBe(2)
+    expect(gen2.person.stats.salut).toBe(100)
+    // Hereta una llar amb patrimoni (la riquesa del progenitor es transmet).
+    expect(gen2.familia.patrimoni).toBeGreaterThan(0)
+  })
+})
+
 describe('descendència', () => {
   it('tenir un fill incrementa els fills i en registra el naixement', () => {
     const s = newGameAtCarrera('mitjana', 3)
@@ -320,25 +385,41 @@ describe('mort (salut 0 = fi)', () => {
   })
 })
 
-describe('final als 67 (jubilació)', () => {
-  it('la branca universitària passa per la uni i es jubila als 67', () => {
+describe('vida fins a la mort (jubilació als 67)', () => {
+  it('la branca universitària passa per la uni i acaba per mort (salut 0)', () => {
     const s = playToEnd('mitjana', 11, 'batxillerat')
     expect(s.acabat).toBe(true)
+    expect(s.mort).toBe(true) // l'únic final és la mort (salut 0)
     expect(s.teDiploma).toBe(true)
-    // Si no ha mort, la jubilació arriba exactament als 67.
-    if (!s.mort) {
-      expect(s.jubilat).toBe(true)
-      expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
-    }
+    expect(Math.round(s.person.stats.salut)).toBe(0)
   })
 
-  it('la branca laboral acaba als 67 (o mort) amb benestar i comptes acotats', () => {
+  it('als 67 es dispara la jubilació i la vida continua (no acaba)', () => {
+    // Carrera als 66, sa: en avançar creua els 67 → fita de jubilació (no mort, no fi).
+    let s = newGameAtCarrera('mitjana', 3)
+    s = {
+      ...s,
+      person: {
+        ...s.person,
+        edatMesos: 66 * MESOS_PER_ANY,
+        stats: { benestar: 70, salut: 90 },
+      },
+    }
+    const after = advanceTurn(s)
+    expect(after.acabat).toBe(false)
+    expect(after.pendingMilestone).toBe('jubilacio')
+    const jubilat = applyMilestoneChoice(after, 'jubilar')
+    expect(jubilat.lifeStage).toBe('jubilacio')
+    expect(jubilat.jubilat).toBe(true)
+    expect(jubilat.salari).toBe(0) // ja no es treballa: es viu de la pensió
+    expect(jubilat.acabat).toBe(false)
+  })
+
+  it('la branca laboral acaba per mort amb benestar i comptes acotats', () => {
     const s = playToEnd('treballadora', 5, 'treball')
     expect(s.acabat).toBe(true)
+    expect(s.mort).toBe(true)
     expect(s.teDiploma).toBe(false) // ha entrat a la carrera sense passar per la uni
-    if (!s.mort) {
-      expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
-    }
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
     expect(s.person.stats.benestar).toBeLessThanOrEqual(100)
     expect(s.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)

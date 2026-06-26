@@ -29,6 +29,7 @@ import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
   DESCENDENCIA_EVENTS,
+  HERENCIA_VIDA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from './events/adult'
@@ -56,6 +57,7 @@ import {
   clampSalut,
   contribucioLlar,
   declividSalutAnual,
+  factorEsperancaVida,
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
@@ -67,10 +69,12 @@ import {
   herenciaVida,
   ingressosAnualsCarrera,
   ingressosMensuals16,
+  llegatPerFill,
   netMensual,
   pagaMensual,
   pagaPerAjudaCasa,
   patrimoniTotal,
+  pensioPublicaAnual,
   prestacioAturAnual,
   rendimentIndexAnual,
   repartDeficit,
@@ -79,10 +83,11 @@ import {
   salariInicial,
   sostreSalari,
 } from './stats'
-import { edatAnys } from './time'
+import { dataActual, edatAnys } from './time'
 import type {
   ActionOption,
   EventEffect,
+  Familia,
   FamilyClass,
   GameAction,
   GameEvent,
@@ -202,6 +207,71 @@ function emptyPatrimoni(): Person['patrimoni'] {
   }
 }
 
+// Llindars de patrimoni heretat → classe de la llar de la nova generació. La riquesa que
+// deixes determina en quina classe neixen els teus fills: la reproducció de classe, explícita.
+const PATRIMONI_CLASSE: [number, FamilyClass][] = [
+  [5_000_000, 'super_rica'],
+  [1_000_000, 'rica'],
+  [250_000, 'alta'],
+  [50_000, 'mitjana'],
+  [8_000, 'treballadora'],
+  [0, 'pobra'],
+]
+
+/** Classe de la llar d'un hereu segons el patrimoni que rep. */
+export function classePerPatrimoni(patrimoni: number): FamilyClass {
+  for (const [llindar, classe] of PATRIMONI_CLASSE) {
+    if (patrimoni >= llindar) return classe
+  }
+  return 'pobra'
+}
+
+/**
+ * Família d'origen de la nova generació: classe segons el patrimoni heretat, amb el perfil
+ * d'ingressos/cura d'aquella classe però amb el patrimoni REAL heretat. Així el fill d'un ric
+ * neix en una llar rica; el d'algú que mor sense res, en una de pobra.
+ */
+export function familiaHereva(patrimoniHeretat: number): Familia {
+  const classe = classePerPatrimoni(patrimoniHeretat)
+  const base = FAMILY_PRESETS[classe].familia
+  return { ...base, patrimoni: Math.max(0, Math.round(patrimoniHeretat)) }
+}
+
+/**
+ * Continua la dinastia amb un descendent: comença una vida nova (des del naixement) per a un
+ * fill, que neix en una llar la riquesa de la qual és l'herència que li deixes (mort + en
+ * vida). El nou protagonista neix a la data de la teva mort (dècades després → més esperança
+ * de vida) i conserva el cognom (llinatge). Reutilitza tot el cicle de vida (0 → mort).
+ */
+export function continuaGeneracio(state: GameState): GameState {
+  if ((state.fills ?? 0) <= 0) return state
+  const llegat = llegatPerFill(state)
+  const familia = familiaHereva(llegat)
+  // El nou protagonista neix a la data (de calendari) de la mort del progenitor.
+  let dataNaixement = state.dataNaixement
+  if (dataNaixement) {
+    const d = dataActual(dataNaixement, state.person.edatMesos)
+    dataNaixement = `${d.any}-${String(d.mesIndex + 1).padStart(2, '0')}-01`
+  }
+  const person: Person = {
+    edatMesos: 0,
+    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
+    patrimoni: emptyPatrimoni(),
+  }
+  return {
+    torn: 0,
+    lifeStage: 'infancia',
+    person,
+    familia,
+    identitat: state.identitat,
+    dataNaixement,
+    rngState: state.rngState,
+    generacio: (state.generacio ?? 1) + 1,
+    historial: [],
+    acabat: false,
+  }
+}
+
 /**
  * Mesos que avança cada torn. Tota la vida es juga a 1 torn = 1 any per coherència;
  * els imports (paga, pressupost, sou...) es decideixen en mensual i es prorrategen.
@@ -242,6 +312,12 @@ function ambOfertes(state: GameState): GameState {
   return state
 }
 
+/** Pot oferir herència en vida: té fills i prou patrimoni líquid per avançar-ne una part. */
+function potHeretarEnVida(state: GameState): boolean {
+  const p = state.person.patrimoni
+  return (state.fills ?? 0) > 0 && p.efectiu + p.estalvi + p.fonsIndexat > 30_000
+}
+
 /** Pool d'esdeveniments corresponent a la fase (i situació) actual. */
 function eventPool(state: GameState): GameEvent[] {
   switch (state.lifeStage) {
@@ -271,6 +347,14 @@ function eventPool(state: GameState): GameEvent[] {
       ) {
         pool.push(...DESCENDENCIA_EVENTS)
       }
+      // Amb fills i un coixí, pot sortir l'opció d'herència en vida.
+      if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
+      return pool
+    }
+    case 'jubilacio': {
+      // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
+      const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
+      if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
       return pool
     }
     case 'laboral': {
@@ -358,13 +442,19 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   const benestar = clampBenestar(
     Math.round(state.person.stats.benestar + gap * derivaFactor),
   )
-  // Declivi anual de la salut: edat + benestar (estrès/precarietat) + seqüeles. El benestar
-  // que es fa servir és el ja derivat d'aquest any. Pot recuperar-se (delta negatiu) si la
-  // persona és jove i benestant. Els esdeveniments de salut hi sumaran cops a sobre.
+  // Declivi anual de la salut: edat + benestar (estrès/precarietat) + seqüeles, modulat per
+  // el progrés mèdic de l'època (esperança de vida actual i futura). El benestar que es fa
+  // servir és el ja derivat d'aquest any. Pot recuperar-se (delta negatiu) si la persona és
+  // jove i benestant. Els esdeveniments de salut hi sumaran cops a sobre.
+  const anyCalendari = state.dataNaixement
+    ? dataActual(state.dataNaixement, edatMesos).any
+    : undefined
+  const factorEpoca =
+    anyCalendari !== undefined ? factorEsperancaVida(anyCalendari) : 1
   const salut = clampSalut(
     Math.round(
       state.person.stats.salut -
-        declividSalutAnual(anys, benestar, state.salutCronica ?? 0),
+        declividSalutAnual(anys, benestar, state.salutCronica ?? 0, factorEpoca),
     ),
   )
   let person: Person = {
@@ -438,21 +528,23 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // Pressió familiar de l'origen humil: mentre estudies, la família segueix necessitant
     // que aportis (cost de benestar modest, com a les fases joves).
     person = applyEffect(person, { benestar: ajudaCasaBenestar(state.familia) })
-  } else if (stage === 'carrera') {
-    // Any de carrera: el fons indexat rendeix segons l'atzar del mercat.
+  } else if (stage === 'carrera' || stage === 'jubilacio') {
+    // Any de carrera o jubilació: el fons indexat rendeix segons l'atzar del mercat.
     const draw = rng(rngState)
     rngState = draw.state
-    // A l'atur (sou 0), l'ingrés és la prestació d'atur (si has cotitzat); amb sou, el net.
+    // Ingrés de l'any: jubilat → pensió pública; en actiu amb sou → net; a l'atur → prestació.
     const income =
-      (state.salari ?? 0) > 0
-        ? ingressosAnualsCarrera(state)
-        : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
+      stage === 'jubilacio'
+        ? pensioPublicaAnual(state)
+        : (state.salari ?? 0) > 0
+          ? ingressosAnualsCarrera(state)
+          : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
     // sol: cost de vida sencer (segons el nivell que tries) + habitatge, i s'atura l'ajuda.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
-    const net = netMensual(state.salari ?? 0)
+    const net = stage === 'jubilacio' ? income / MESOS_PER_ANY : netMensual(state.salari ?? 0)
     const costVida = ambPares
       ? contribucioLlar(state.familia, net)
       : costVidaPropi(state.familia, habitatge, state.nivellVida)
@@ -513,7 +605,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   }
 
   // Habitatge (fases adultes): l'immoble es revalora i la hipoteca s'amortitza.
-  if (stage === 'universitat' || stage === 'carrera') {
+  if (stage === 'universitat' || stage === 'carrera' || stage === 'jubilacio') {
     if (person.patrimoni.cases.length > 0) {
       person = {
         ...person,
@@ -693,15 +785,16 @@ function resolveEvent(
   // (Substitueix l'antiga mort instantània per benestar 0: ara el benestar baix erosiona la
   // salut, però no mata de cop.)
   let mort = state.mort ?? false
-  let jubilat = state.jubilat ?? false
+  const jubilat = state.jubilat ?? false
   let pendingMilestone = state.pendingMilestone
   if (person.stats.salut <= 0) {
+    // L'únic final de la partida: la mort (salut 0), a qualsevol edat.
     acabat = true
     mort = true
-  } else if (mesos >= EDAT_JUBILACIO * MESOS_PER_ANY) {
-    // Jubilació als 67: final "normal" amb el balanç de jubilació.
-    acabat = true
-    jubilat = true
+  } else if (state.lifeStage === 'carrera' && mesos >= EDAT_JUBILACIO * MESOS_PER_ANY) {
+    // Als 67 et jubiles: NO s'acaba la partida, es transiciona a la fase de jubilació
+    // (es continua vivint —de la pensió i els estalvis— fins a la mort).
+    pendingMilestone = 'jubilacio'
   } else if (
     state.lifeStage === 'infancia' &&
     mesos >= EDAT_FI_INFANCIA * MESOS_PER_ANY
@@ -772,6 +865,22 @@ function resolveEvent(
     fillsNaixement = naixements
   }
 
+  // Herència en vida: transfereix patrimoni líquid (efectiu → estalvi → fons indexat) al pot
+  // de llegat als descendents (lliure de successions). Surt del teu patrimoni ara.
+  let llegatEnVida = state.llegatEnVida
+  if (effect.llegatEnVidaDelta && effect.llegatEnVidaDelta > 0) {
+    const pat = { ...person.patrimoni }
+    let restant = effect.llegatEnVidaDelta
+    for (const font of ['efectiu', 'estalvi', 'fonsIndexat'] as const) {
+      const treu = Math.min(restant, pat[font])
+      pat[font] = Math.round(pat[font] - treu)
+      restant -= treu
+    }
+    const donat = effect.llegatEnVidaDelta - restant
+    person = { ...person, patrimoni: pat }
+    llegatEnVida = (state.llegatEnVida ?? 0) + donat
+  }
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
@@ -784,6 +893,7 @@ function resolveEvent(
     nivellAcademic,
     fills,
     fillsNaixement,
+    llegatEnVida,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],
@@ -811,6 +921,13 @@ export function applyMilestoneChoice(
     lifeStage: option.lifeStage,
     itinerari: option.itinerari ?? state.itinerari,
     pendingMilestone: undefined,
+  }
+  // Jubilació: deixes de treballar. El sou passa a 0 (la pensió, derivada de `salariBase`,
+  // és l'ingrés); s'esborren ofertes de feina pendents.
+  if (option.lifeStage === 'jubilacio') {
+    next.jubilat = true
+    next.salari = 0
+    next.ofertesFeina = undefined
   }
   if (option.itinerari === 'treball') {
     // El sou de partida porta la bretxa de gènere/origen (discriminació d'accés).

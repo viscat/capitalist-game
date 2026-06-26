@@ -547,6 +547,44 @@ export const DESCENDENCIA_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * Herència EN VIDA: si tens fills i un coixí, pots avançar-los part del patrimoni ara
+ * (lliure d'impost de successions). Redueix el teu estate i el teu marge, però ajuda els
+ * fills (i et fa sentir bé). El que dónes s'acumula a `GameState.llegatEnVida` i es reparteix
+ * entre els descendents quan continues amb un d'ells. Gating per fills i patrimoni a `eventPool`.
+ */
+export const HERENCIA_VIDA_EVENTS: GameEvent[] = [
+  {
+    id: 'herencia_en_vida',
+    category: 'familia',
+    titleKey: 'event.herencia_en_vida.title',
+    descKey: 'event.herencia_en_vida.desc',
+    weight: () => 1,
+    choices: [
+      {
+        id: 'donar',
+        labelKey: 'event.herencia_en_vida.choice.donar',
+        effect: {},
+        // Dóna ~30% del patrimoni líquid als fills (lliure de successions).
+        resolve: (s) => {
+          const p = s.person.patrimoni
+          const liquid = p.efectiu + p.estalvi + p.fonsIndexat
+          return {
+            llegatEnVidaDelta: Math.round((liquid * 0.3) / 100) * 100,
+            benestar: 4,
+            vinclesDelta: 0.05,
+          }
+        },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.herencia_en_vida.choice.no',
+        effect: {},
+      },
+    ],
+  },
+]
+
+/**
  * A l'atur durant la carrera (sou 0), mentre es busca feina. Aquí NO s'hi troba
  * feina (això es fa al panell de cerca, segons l'ocupabilitat): són esdeveniments de
  * color de la temporada d'atur (un ajut econòmic, el desànim de la cerca llarga).

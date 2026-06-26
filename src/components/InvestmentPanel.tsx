@@ -21,6 +21,7 @@ import {
   minimOciAnual,
   netMensual,
   patrimoniTotal,
+  pensioPublicaAnual,
   repartDeficit,
 } from '../domain/stats'
 import { costHabitatgeAnual } from '../domain/housing'
@@ -50,14 +51,16 @@ export function InvestmentPanel() {
   const { state, setPla, setNivellVida, setVidaSenzilla, nextTurn } = useGame()
   if (!state) return null
 
-  // El model treballa en anual; el panell ho presenta tot en mensual.
-  const income = ingressosAnualsCarrera(state)
+  // El model treballa en anual; el panell ho presenta tot en mensual. Jubilat → pensió.
+  const income = state.jubilat ? pensioPublicaAnual(state) : ingressosAnualsCarrera(state)
   const nivell = state.nivellVida ?? NIVELL_VIDA_DEFAULT
   // Viure amb els pares = un sol cost (contribució a la llar: manutenció + ajuda), sense
   // pagar el cost de vida a part ni triar-ne el nivell. Viure sol = cost de vida sencer
   // (segons el nivell) + habitatge, i s'atura l'ajuda a la família.
   const ambPares = (state.habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
-  const net = netMensual(state.salari ?? 0)
+  const net = state.jubilat
+    ? Math.round(income / MESOS_PER_ANY)
+    : netMensual(state.salari ?? 0)
   const costVida = ambPares
     ? contribucioLlar(state.familia, net)
     : costVidaPropi(state.familia, state.habitatge, nivell)

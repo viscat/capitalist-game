@@ -72,6 +72,7 @@ la UI ho fa explícit amb una nota a cada panell.
 | `laboral` | 16–18 (treball / nini) | ajusta el **pressupost** mensual (s'aplica × 12) |
 | `universitat` | 18–22 | només «Següent any» (suport familiar − matrícula) |
 | `carrera` | 18/22–**67** | ajusta el **pla d'inversió** (mensual; s'aplica × 12) |
+| `jubilacio` | **67–mort** | pla d'inversió/estalvi vivint de la **pensió** (sense sou) |
 
 Transicions (fites):
 - Als **12** → fita `institut` (una sola opció: continuar) → passa a `adolescencia`.
@@ -86,22 +87,29 @@ Transicions (fites):
   (sou ↔ benestar/vincles/salut). Es disparen **exactament en creuar el llindar** (vegeu
   `resolveEvent`), una sola vegada. La tria s'aplica a `applyMilestoneChoice` (camp
   `MilestoneOption.effect`).
-- Als **67** → **jubilació**: `acabat = true` + `jubilat = true` → `GameOver` amb el
-  **balanç de jubilació** (pensió pública + pla de pensions + rendes del patrimoni vs.
-  necessitats). És el clímax financer: aquí «es cobra» tot l'estalvi i la inversió.
+- Als **67** → fita `jubilacio` → fase **`jubilacio`**: deixes de treballar i vius de la
+  **pensió pública** (`pensioPublicaAnual`) i els estalvis/inversions. **La partida NO
+  s'acaba** (la vida continua fins a la mort). `jubilat = true`, `salari = 0`.
 - **Descendència**: dins de la **finestra fèrtil** (26–42) i fins a `MAX_FILLS`, pot sortir
   l'esdeveniment `tenir_fill` (decisió). Un fill dóna benestar i vincles, però afegeix un
   **cost de criança net** anual (`costFillsAnual` = cost − prestació pública `ajutFillsAnual`)
   a les necessitats de la carrera mentre és dependent (~22 anys). El `GameOver` mostra els
   fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
-- **A qualsevol edat**, si la `salut` arriba a **0** → `acabat = true` + `mort = true` →
-  **mort**: la vida s'acaba abans d'hora. La salut (stat `Stats.salut`, 0..100) es degrada
-  amb l'**edat** (suau, accelera amb els anys), amb el **benestar baix** (estrès/precarietat:
-  `declividSalutAnual` a `stats.ts`) i amb els **esdeveniments de salut** (`EventEffect.salutDelta`;
-  les malalties no pagades —descobert d'una despesa `category:'salut'`— fan mal extra). Acoblament
-  bidireccional: salut baixa també rebaixa el benestar (`benestarPerSalut`). Es comprova a
-  `resolveEvent` **abans** del final per edat. **El benestar 0 ja NO mata** (substituït): ara
-  erosiona la salut, i la precarietat hi porta gradualment → les classes baixes moren joves.
+- **MORT = l'únic final.** A qualsevol edat, si la `salut` arriba a **0** → `acabat = true` +
+  `mort = true`. La salut (stat `Stats.salut`, 0..100) es degrada amb l'**edat**
+  (`declividSalutAnual`, calibrada a l'esperança de vida ~84 per a un sa; un sa mor de vellesa,
+  un precari molt abans), amb el **benestar baix** (estrès/precarietat) i amb els
+  **esdeveniments de salut** (`EventEffect.salutDelta`; les malalties no pagades —descobert
+  d'una despesa `category:'salut'`— fan mal extra). Acoblament bidireccional: salut baixa
+  rebaixa el benestar (`benestarPerSalut`). El **progrés mèdic** (`factorEsperancaVida`) allarga
+  la vida en èpoques futures → les generacions posteriors viuen més.
+- **Dinastia (herència + continuació).** En morir amb fills, el `GameOver` ofereix
+  **continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del
+  naixement en una llar la riquesa de la qual és l'**herència per fill** (`llegatPerFill` =
+  estate net amb successions + herència en vida, repartit). La classe de la nova llar surt del
+  patrimoni heretat (`classePerPatrimoni`/`familiaHereva`): reproducció de classe explícita.
+  L'**herència en vida** (event `herencia_en_vida` → `EventEffect.llegatEnVidaDelta`) transfereix
+  patrimoni als fills mentre vius (lliure de successions; acumulat a `GameState.llegatEnVida`).
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.

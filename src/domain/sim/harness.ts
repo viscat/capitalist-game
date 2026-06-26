@@ -78,6 +78,8 @@ function milestoneChoice(state: GameState, policy: SimPolicy): string {
       return 'cuidar_se'
     case 'recta_60':
       return 'desaccelerar'
+    case 'jubilacio':
+      return 'jubilar'
     default:
       return ''
   }

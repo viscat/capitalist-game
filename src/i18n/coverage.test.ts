@@ -7,6 +7,7 @@ import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
   DESCENDENCIA_EVENTS,
+  HERENCIA_VIDA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from '../domain/events/adult'
@@ -46,6 +47,7 @@ const ALL_EVENTS: GameEvent[] = [
   ...CARRERA_EVENTS,
   ...SALUT_EDAT_EVENTS,
   ...DESCENDENCIA_EVENTS,
+  ...HERENCIA_VIDA_EVENTS,
   ...ATUR_ADULT_EVENTS,
   ...COMMON_LIFE_EVENTS,
 ]
@@ -65,6 +67,7 @@ const STAGES: LifeStage[] = [
   'laboral',
   'universitat',
   'carrera',
+  'jubilacio',
 ]
 const ITINERARIS: Itinerari[] = ['batxillerat', 'grau_mig', 'treball', 'nini']
 const CLASSES: FamilyClass[] = Object.keys(FAMILY_PRESETS) as FamilyClass[]

@@ -20,6 +20,8 @@ export type LifeStage =
   | 'laboral'
   | 'universitat'
   | 'carrera'
+  // Jubilació (67 → mort): es viu de la pensió i els estalvis; ja no hi ha sou ni feina.
+  | 'jubilacio'
 
 /** Itinerari triat al fork dels 16 anys. */
 export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
@@ -52,6 +54,8 @@ export type MilestoneId =
   | 'cruilla_40'
   | 'revisio_50'
   | 'recta_60'
+  // Jubilació als 67: transició de `carrera` a `jubilacio` (la vida continua fins a la mort).
+  | 'jubilacio'
 
 /** Pressupost mensual de la fase laboral (imports en €). El sobrant va a efectiu. */
 export interface Budget {
@@ -229,6 +233,12 @@ export interface EventEffect {
    */
   academicDelta?: number
   /**
+   * Herència EN VIDA: import que es transfereix als descendents ara (surt del teu patrimoni
+   * líquid i s'acumula a `GameState.llegatEnVida`, lliure d'impost de successions). Ajuda els
+   * fills i redueix el teu estate; quan continues amb un descendent, s'hi suma.
+   */
+  llegatEnVidaDelta?: number
+  /**
    * Nombre de fills que afegeix aquest efecte (descendència): normalment 1. El motor
    * incrementa `GameState.fills` i registra l'edat (en mesos) del progenitor al naixement
    * a `GameState.fillsNaixement` per calcular els anys de criança (cost recurrent).
@@ -379,10 +389,17 @@ export interface GameState {
    */
   mort?: boolean
   /**
-   * La partida ha acabat per JUBILACIÓ (s'ha arribat als 67): final "normal" amb el balanç
-   * de jubilació (pensió pública + pla de pensions + rendes del patrimoni). Absent = false.
+   * La persona està JUBILADA (≥67): viu de la pensió i els estalvis, ja no treballa. La
+   * partida NO acaba aquí (continua fins a la mort). Absent = false.
    */
   jubilat?: boolean
+  /** Generació de la dinastia (1 = protagonista inicial; 2+ = descendents continuats). */
+  generacio?: number
+  /**
+   * Patrimoni transferit als descendents EN VIDA (herència anticipada, lliure de successions).
+   * Es reparteix entre els fills quan es continua amb un descendent. Absent = 0.
+   */
+  llegatEnVida?: number
   /** Nombre de fills tinguts (descendència). Absent = 0. */
   fills?: number
   /**
