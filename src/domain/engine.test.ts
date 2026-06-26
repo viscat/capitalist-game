@@ -241,6 +241,17 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
+describe('herència dels pares', () => {
+  it('rebre l’herència per mort marca l’estat (no es repeteix)', () => {
+    const s = laboralTreball()
+    expect(s.herenciaParesRebuda ?? false).toBe(false)
+    const after = resolWith(s, [
+      { id: 'a', labelKey: 'x', effect: { estalvi: 5000, marcaHerenciaPares: true } },
+    ])
+    expect(after.herenciaParesRebuda).toBe(true)
+  })
+})
+
 describe('selecció d’accions recordada entre anys', () => {
   it('accionsSeleccio es conserva en avançar un torn', () => {
     const s = { ...newGame('mitjana', 5), accionsSeleccio: { hobby: 2, sortir_amics: 1 } }

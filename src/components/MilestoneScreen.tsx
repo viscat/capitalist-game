@@ -3,7 +3,7 @@ import { patrimoniTotal } from '../domain/stats'
 import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
-import { formatEuros } from '../lib/format'
+import { formatEurosCompact } from '../lib/format'
 import { SalutAvis, StatRings } from './StatRings'
 
 function benestarBucket(b: number): string {
@@ -69,7 +69,7 @@ export function MilestoneScreen() {
                 {t('transition.estalvi')}
               </div>
               <div className="text-2xl font-bold text-emerald-300">
-                {formatEuros(patrimoniTotal(state.person))}
+                {formatEurosCompact(patrimoniTotal(state.person))}
               </div>
               <div className="text-xs text-slate-500">
                 {t(`family.${state.familia.classe}.name`)}

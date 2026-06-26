@@ -550,6 +550,43 @@ export function herenciaVida(familia: Familia): number {
   return Math.round(net / 100) * 100
 }
 
+// --- Herència que es REP dels pares (l'altra cara de la transmissió de capital) ---
+
+// Ajut econòmic puntual que els pares donen EN VIDA (un cop de mà per a un pis, un projecte,
+// una mà al final de mes). Els pares pobres no en poden donar; els rics, molt. És una via
+// directa per la qual l'origen acomodat allunya el seu fill de la precarietat.
+const AJUT_PARES_PUNTUAL: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 700,
+  mitjana: 2_500,
+  alta: 8_000,
+  rica: 25_000,
+  super_rica: 100_000,
+}
+
+/** Import d'un ajut puntual dels pares en vida (0 per a les llars que no en poden donar). */
+export function ajutParesPuntual(familia: Familia): number {
+  return AJUT_PARES_PUNTUAL[familia.classe]
+}
+
+// Fracció del patrimoni familiar que s'hereta quan moren els pares (l'estate principal). El
+// ric hereta una fortuna; el pobre, gairebé res. Passa per l'impost de successions.
+const FACTOR_HERENCIA_MORT: Record<FamilyClass, number> = {
+  pobra: 0.05,
+  treballadora: 0.08,
+  mitjana: 0.12,
+  alta: 0.15,
+  rica: 0.18,
+  super_rica: 0.2,
+}
+
+/** Capital NET que es rep quan moren els pares (herència menys impost de successions). */
+export function herenciaParesMort(familia: Familia): number {
+  const brut = familia.patrimoni * FACTOR_HERENCIA_MORT[familia.classe]
+  const net = brut - impostSuccessions(brut)
+  return Math.round(Math.max(0, net) / 100) * 100
+}
+
 // --- Eixos de desigualtat ortogonals a la classe: gènere i origen ---
 
 // Bretxa salarial de gènere: a igualtat de tot, les dones cobren menys i pugen més lent;

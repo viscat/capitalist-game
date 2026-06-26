@@ -1,10 +1,12 @@
 import type { PatrimoniSnapshot } from '../domain/types'
 import { useT } from '../i18n'
-import { formatEuros } from '../lib/format'
+import { formatEurosCompact } from '../lib/format'
 
 const W = 320
 const H = 150
-const PAD = 28
+const PAD = 26
+// Marge esquerre ample per a l'etiqueta de l'eix Y (import compacte sense tallar-se).
+const PAD_L = 50
 
 // Dues sèries: el que has APORTAT (de la teva butxaca) i el VALOR actual de la cartera
 // (fons indexat + pla de pensions, ja amb els rendiments). La distància entre les dues
@@ -31,7 +33,7 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
   }))
 
   const maxVal = Math.max(1, ...punts.flatMap((p) => [p.aportat, p.valor]))
-  const x = (i: number) => PAD + (i / (punts.length - 1)) * (W - 2 * PAD)
+  const x = (i: number) => PAD_L + (i / (punts.length - 1)) * (W - PAD_L - PAD)
   const y = (v: number) => H - PAD - (v / maxVal) * (H - 2 * PAD)
 
   const linia = (key: 'valor' | 'aportat') =>
@@ -50,20 +52,20 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
         aria-label={t('chart.title')}
       >
         {/* Eixos */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="#475569" strokeWidth="1" />
         {/* Etiqueta del valor màxim */}
-        <text x={PAD - 4} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
-          {formatEuros(maxVal)}
+        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
+          {formatEurosCompact(maxVal)}
         </text>
-        <text x={PAD - 4} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
           0
         </text>
         {/* Edats (extrems) */}
-        <text x={PAD} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
           {edatMin}
         </text>
-        <text x={W - PAD} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(punts.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
           {edatMax}
         </text>
         {/* Sèries */}

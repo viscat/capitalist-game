@@ -15,7 +15,7 @@ import { LifeCharts } from './LifeCharts'
 import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
-import { benestarLevelKey, formatEuros } from '../lib/format'
+import { benestarLevelKey, formatEurosCompact } from '../lib/format'
 
 function Line({ label, value }: { label: string; value: string }) {
   return (
@@ -107,7 +107,7 @@ export function GameOver() {
                 total < 0 ? 'text-red-400' : 'text-emerald-300'
               }`}
             >
-              {formatEuros(total)}
+              {formatEurosCompact(total)}
             </div>
           </div>
         </div>
@@ -117,12 +117,12 @@ export function GameOver() {
             {t('gameover.desglos')}
           </h2>
           <div className="space-y-1.5">
-            <Line label={t('patrimoni.efectiu')} value={formatEuros(efectiu)} />
-            <Line label={t('patrimoni.estalvi')} value={formatEuros(estalvi)} />
-            <Line label={t('patrimoni.fonsIndexat')} value={formatEuros(fonsIndexat)} />
-            <Line label={t('patrimoni.fonsPensions')} value={formatEuros(fonsPensions)} />
+            <Line label={t('patrimoni.efectiu')} value={formatEurosCompact(efectiu)} />
+            <Line label={t('patrimoni.estalvi')} value={formatEurosCompact(estalvi)} />
+            <Line label={t('patrimoni.fonsIndexat')} value={formatEurosCompact(fonsIndexat)} />
+            <Line label={t('patrimoni.fonsPensions')} value={formatEurosCompact(fonsPensions)} />
             {inversions > 0 && (
-              <Line label={t('patrimoni.inversions')} value={formatEuros(inversions)} />
+              <Line label={t('patrimoni.inversions')} value={formatEurosCompact(inversions)} />
             )}
             {cases.length > 0 && (
               <Line label={t('patrimoni.cases')} value={String(cases.length)} />
@@ -131,7 +131,7 @@ export function GameOver() {
               <div className="flex justify-between text-sm">
                 <span className="text-red-300">{t('patrimoni.deute')}</span>
                 <span className="font-medium text-red-400">
-                  −{formatEuros(deuteConsum)}
+                  −{formatEurosCompact(deuteConsum)}
                 </span>
               </div>
             )}
@@ -166,23 +166,23 @@ export function GameOver() {
             <div className="space-y-1.5">
               <Line
                 label={t('gameover.jubilacio.pensio')}
-                value={`${formatEuros(Math.round(pensioAnual / MESOS_PER_ANY))}/mes`}
+                value={`${formatEurosCompact(Math.round(pensioAnual / MESOS_PER_ANY))}/mes`}
               />
               <Line
                 label={t('gameover.jubilacio.rendaPatrimoni')}
-                value={`${formatEuros(Math.round(rendaPatrimoni / MESOS_PER_ANY))}/mes`}
+                value={`${formatEurosCompact(Math.round(rendaPatrimoni / MESOS_PER_ANY))}/mes`}
               />
               <div className="flex justify-between border-t border-slate-700/60 pt-1.5 text-sm">
                 <span className="font-semibold text-slate-200">
                   {t('gameover.jubilacio.total')}
                 </span>
                 <span className="font-bold text-emerald-300">
-                  {formatEuros(Math.round(rendaAnual / MESOS_PER_ANY))}/mes
+                  {formatEurosCompact(Math.round(rendaAnual / MESOS_PER_ANY))}/mes
                 </span>
               </div>
               <Line
                 label={t('gameover.jubilacio.necessitats')}
-                value={`${formatEuros(Math.round(necessitatsAnual / MESOS_PER_ANY))}/mes`}
+                value={`${formatEurosCompact(Math.round(necessitatsAnual / MESOS_PER_ANY))}/mes`}
               />
             </div>
             <p className="mt-3 text-xs leading-relaxed text-amber-300/90">
@@ -214,7 +214,7 @@ export function GameOver() {
               👨‍👩‍👧 {t('gameover.dinastia.titol')}
             </h2>
             <p className="text-sm text-inksoft">
-              {t('gameover.dinastia.herencia', { fills, llegat: formatEuros(llegat) })}
+              {t('gameover.dinastia.herencia', { fills, llegat: formatEurosCompact(llegat) })}
             </p>
             <button
               onClick={continuarGeneracio}

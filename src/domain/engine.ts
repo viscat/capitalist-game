@@ -26,9 +26,11 @@ import { UNIVERSITY_ACTIONS } from './actions/universitat'
 import { selectEvent } from './events/engine'
 import { ADOLESCENCE_EVENTS } from './events/adolescencia'
 import {
+  AJUT_PARES_EVENTS,
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
   DESCENDENCIA_EVENTS,
+  HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
@@ -349,12 +351,20 @@ function eventPool(state: GameState): GameEvent[] {
       }
       // Amb fills i un coixí, pot sortir l'opció d'herència en vida.
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
+      // Mentre els pares viuen: ajut econòmic puntual (segons classe). Quan envelleixes
+      // (~40+), poden morir i n'heretes (un sol cop).
+      if (!state.herenciaParesRebuda) {
+        pool.push(...AJUT_PARES_EVENTS)
+        if (edat >= 40) pool.push(...HERENCIA_PARES_EVENTS)
+      }
       return pool
     }
     case 'jubilacio': {
       // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
       const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
+      // Si encara no han mort els pares, a aquesta edat segurament ho faran.
+      if (!state.herenciaParesRebuda) pool.push(...HERENCIA_PARES_EVENTS)
       return pool
     }
     case 'laboral': {
@@ -828,6 +838,9 @@ function resolveEvent(
     ? person.edatMesos
     : state.ultimAugmentMes
 
+  // Herència dels pares: un cop morts i heretat, no torna a passar.
+  const herenciaParesRebuda = effect.marcaHerenciaPares || state.herenciaParesRebuda
+
   // Seqüela crònica (incapacitat): s'acumula i perdura, rebaixant la referència adulta.
   // Amb sostre (40) perquè incapacitats repetides no la facin créixer sense límit.
   const salutCronica = effect.salutCronicaDelta
@@ -904,6 +917,7 @@ function resolveEvent(
     salutCronica,
     vinclesSocials,
     nivellAcademic,
+    herenciaParesRebuda,
     fills,
     fillsNaixement,
     llegatEnVida,
