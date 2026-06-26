@@ -105,7 +105,8 @@ function jugaPartida(s0: GameState, estrategia: Estrategia): {
 }
 
 describe('simulació de partides completes (naixement → mort)', () => {
-  it('no es bloqueja, manté els invariants i acaba SEMPRE per mort (salut 0)', () => {
+  // Vides senceres (fins a la mort) × classes × itineraris × llavors: marge de temps ampli.
+  it('no es bloqueja, manté els invariants i acaba SEMPRE per mort (salut 0)', { timeout: 30_000 }, () => {
     for (const classe of FAMILY_PRESET_ORDER) {
       for (const [nom, estrategia] of Object.entries(ESTRATEGIES)) {
         for (let seed = 1; seed <= 8; seed++) {

@@ -12,7 +12,9 @@ import {
 // comparar-la amb la corba objectiu de DESIGN.md §8.4. Les úniques assercions són
 // invariants robustos (benestar dins de rang; el ric viu millor que el pobre).
 
-const N = 400
+// Cada partida es juga ara fins a la mort (vides senceres, ~80-90 torns), més costós que
+// quan s'acabava als 35; abaixem una mica les llavors i donem marge de temps al test.
+const N = 250
 
 const POLICIES: Record<string, SimPolicy> = {
   estudis: { postobligatori: 'batxillerat', majoria: 'universitat' },
@@ -38,7 +40,8 @@ function row(label: string, s: ClassSummary): string {
 }
 
 describe('sim: corba d’outcomes per classe (informe)', () => {
-  it('imprimeix la distribució i compleix invariants bàsics', () => {
+  // Simulació pesada (vides senceres × moltes llavors × classes × polítiques): marge ample.
+  it('imprimeix la distribució i compleix invariants bàsics', { timeout: 60_000 }, () => {
     const summaries: Record<string, Record<string, ClassSummary>> = {}
 
     for (const [name, policy] of Object.entries(POLICIES)) {
