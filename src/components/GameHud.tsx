@@ -2,22 +2,24 @@ import { dataActual, edatAnys } from '../domain/time'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
-import { StatRing } from './StatRing'
+import { SalutAvis, StatRings } from './StatRings'
 
 /**
- * HUD superior compacte de joc (fix a dalt del shell): anells de benestar i salut, patrimoni
- * net destacat, edat/data i generació. Cada stat clau registra un coachmark del tutorial.
+ * HUD superior compacte de joc (fix a dalt del shell): els 4 stats vitals com a anells
+ * (benestar, salut, acadèmic, vincles), patrimoni net destacat, edat/data i generació.
+ * Avisa quan la salut és perillosament baixa.
  */
 export function GameHud({
   nom,
   subtitol,
   benestar,
   salut,
+  academic = 0,
+  vincles = 0,
   net,
   edatMesos,
   dataNaixement,
   generacio = 1,
-  vincles = 0,
   fills = 0,
   onBack,
 }: {
@@ -25,22 +27,19 @@ export function GameHud({
   subtitol: string
   benestar: number
   salut: number
+  academic?: number
+  vincles?: number
   net: number
   edatMesos: number
   dataNaixement?: string
   generacio?: number
-  vincles?: number
   fills?: number
   onBack: () => void
 }) {
   const { t } = useT()
   const anys = edatAnys(edatMesos)
   const dt = dataNaixement ? dataActual(dataNaixement, edatMesos) : null
-  const benestarRef = useCoachmark<HTMLDivElement>('benestar')
-  const salutRef = useCoachmark<HTMLDivElement>('salut')
   const dinersRef = useCoachmark<HTMLDivElement>('diners')
-  const vinclesRef = useCoachmark<HTMLSpanElement>('vincles')
-  const fillsRef = useCoachmark<HTMLSpanElement>('fills')
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/60 bg-bg2/85 px-4 pt-2 pb-2.5 backdrop-blur-xl">
@@ -54,7 +53,10 @@ export function GameHud({
         </button>
         <div className="min-w-0 flex-1">
           {nom && <div className="truncate text-sm font-semibold text-ink">{nom}</div>}
-          <div className="truncate text-[11px] text-inkfaint">{subtitol}</div>
+          <div className="truncate text-[11px] text-inkfaint">
+            {subtitol}
+            {fills > 0 && ` · 👶 ${fills}`}
+          </div>
         </div>
         {generacio > 1 && (
           <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent2 ring-1 ring-accent/30">
@@ -72,12 +74,7 @@ export function GameHud({
       </div>
 
       <div className="mx-auto mt-2 flex max-w-md items-center gap-3">
-        <div ref={benestarRef}>
-          <StatRing value={benestar} icon="🙂" label={t('stat.benestar')} />
-        </div>
-        <div ref={salutRef}>
-          <StatRing value={salut} icon="❤️" label={t('stat.salut')} />
-        </div>
+        <StatRings benestar={benestar} salut={salut} academic={academic} vincles={vincles} />
         <div ref={dinersRef} className="ml-auto text-right">
           <div
             className={`text-lg font-black tabular-nums ${net < 0 ? 'text-danger' : 'text-money'}`}
@@ -90,26 +87,7 @@ export function GameHud({
         </div>
       </div>
 
-      {(vincles > 0 || fills > 0) && (
-        <div className="mx-auto mt-1.5 flex max-w-md items-center gap-2 text-[11px]">
-          {vincles > 0 && (
-            <span
-              ref={vinclesRef}
-              className="rounded-full bg-white/5 px-2 py-0.5 font-medium text-inksoft"
-            >
-              🤝 {Math.round(vincles * 100)}%
-            </span>
-          )}
-          {fills > 0 && (
-            <span
-              ref={fillsRef}
-              className="rounded-full bg-white/5 px-2 py-0.5 font-medium text-inksoft"
-            >
-              👶 {fills}
-            </span>
-          )}
-        </div>
-      )}
+      <SalutAvis salut={salut} />
     </header>
   )
 }

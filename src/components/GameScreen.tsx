@@ -53,11 +53,12 @@ export function GameScreen() {
       subtitol={subtitol}
       benestar={person.stats.benestar}
       salut={person.stats.salut}
+      academic={state.nivellAcademic}
+      vincles={state.vinclesSocials}
       net={net}
       edatMesos={person.edatMesos}
       dataNaixement={state.dataNaixement}
       generacio={state.generacio ?? 1}
-      vincles={state.vinclesSocials}
       fills={state.fills}
       onBack={reset}
     />
