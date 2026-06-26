@@ -4,6 +4,7 @@ import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { formatEurosCompact } from '../lib/format'
+import { LifeCharts } from './LifeCharts'
 import { SalutAvis, StatRings } from './StatRings'
 
 function benestarBucket(b: number): string {
@@ -89,6 +90,13 @@ export function MilestoneScreen() {
             </p>
           ))}
         </div>
+
+        {/* Evolució fins ara: stats, patrimoni net i IPC (inflació) */}
+        {state.vidaHist && state.vidaHist.length >= 2 && (
+          <div className="mt-4">
+            <LifeCharts hist={state.vidaHist} />
+          </div>
+        )}
 
         {/* Opcions */}
         {unaOpcio ? (

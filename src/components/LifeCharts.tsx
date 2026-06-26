@@ -92,7 +92,10 @@ function LineChart({
   )
 }
 
-/** Els dos gràfics d'evolució de la vida que es mostren al resum final (mort). */
+/**
+ * Gràfics d'evolució de la vida: stats (benestar/salut), patrimoni net i IPC (inflació).
+ * Es mostren al resum final (mort) i a cada fita d'edat.
+ */
 export function LifeCharts({ hist }: { hist: VidaSnapshot[] }) {
   const { t } = useT()
   if (!hist || hist.length < 2) return null
@@ -100,6 +103,10 @@ export function LifeCharts({ hist }: { hist: VidaSnapshot[] }) {
   const nets = hist.map((s) => s.net)
   const maxNet = Math.max(0, ...nets)
   const minNet = Math.min(0, ...nets)
+
+  const ipcs = hist.map((s) => s.ipc).filter((v): v is number => v !== undefined)
+  const teIpc = ipcs.length >= 2
+  const maxIpc = teIpc ? Math.max(...ipcs) : 100
 
   return (
     <div className="space-y-3">
@@ -124,6 +131,18 @@ export function LifeCharts({ hist }: { hist: VidaSnapshot[] }) {
           { color: '#f5c451', label: t('patrimoni.total'), valor: (s) => s.net },
         ]}
       />
+      {teIpc && (
+        <LineChart
+          hist={hist}
+          title={t('chart.ipc.title')}
+          min={100}
+          max={maxIpc}
+          fmt={(v) => String(Math.round(v))}
+          series={[
+            { color: '#8b9cff', label: t('chart.ipc.label'), valor: (s) => s.ipc ?? 100 },
+          ]}
+        />
+      )}
     </div>
   )
 }

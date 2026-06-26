@@ -6,6 +6,7 @@ import {
   liquidDisponible,
   ofertaCompra,
 } from '../domain/housing'
+import { factorIPC } from '../domain/stats'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
@@ -43,7 +44,7 @@ export function HabitatgePanel() {
             >
               <span className="font-medium text-slate-100">{t(`propietat.${p.id}`)}</span>
               <span className="font-mono text-sm text-slate-300">
-                {formatEuros(p.preu)}
+                {formatEuros(Math.round((p.preu * factorIPC(state)) / 100) * 100)}
               </span>
             </button>
           ))}

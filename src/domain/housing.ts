@@ -9,7 +9,7 @@ import {
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
 import { rng } from './rng'
-import { netAnual } from './stats'
+import { factorIPC, netAnual } from './stats'
 import type {
   Familia,
   FamilyClass,
@@ -37,7 +37,10 @@ export const OPCIONS_LLOGUER: OpcioLloguer[] = [
  * referència del seu tipus), així que trobar un lloguer barat depèn de la sort de l'any. Sempre
  * en surt almenys una habitació i un pis perquè el jugador no quedi mai bloquejat.
  */
-export function generaOfertesLloguer(rngState: number): {
+export function generaOfertesLloguer(
+  rngState: number,
+  factorPreu = 1,
+): {
   ofertes: OfertaLloguer[]
   state: number
 } {
@@ -54,10 +57,11 @@ export function generaOfertesLloguer(rngState: number): {
     const t = i < tipus.length ? tipus[i] : tipus[draw() < 0.5 ? 0 : 1]
     const base = t === 'habitacio' ? LLOGUER_HABITACIO_ANUAL : LLOGUER_PIS_ANUAL
     const factor = 0.7 + draw() * 0.7 // 0,7×–1,4× del preu de referència
+    // El preu de referència puja amb l'IPC (els lloguers s'encareixen al llarg de la vida).
     ofertes.push({
       id: `ll${i}`,
       tipus: t,
-      lloguerAnual: Math.round((base * factor) / 100) * 100,
+      lloguerAnual: Math.round((base * factor * factorPreu) / 100) * 100,
     })
   }
   // Ordena per preu (de més barat a més car) perquè la llista sigui llegible.
@@ -182,9 +186,12 @@ export interface OfertaCompra {
 
 export function ofertaCompra(
   state: GameState,
-  preu: number,
+  preuReal: number,
   anys: number,
 ): OfertaCompra {
+  // El preu de catàleg és en euros "reals"; l'IPC l'encareix al llarg de la vida (el preu de
+  // mercat puja amb la inflació acumulada).
+  const preu = Math.round((preuReal * factorIPC(state)) / 100) * 100
   // `anys === 0` = compra AL COMPTAT (sense hipoteca): pagues el preu sencer.
   const comptat = anys === 0
   const entrada = comptat ? preu : entradaHipoteca(preu)
@@ -287,7 +294,8 @@ export function comprarCasa(
     pat[font] = Math.round(pat[font] - treu)
     restant -= treu
   }
-  pat.cases = [...pat.cases, propietat.preu]
+  // El valor desat és el preu de mercat pagat (ja amb l'IPC aplicat), no el de catàleg.
+  pat.cases = [...pat.cases, oferta.preu]
 
   // Al comptat (o si la hipoteca queda en 0) no es desa cap hipoteca.
   const hipoteca = oferta.hipoteca.deute > 0 ? oferta.hipoteca : undefined

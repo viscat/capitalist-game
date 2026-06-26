@@ -343,6 +343,11 @@ export interface GameState {
   dataNaixement?: string
   /** Estat del generador pseudoaleatori (serialitzable). */
   rngState: number
+  /**
+   * Índex de preus al consum (IPC), base 100 al naixement; creix any rere any amb la inflació.
+   * Encareix l'habitatge (preus de compra i lloguer) al llarg de la vida. Absent = 100.
+   */
+  ipc?: number
   /** Id de l'últim esdeveniment, per evitar repeticions immediates. */
   ultimEventId?: string
   /** Esdeveniment pendent d'una decisió del jugador (bloqueja el següent torn). */
@@ -473,6 +478,8 @@ export interface VidaSnapshot {
   salut: number
   /** Patrimoni net (pot ser negatiu si hi ha deute). */
   net: number
+  /** Índex de preus (IPC) en aquell any (base 100 al naixement). */
+  ipc?: number
 }
 
 /** Una acció amb el seu estat de disponibilitat per a la UI. */
