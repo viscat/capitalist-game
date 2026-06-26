@@ -170,6 +170,29 @@ body {
   animation: pulse-glow 1.8s ease-in-out infinite;
 }
 
+/* Avís de mort imminent: pulsació vermella escalada segons la gravetat. */
+@keyframes danger-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(246, 80, 79, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(246, 80, 79, 0);
+  }
+}
+.salut-alerta-baixa {
+  border-radius: 9999px;
+  animation: danger-pulse 1.8s ease-in-out infinite;
+}
+.salut-alerta-critica {
+  border-radius: 9999px;
+  animation: danger-pulse 1s ease-in-out infinite;
+}
+.salut-alerta-extrema {
+  border-radius: 9999px;
+  animation: danger-pulse 0.5s ease-in-out infinite;
+}
+
 @keyframes spot-breathe {
   0%,
   100% {

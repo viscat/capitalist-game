@@ -162,6 +162,7 @@ export function useTutorial(): TutorialCtx {
  */
 export function useCoachmark<T extends HTMLElement = HTMLElement>(
   id: CoachId,
+  when = true,
 ): RefObject<T | null> {
   const ctx = useContext(Ctx)
   const ref = useRef<T | null>(null)
@@ -170,10 +171,10 @@ export function useCoachmark<T extends HTMLElement = HTMLElement>(
   const register = ctx?.register
   const unregister = ctx?.unregister
   useEffect(() => {
-    if (!register || !unregister || seen || !enabled) return
+    if (!register || !unregister || seen || !enabled || !when) return
     register(id, ref)
     return () => unregister(id)
-  }, [register, unregister, id, seen, enabled])
+  }, [register, unregister, id, seen, enabled, when])
   return ref
 }
 
@@ -198,11 +199,16 @@ function CoachmarkOverlay() {
 
   if (!active || !rect) return null
 
+  // Posiciona el popover SEMPRE dins del viewport: preferim sota el target; si no hi cap,
+  // a sobre; i en qualsevol cas, acotem el `top` perquè mai surti per dalt ni per baix.
+  const vw = window.innerWidth
   const vh = window.innerHeight
-  const placeBelow = rect.bottom < vh * 0.55
-  const popTop = placeBelow ? rect.bottom + 14 : undefined
-  const popBottom = placeBelow ? undefined : vh - rect.top + 14
-  const left = Math.max(12, Math.min(rect.left, window.innerWidth - 12 - 320))
+  const POP_H = 210 // alçada estimada (té max-height + scroll si cal)
+  const sotaTop = rect.bottom + 14
+  const sobreTop = rect.top - 14 - POP_H
+  const preferit = sotaTop + POP_H <= vh - 12 ? sotaTop : sobreTop
+  const top = Math.max(12, Math.min(preferit, vh - 12 - POP_H))
+  const left = Math.max(12, Math.min(rect.left, vw - 12 - 320))
 
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true">
@@ -217,8 +223,8 @@ function CoachmarkOverlay() {
         }}
       />
       <div
-        className="absolute w-[min(20rem,calc(100vw-1.5rem))] rounded-2xl bg-surface/95 p-4 shadow-card ring-1 ring-accent/40 backdrop-blur-xl animate-card-in"
-        style={{ top: popTop, bottom: popBottom, left }}
+        className="absolute w-[min(20rem,calc(100vw-1.5rem))] max-h-[60vh] overflow-y-auto rounded-2xl bg-surface/95 p-4 shadow-card ring-1 ring-accent/40 backdrop-blur-xl animate-card-in"
+        style={{ top, left }}
       >
         <h3 className="text-base font-bold text-ink">{t(`tutorial.${active}.title`)}</h3>
         <p className="mt-1 text-sm leading-relaxed text-inksoft">

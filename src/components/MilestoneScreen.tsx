@@ -4,6 +4,7 @@ import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { SalutAvis, StatRings } from './StatRings'
 
 function benestarBucket(b: number): string {
   if (b < 20) return 'molt_baix'
@@ -26,14 +27,23 @@ export function MilestoneScreen() {
   const unaOpcio = def.options.length === 1
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center p-6">
-      <div ref={coachRef} className="w-full max-w-md animate-card-in">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent2">
+    <div className="flex min-h-[100dvh] flex-col p-4">
+      {/* Barra superior fixa amb els 4 stats vitals, també a les fites d'edat. */}
+      <div className="mx-auto w-full max-w-md rounded-2xl border border-line/60 bg-bg2/70 px-4 py-2.5 backdrop-blur-xl">
+        <StatRings
+          benestar={state.person.stats.benestar}
+          salut={state.person.stats.salut}
+          academic={state.nivellAcademic}
+          vincles={state.vinclesSocials}
+        />
+        <SalutAvis salut={state.person.stats.salut} />
+      </div>
+
+      <div className="m-auto w-full max-w-md py-6 animate-card-in">
+        <p ref={coachRef} className="text-xs font-bold uppercase tracking-[0.18em] text-accent2">
           {t(def.kickerKey)}
         </p>
-        <h1 className="mt-1 text-4xl font-black text-slate-100">
-          {t(def.titleKey)}
-        </h1>
+        <h1 className="mt-1 text-3xl font-black text-ink">{t(def.titleKey)}</h1>
 
         {/* Resum de l'etapa */}
         <div className="mt-6 rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">

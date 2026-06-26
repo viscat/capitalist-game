@@ -529,7 +529,9 @@ export const DESCENDENCIA_EVENTS: GameEvent[] = [
     category: 'familia',
     titleKey: 'event.tenir_fill.title',
     descKey: 'event.tenir_fill.desc',
-    weight: () => 3,
+    // Pes alt dins de la finestra fèrtil perquè l'opció de formar família sigui ben visible
+    // (apareix de manera fiable, no es perd entre la resta d'esdeveniments).
+    weight: () => 6,
     choices: [
       {
         id: 'si',

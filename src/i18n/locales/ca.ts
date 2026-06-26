@@ -67,6 +67,9 @@ export const ca: Record<string, string> = {
   'coach.next': 'Entès',
   'coach.skip': 'Salta el tutorial',
   'coach.reset': 'Reinicia el tutorial',
+  'salut.perill.baixa': 'Salut baixa',
+  'salut.perill.critica': 'Salut crítica — pots morir aviat',
+  'salut.perill.extrema': 'A punt de morir',
   'tutorial.benestar.title': 'El benestar',
   'tutorial.benestar.body':
     'És com de bé estàs (0–100). No depèn només dels diners: el temps, la salut i els vincles hi pesen molt.',

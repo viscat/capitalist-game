@@ -8,6 +8,7 @@ import {
 } from '../domain/housing'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 
 type Vista = 'resum' | 'comprar' | { propietatId: string }
@@ -17,6 +18,7 @@ export function HabitatgePanel() {
   const { state, llogar, comprarCasa, tornarAmbPares } = useGame()
   const [vista, setVista] = useState<Vista>('resum')
   const [anys, setAnys] = useState(TERMINIS_HIPOTECA[1])
+  const coachRef = useCoachmark<HTMLDivElement>('habitatge')
   if (!state) return null
 
   const habitatge = state.habitatge ?? { tipus: 'amb_pares' as const }
@@ -120,7 +122,7 @@ export function HabitatgePanel() {
 
   // --- Vista: resum de la situació actual ---
   return (
-    <div className={CARD}>
+    <div ref={coachRef} className={CARD}>
       <h3 className="mb-2 text-sm font-semibold text-slate-300">
         {t('habitatge.title')}
       </h3>
