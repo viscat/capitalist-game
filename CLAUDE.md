@@ -90,11 +90,17 @@ Transicions (fites):
 - Als **67** → fita `jubilacio` → fase **`jubilacio`**: deixes de treballar i vius de la
   **pensió pública** (`pensioPublicaAnual`) i els estalvis/inversions. **La partida NO
   s'acaba** (la vida continua fins a la mort). `jubilat = true`, `salari = 0`.
-- **Descendència**: dins de la **finestra fèrtil** (26–42) i fins a `MAX_FILLS`, pot sortir
-  l'esdeveniment `tenir_fill` (decisió). Un fill dóna benestar i vincles, però afegeix un
+- **Parella**: cal tenir **parella estable** (`state.parella`, amb nom) abans de tenir fills.
+  Pot sortir l'esdeveniment `coneixer_parella` (`PARELLA_EVENTS`, `effect.marcaParella`) mentre no
+  en tens; el motor li assigna un nom determinista (`nomPerSeed`). Viure en parella **reparteix** el
+  cost de vida + l'habitatge entre els dos (`FACTOR_DESPESA_PARELLA`), en qualsevol habitatge.
+- **Descendència**: dins de la **finestra fèrtil** (26–42), **amb parella** i fins a `MAX_FILLS`,
+  pot sortir l'esdeveniment `tenir_fill` (decisió). Un fill dóna benestar i vincles, però afegeix un
   **cost de criança net** anual (`costFillsAnual` = cost − prestació pública `ajutFillsAnual`)
-  a les necessitats de la carrera mentre és dependent (~22 anys). El `GameOver` mostra els
-  fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
+  a les necessitats de la carrera mentre és dependent (~22 anys). Cada fill té **nom** (`fillsNoms`) i
+  **edat** visible (de `fillsNaixement`); amb fills dependents surten `FILLS_EVENTS` (alegries +benestar
+  i ensurts −benestar). El `FamiliaPanel` (calaix de detalls) mostra parella i fills (nom + edat); el
+  `GameOver` mostra els fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
 - **MORT = l'únic final.** A qualsevol edat, si la `salut` arriba a **0** → `acabat = true` +
   `mort = true`. La salut (stat `Stats.salut`, 0..100) es degrada amb l'**edat**
   (`declividSalutAnual`, calibrada a l'esperança de vida ~84 per a un sa; un sa mor de vellesa,

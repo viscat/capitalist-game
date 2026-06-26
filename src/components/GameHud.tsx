@@ -21,6 +21,7 @@ export function GameHud({
   dataNaixement,
   generacio = 1,
   fills = 0,
+  parella = false,
   onBack,
 }: {
   nom?: string
@@ -34,6 +35,7 @@ export function GameHud({
   dataNaixement?: string
   generacio?: number
   fills?: number
+  parella?: boolean
   onBack: () => void
 }) {
   const { t } = useT()
@@ -55,6 +57,7 @@ export function GameHud({
           {nom && <div className="truncate text-sm font-semibold text-ink">{nom}</div>}
           <div className="truncate text-[11px] text-inkfaint">
             {subtitol}
+            {parella && ' · 💑'}
             {fills > 0 && ` · 👶 ${fills}`}
           </div>
         </div>

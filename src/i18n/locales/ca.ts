@@ -1094,12 +1094,30 @@ export const ca: Record<string, string> = {
   // Descendència
   'event.tenir_fill.title': 'Voleu tenir un fill?',
   'event.tenir_fill.desc':
-    'És el moment de plantejar-vos formar una família. Un fill omple la vida de sentit i vincles, però també porta una despesa important durant molts anys.',
+    'Amb la teva parella us plantegeu formar una família. Un fill omple la vida de sentit i vincles, però també porta una despesa important durant molts anys.',
   'event.tenir_fill.choice.si': 'Sí, endavant',
   'event.tenir_fill.choice.no': 'Ara no toca',
-  'event.parella_estable.title': 'Una relació que arrela',
-  'event.parella_estable.desc':
-    'Trobes algú amb qui compartir la vida. No ho compra el sou: és de les coses que més pesen al benestar.',
+  'familia.title': 'Família',
+  'familia.parella': 'Parella',
+  'familia.fill': 'Fill/a',
+  'familia.edat': '{anys} anys',
+  'event.coneixer_parella.title': 'Una relació que arrela',
+  'event.coneixer_parella.desc':
+    'Coneixes algú amb qui compartir la vida. Formar parella no es compra amb el sou (pesa molt al benestar) i, a més, repartiu les despeses de la llar i obre la porta a tenir fills.',
+  'event.coneixer_parella.choice.si': 'Sí, anem a viure junts',
+  'event.coneixer_parella.choice.no': 'Millor sol/a de moment',
+  'event.fill_fita_felic.title': 'Una fita del teu fill',
+  'event.fill_fita_felic.desc':
+    'Primeres passes, primer dia d’escola, una victòria… veure créixer la criatura t’omple d’orgull.',
+  'event.fill_complicitat.title': 'Complicitat amb la canalla',
+  'event.fill_complicitat.desc':
+    'Una tarda de joc, una confidència, una rialla compartida. Els petits moments amb els fills teixeixen vincle.',
+  'event.fill_dificultats.title': 'El teu fill ho passa malament',
+  'event.fill_dificultats.desc':
+    'Problemes a l’escola, una mala temporada, et preocupa veure’l patir. La criança també desgasta.',
+  'event.fill_malaltia.title': 'El teu fill emmalalteix',
+  'event.fill_malaltia.desc':
+    'Un ensurt de salut de la criatura: visites, medicació i nits sense dormir. L’angoixa pesa, però cuidar-lo us uneix.',
   'event.arrelar_comunitat.title': 'Fer comunitat',
   'event.arrelar_comunitat.desc':
     'T’impliques al barri, al club, a un grup: gent amb qui comptar. Els vincles teixeixen una xarxa que sosté.',

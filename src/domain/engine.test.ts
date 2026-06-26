@@ -385,6 +385,45 @@ describe('descendència', () => {
   })
 })
 
+describe('parella', () => {
+  it('marcaParella estableix una parella amb nom', () => {
+    const s = newGameAtCarrera('mitjana', 3)
+    expect(s.parella).toBeUndefined()
+    const after = resolWith(s, [
+      { id: 'a', labelKey: 'x', effect: { marcaParella: true, benestar: 5 } },
+    ])
+    expect(after.parella).toBeDefined()
+    expect(typeof after.parella?.nom).toBe('string')
+    expect(after.parella?.nom.length).toBeGreaterThan(0)
+  })
+
+  it('viure en parella reparteix les despeses (queda més efectiu en avançar l’any)', () => {
+    const base = {
+      ...newGameAtCarrera('mitjana', 3),
+      plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+    }
+    base.person = {
+      ...base.person,
+      patrimoni: { ...base.person.patrimoni, efectiu: 40_000 },
+    }
+    const sol = advanceTurn({ ...base, parella: undefined })
+    const enParella = advanceTurn({ ...base, parella: { nom: 'Pau' } })
+    expect(enParella.person.patrimoni.efectiu).toBeGreaterThan(
+      sol.person.patrimoni.efectiu,
+    )
+  })
+
+  it('cada fill rep un nom', () => {
+    const s = newGameAtCarrera('mitjana', 3)
+    const after = resolWith(s, [
+      { id: 'a', labelKey: 'x', effect: { fillsDelta: 1 } },
+    ])
+    expect(after.fillsNoms).toHaveLength(1)
+    expect(typeof after.fillsNoms?.[0]).toBe('string')
+    expect(after.fillsNoms?.[0]?.length).toBeGreaterThan(0)
+  })
+})
+
 describe('mort (salut 0 = fi)', () => {
   it('quan la salut arriba a 0, la partida acaba marcada com a mort', () => {
     let s = laboralTreball()

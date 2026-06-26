@@ -14,6 +14,7 @@ import { InvestmentChart } from './InvestmentChart'
 import { JobSearchPanel } from './JobSearchPanel'
 import { UniversityPanel } from './UniversityPanel'
 import { EventCard } from './EventCard'
+import { FamiliaPanel } from './FamiliaPanel'
 import { PatrimoniPanel } from './PatrimoniPanel'
 import { StatBar } from './StatBar'
 import { TurnLog } from './TurnLog'
@@ -60,6 +61,7 @@ export function GameScreen() {
       dataNaixement={state.dataNaixement}
       generacio={state.generacio ?? 1}
       fills={state.fills}
+      parella={Boolean(state.parella)}
       onBack={reset}
     />
   )
@@ -106,6 +108,7 @@ export function GameScreen() {
             academic={state.nivellAcademic}
             fills={state.fills}
           />
+          <FamiliaPanel state={state} />
           <PatrimoniPanel
             person={person}
             familia={familia}

@@ -20,6 +20,14 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
+/**
+ * Nom de pila DETERMINISTA a partir d'un enter (p. ex. l'estat del RNG): mateixa llavor →
+ * mateix nom, perquè la partida sigui reproduïble (noms de parella i fills). No usa Math.random.
+ */
+export function nomPerSeed(seed: number): string {
+  return NOMS[Math.abs(Math.trunc(seed)) % NOMS.length]
+}
+
 function dosCognoms(): string {
   return `${pick(COGNOMS)} ${pick(COGNOMS)}`
 }
