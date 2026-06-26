@@ -62,12 +62,16 @@ export function SalutAvis({ salut }: { salut: number }) {
   const { t } = useT()
   const alerta = salutAlerta(salut)
   if (alerta === 'none') return null
+  // Un SOL banner segons el nivell (baixa | crítica | extrema), mai dos alhora. Fons OPAC perquè
+  // mai s'hi vegi a través cap altre avís de sota (HUD translúcid) ni quedi superposat. La `key`
+  // força React a substituir el node en canviar de nivell (no reaprofitar el de "salut baixa").
   const estil =
     alerta === 'baixa'
-      ? 'bg-danger/15 text-danger ring-danger/30'
-      : 'bg-danger/25 text-danger ring-danger/50 animate-pulse'
+      ? 'bg-[#2a1416] text-danger ring-danger/30'
+      : 'bg-[#3a1012] text-danger ring-danger/60 animate-pulse'
   return (
     <div
+      key={alerta}
       className={`mx-auto mt-2 flex max-w-md items-center justify-center gap-1.5 rounded-lg px-3 py-1 text-center text-[11px] font-bold uppercase tracking-wide ring-1 ${estil}`}
     >
       ⚠️ {t(`salut.perill.${alerta}`)}

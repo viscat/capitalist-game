@@ -69,9 +69,8 @@ export function GameHud({
         <div className="shrink-0 text-right">
           <div className="text-sm font-bold tabular-nums text-ink">{t('game.age', { anys })}</div>
           {dt && (
-            <div className="text-[10px] text-inkfaint">
-              {t(`mes.${dt.mesIndex}`)} {dt.any}
-            </div>
+            // Salts anuals: només l'any de calendari (el mes no té sentit).
+            <div className="text-[10px] text-inkfaint">{dt.any}</div>
           )}
         </div>
       </div>
