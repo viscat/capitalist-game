@@ -4,7 +4,7 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { patrimoniTotal } from '../domain/stats'
 import { nomComplet } from '../domain/identitat'
-import { ActionPanel } from './ActionPanel'
+import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
 import { BudgetPanel } from './BudgetPanel'
 import { GameHud } from './GameHud'
@@ -66,8 +66,30 @@ export function GameScreen() {
     />
   )
 
+  // CTA primari de la fase, al peu FIX del shell (sempre visible, mai tapa el contingut).
+  // Les fases de llista de tries (esdeveniment, universitat, cerca de feina) no en tenen:
+  // les seves opcions JA són botons dins del cos.
+  const footer = pendingEvent ? null : esAccions ? (
+    <ActionCTA />
+  ) : esLaboral ? (
+    <button onClick={() => nextTurn()} className="btn-game btn-game--money">
+      {t('budget.nextYear')}
+    </button>
+  ) : esInversio && !esCercaFeina ? (
+    <button onClick={() => nextTurn()} className="btn-game btn-game--money">
+      {t('pla.nextYear')}
+    </button>
+  ) : esAnual ? (
+    <button
+      onClick={() => nextTurn()}
+      className="btn-game btn-game--money animate-pulse-glow"
+    >
+      {t('game.nextYear')}
+    </button>
+  ) : null
+
   return (
-    <AppShell hud={hud}>
+    <AppShell hud={hud} footer={footer}>
       <EventCard pending={pendingEvent} lastEntry={lastEntry} onChoose={choose} />
 
       {!pendingEvent && esAccions && <ActionPanel />}
@@ -80,14 +102,6 @@ export function GameScreen() {
         <div className="mt-3">
           <InvestmentChart hist={state.patrimoniHist} />
         </div>
-      )}
-      {!pendingEvent && esAnual && (
-        <button
-          onClick={() => nextTurn()}
-          className="btn-game btn-game--money animate-pulse-glow mt-3"
-        >
-          {t('game.nextYear')}
-        </button>
       )}
 
       {/* Accés al detall (patrimoni + historial) en un calaix, per no competir per l'espai. */}

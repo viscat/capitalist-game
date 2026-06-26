@@ -19,7 +19,7 @@ const CATEGORIES: (keyof Budget)[] = ['estalvi', 'oci', 'compres', 'casa']
 
 export function BudgetPanel() {
   const { t } = useT()
-  const { state, setBudget, nextTurn } = useGame()
+  const { state, setBudget } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('pressupost')
   if (!state) return null
 
@@ -139,11 +139,6 @@ export function BudgetPanel() {
       </div>
 
       <p className="mt-4 text-xs text-slate-500">{t('budget.nota')}</p>
-      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-3 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
-        <button onClick={() => nextTurn()} className="btn-game btn-game--money">
-          {t('budget.nextYear')}
-        </button>
-      </div>
     </div>
   )
 }
