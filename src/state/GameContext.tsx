@@ -12,7 +12,6 @@ import {
   newGameAtCarrera,
 } from '../domain/engine'
 import { comprarCasa, llogar, tornarAmbPares } from '../domain/housing'
-import type { OpcioLloguer } from '../domain/housing'
 import { avuiISO } from '../domain/time'
 import type {
   ActionOption,
@@ -29,7 +28,7 @@ import type {
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
 // v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
-const STORAGE_KEY = 'capitalist-game/save/v8'
+const STORAGE_KEY = 'capitalist-game/save/v9'
 
 function loadSave(): GameState | null {
   try {
@@ -66,8 +65,8 @@ interface GameContextValue {
   setNivellVida: (nivell: NivellVida) => void
   /** Activa/desactiva la «vida senzilla» (frugalitat per elecció: el mínim no penalitza). */
   setVidaSenzilla: (vidaSenzilla: boolean) => void
-  /** Lloga una habitació o un pis. */
-  llogar: (tipus: OpcioLloguer['tipus']) => void
+  /** Lloga una oferta concreta del mercat d'aquest any (per id). */
+  llogar: (ofertaId: string) => void
   /** Compra un habitatge amb hipoteca (a `anys` anys). */
   comprarCasa: (propietatId: string, anys: number) => void
   /** Torna a viure amb els pares (deixa el lloguer). */
@@ -127,7 +126,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
       setVidaSenzilla: (vidaSenzilla) =>
         setState((s) => (s ? { ...s, vidaSenzilla } : s)),
-      llogar: (tipus) => setState((s) => (s ? llogar(s, tipus) : s)),
+      llogar: (ofertaId) => setState((s) => (s ? llogar(s, ofertaId) : s)),
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
       tornarAmbPares: () => setState((s) => (s ? tornarAmbPares(s) : s)),

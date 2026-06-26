@@ -1,10 +1,14 @@
 import {
+  DESPESES_COMPRA,
   ENTRADA_HIPOTECA,
+  FRACCIO_ENTRADA_PARELLA,
   INTERES_HIPOTECA,
   LLOGUER_HABITACIO_ANUAL,
+  LLOGUER_OFERTES_PER_ANY,
   LLOGUER_PIS_ANUAL,
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
+import { rng } from './rng'
 import { netAnual } from './stats'
 import type {
   Familia,
@@ -12,6 +16,7 @@ import type {
   GameState,
   Habitatge,
   Hipoteca,
+  OfertaLloguer,
   TipusHabitatge,
 } from './types'
 
@@ -25,6 +30,40 @@ export const OPCIONS_LLOGUER: OpcioLloguer[] = [
   { tipus: 'habitacio', lloguerAnual: LLOGUER_HABITACIO_ANUAL },
   { tipus: 'pis_lloguer', lloguerAnual: LLOGUER_PIS_ANUAL },
 ]
+
+/**
+ * Genera el lot d'ofertes de lloguer d'aquest any (determinista a partir de `rngState`).
+ * El mercat és divers i imperfecte: cada oferta surt amb un preu variat (~0,7×–1,4× del preu de
+ * referència del seu tipus), així que trobar un lloguer barat depèn de la sort de l'any. Sempre
+ * en surt almenys una habitació i un pis perquè el jugador no quedi mai bloquejat.
+ */
+export function generaOfertesLloguer(rngState: number): {
+  ofertes: OfertaLloguer[]
+  state: number
+} {
+  let s = rngState
+  const draw = () => {
+    const r = rng(s)
+    s = r.state
+    return r.value
+  }
+  const tipus: OfertaLloguer['tipus'][] = ['habitacio', 'pis_lloguer']
+  const ofertes: OfertaLloguer[] = []
+  for (let i = 0; i < LLOGUER_OFERTES_PER_ANY; i++) {
+    // Almenys una habitació i un pis garantits; la resta, aleatòria.
+    const t = i < tipus.length ? tipus[i] : tipus[draw() < 0.5 ? 0 : 1]
+    const base = t === 'habitacio' ? LLOGUER_HABITACIO_ANUAL : LLOGUER_PIS_ANUAL
+    const factor = 0.7 + draw() * 0.7 // 0,7×–1,4× del preu de referència
+    ofertes.push({
+      id: `ll${i}`,
+      tipus: t,
+      lloguerAnual: Math.round((base * factor) / 100) * 100,
+    })
+  }
+  // Ordena per preu (de més barat a més car) perquè la llista sigui llegible.
+  ofertes.sort((a, b) => a.lloguerAnual - b.lloguerAnual)
+  return { ofertes, state: s }
+}
 
 /** Habitatge en venda. */
 export interface Propietat {
@@ -47,6 +86,11 @@ export function getPropietat(id: string): Propietat | undefined {
 /** Entrada (pagament inicial) necessària per a un preu. */
 export function entradaHipoteca(preu: number): number {
   return Math.round(preu * ENTRADA_HIPOTECA)
+}
+
+/** Despeses de compra (ITP/IVA, notaria, registre, gestoria, tassació...): es paguen al comptat. */
+export function despesesCompra(preu: number): number {
+  return Math.round(preu * DESPESES_COMPRA)
 }
 
 /** Calcula la hipoteca (deute i quota anual) per a un preu i termini. */
@@ -123,9 +167,15 @@ export function costHabitatgeAnualNet(habitatge: Habitatge | undefined, familia:
 export interface OfertaCompra {
   preu: number
   entrada: number
+  /** Despeses de transacció (impostos, notaria, gestoria, tassació...). */
+  despeses: number
   hipoteca: Hipoteca
   /** Part de l'entrada que cobreix la família (regal segons la classe social). */
   ajutFamiliar: number
+  /** Si compres en parella, l'altra meitat de l'aportació inicial la posa la parella. */
+  enParella: boolean
+  /** Diners (al comptat) que ha de posar el JUGADOR ara mateix (ja descomptats ajut i parella). */
+  aportacioInicial: number
   teEntrada: boolean
   bancAprova: boolean
 }
@@ -138,21 +188,32 @@ export function ofertaCompra(
   // `anys === 0` = compra AL COMPTAT (sense hipoteca): pagues el preu sencer.
   const comptat = anys === 0
   const entrada = comptat ? preu : entradaHipoteca(preu)
+  const despeses = despesesCompra(preu)
   const hipoteca = comptat
     ? { deute: 0, quotaAnual: 0, anysRestants: 0 }
     : calculaHipoteca(preu, anys)
-  // La família només cobreix el que no arribes a posar tu, fins al seu màxim.
+  // Comprar en parella reparteix l'aportació inicial (entrada + despeses): l'altra meitat la posa
+  // la parella. La família, a més, pot regalar part de la TEVA meitat (segons la classe).
+  const enParella = Boolean(state.parella)
+  const fraccio = enParella ? FRACCIO_ENTRADA_PARELLA : 1
+  const aportacioBruta = Math.round((entrada + despeses) * fraccio)
   const liquid = liquidDisponible(state)
-  const falta = Math.max(0, entrada - liquid)
+  const falta = Math.max(0, aportacioBruta - liquid)
   const ajutFamiliar = Math.min(falta, ajutEntradaMax(state.familia))
+  const aportacioInicial = Math.max(0, aportacioBruta - ajutFamiliar)
+  // En parella, el banc compta els dos sous: relaxa el límit d'endeutament (dues rendes).
+  const ingres = ingressosAnuals(state) * (enParella ? 1.8 : 1)
   return {
     preu,
     entrada,
+    despeses,
     hipoteca,
     ajutFamiliar,
-    teEntrada: liquid + ajutFamiliar >= entrada,
+    enParella,
+    aportacioInicial,
+    teEntrada: liquid + ajutFamiliar >= aportacioBruta,
     // Al comptat no cal aprovació del banc (no hi ha préstec).
-    bancAprova: comptat ? true : bancConcedeix(hipoteca.quotaAnual, ingressosAnuals(state)),
+    bancAprova: comptat ? true : bancConcedeix(hipoteca.quotaAnual, ingres),
   }
 }
 
@@ -173,11 +234,25 @@ export function amortitzaHipoteca(hip: Hipoteca): Hipoteca | undefined {
   return { deute, quotaAnual: hip.quotaAnual, anysRestants }
 }
 
-/** Canvia a un lloguer (habitació o pis). */
-export function llogar(state: GameState, tipus: OpcioLloguer['tipus']): GameState {
-  const opcio = OPCIONS_LLOGUER.find((o) => o.tipus === tipus)
+/**
+ * Canvia a un lloguer triant una OFERTA concreta del mercat d'aquest any (per id). Si no hi ha
+ * ofertes desades (compatibilitat), accepta el tipus i fa servir el preu de referència.
+ */
+export function llogar(state: GameState, ofertaId: string): GameState {
+  const oferta = state.ofertesLloguer?.find((o) => o.id === ofertaId)
+  if (oferta) {
+    return {
+      ...state,
+      habitatge: { tipus: oferta.tipus, lloguerAnual: oferta.lloguerAnual },
+    }
+  }
+  // Compatibilitat: si l'id és un tipus (sense ofertes generades), usa el preu de referència.
+  const opcio = OPCIONS_LLOGUER.find((o) => o.tipus === ofertaId)
   if (!opcio) return state
-  return { ...state, habitatge: { tipus, lloguerAnual: opcio.lloguerAnual } }
+  return {
+    ...state,
+    habitatge: { tipus: opcio.tipus, lloguerAnual: opcio.lloguerAnual },
+  }
 }
 
 /** Torna a viure amb els pares (deixa el lloguer). */
@@ -187,9 +262,10 @@ export function tornarAmbPares(state: GameState): GameState {
 }
 
 /**
- * Compra un habitatge: paga l'entrada (efectiu → estalvi), suma el valor a les
- * cases en propietat i obre la hipoteca. No fa res si no es pot pagar l'entrada o
- * el banc no concedeix la hipoteca.
+ * Compra un habitatge: paga l'aportació inicial (entrada + despeses de transacció, repartides
+ * amb la parella i menys l'ajut familiar), liquidant efectiu → estalvi → fons indexat; suma el
+ * valor a les cases en propietat i obre la hipoteca. No fa res si no es pot pagar o el banc no
+ * concedeix la hipoteca.
  */
 export function comprarCasa(
   state: GameState,
@@ -202,10 +278,10 @@ export function comprarCasa(
   const oferta = ofertaCompra(state, propietat.preu, anys)
   if (!oferta.teEntrada || !oferta.bancAprova) return state
 
-  // El jugador paga la part de l'entrada (o el preu sencer, si és al comptat) que no regala
-  // la família, liquidant primer efectiu, després estalvi i finalment el fons indexat.
+  // El jugador paga la seva aportació inicial (la parella ja n'ha cobert la meitat, i la família
+  // l'ajut), liquidant primer efectiu, després estalvi i finalment el fons indexat.
   const pat = { ...state.person.patrimoni }
-  let restant = oferta.entrada - oferta.ajutFamiliar
+  let restant = oferta.aportacioInicial
   for (const font of ['efectiu', 'estalvi', 'fonsIndexat'] as const) {
     const treu = Math.min(restant, pat[font])
     pat[font] = Math.round(pat[font] - treu)

@@ -97,6 +97,21 @@ describe('ofertaCompra', () => {
     expect(oferta.teEntrada).toBe(true)
     expect(typeof oferta.bancAprova).toBe('boolean')
   })
+
+  it('inclou despeses de transacció a banda de l’entrada', () => {
+    const oferta = ofertaCompra(ricCarrera(), 95_000, 30)
+    expect(oferta.despeses).toBe(Math.round(95_000 * 0.12))
+    // L'aportació inicial (sense parella ni ajut) = entrada + despeses.
+    expect(oferta.aportacioInicial).toBe(oferta.entrada + oferta.despeses)
+  })
+
+  it('en parella, l’aportació inicial es reparteix a la meitat', () => {
+    const base = ricCarrera()
+    const solo = ofertaCompra(base, 95_000, 30)
+    const enParella = ofertaCompra({ ...base, parella: { nom: 'Pau' } }, 95_000, 30)
+    expect(enParella.enParella).toBe(true)
+    expect(enParella.aportacioInicial).toBe(Math.round(solo.aportacioInicial / 2))
+  })
 })
 
 describe('ajut familiar per a l’entrada', () => {
@@ -111,12 +126,14 @@ describe('ajut familiar per a l’entrada', () => {
     expect(mitjana).toBeLessThan(alta)
   })
 
-  it('l’ajut només cobreix el que et falta per a l’entrada', () => {
-    // Líquid (12.000 €) per sota de l'entrada de l'estudi (19.000 €): falten 7.000.
+  it('l’ajut només cobreix el que et falta per a l’aportació inicial', () => {
+    // Líquid (12.000 €) per sota de l'aportació inicial (entrada 19.000 + despeses 11.400 =
+    // 30.400 €): la família alta (ajut màxim ampli) cobreix exactament els 18.400 que falten.
     const s = carreraAmbLiquid('alta', 12_000)
     const oferta = ofertaCompra(s, 95_000, 30)
     expect(oferta.entrada).toBe(19_000)
-    expect(oferta.ajutFamiliar).toBe(7_000)
+    expect(oferta.despeses).toBe(11_400)
+    expect(oferta.ajutFamiliar).toBe(18_400)
     expect(oferta.teEntrada).toBe(true)
   })
 

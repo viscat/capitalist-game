@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { TERMINIS_HIPOTECA } from '../domain/constants'
 import {
-  OPCIONS_LLOGUER,
   PROPIETATS,
   ajutHipotecaFamiliar,
   liquidDisponible,
@@ -67,6 +66,16 @@ export function HabitatgePanel() {
         <div className="space-y-1.5 text-sm">
           <Row label={t('habitatge.preu')} value={formatEuros(oferta.preu)} />
           <Row label={t('habitatge.entrada')} value={formatEuros(oferta.entrada)} />
+          <Row
+            label={t('habitatge.despeses')}
+            value={`+${formatEuros(oferta.despeses)}`}
+          />
+          {oferta.enParella && (
+            <div className="flex justify-between">
+              <span className="text-slate-400">💑 {t('habitatge.parellaMeitat')}</span>
+              <span className="font-medium text-emerald-300">−50%</span>
+            </div>
+          )}
           {oferta.ajutFamiliar > 0 && (
             <div className="flex justify-between">
               <span className="text-slate-400">{t('habitatge.ajutFamiliar')}</span>
@@ -75,6 +84,14 @@ export function HabitatgePanel() {
               </span>
             </div>
           )}
+          <div className="flex justify-between border-t border-slate-700/60 pt-1.5">
+            <span className="font-semibold text-slate-300">
+              {t('habitatge.aportacioInicial')}
+            </span>
+            <span className="font-bold text-amber-300">
+              {formatEuros(oferta.aportacioInicial)}
+            </span>
+          </div>
           {oferta.hipoteca.quotaAnual > 0 && (
             <Row
               label={t('habitatge.quota')}
@@ -177,21 +194,26 @@ export function HabitatgePanel() {
 
       {!esPropietari && (
         <div className="space-y-2">
-          {OPCIONS_LLOGUER.map((o) => (
-            <button
-              key={o.tipus}
-              onClick={() => llogar(o.tipus)}
-              disabled={habitatge.tipus === o.tipus}
-              className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80 disabled:opacity-40"
-            >
-              <span className="font-medium text-slate-100">
-                {t(`tipusHabitatge.${o.tipus}`)}
-              </span>
-              <span className="font-mono text-sm text-slate-300">
-                {formatEuros(o.lloguerAnual)}/any
-              </span>
-            </button>
-          ))}
+          <p className="text-xs text-slate-500">{t('habitatge.mercatLloguer')}</p>
+          {(state.ofertesLloguer ?? []).map((o) => {
+            const actual =
+              habitatge.tipus === o.tipus && habitatge.lloguerAnual === o.lloguerAnual
+            return (
+              <button
+                key={o.id}
+                onClick={() => llogar(o.id)}
+                disabled={actual}
+                className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80 disabled:opacity-40"
+              >
+                <span className="font-medium text-slate-100">
+                  {t(`tipusHabitatge.${o.tipus}`)}
+                </span>
+                <span className="font-mono text-sm text-slate-300">
+                  {formatEuros(o.lloguerAnual)}/any
+                </span>
+              </button>
+            )
+          })}
           <button
             onClick={() => setVista('comprar')}
             className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
