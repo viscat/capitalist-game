@@ -255,25 +255,28 @@ export function familiaHereva(patrimoniHeretat: number): Familia {
 }
 
 /**
- * Continua la dinastia amb un descendent: comença una vida NOVA des del naixement. El fill
- * neix en una llar de la classe que correspon a l'herència, però **no la rep al néixer**:
- * la rebrà a l'edat que tenia quan el progenitor (tu) va morir (es recorda a `herenciaPendent`
- * i s'atorga llavors amb un esdeveniment previst). Conserva el cognom (llinatge) i neix a la
- * data de la teva mort (dècades després → més esperança de vida).
+ * Continua la dinastia amb un descendent: comença una vida NOVA des del naixement (FLASHBACK).
+ * El fill neix en una llar de la classe que correspon a l'herència, però **no la rep al néixer**:
+ * la rebrà a l'edat que tenia quan el progenitor (tu) va morir (es recorda a `herenciaPendent` i
+ * s'atorga llavors amb un esdeveniment previst). Conserva el cognom (llinatge) i la seva data de
+ * naixement és l'any REAL en què va néixer (quan el progenitor el va tenir), no l'any de la mort:
+ * així l'edat (0) i l'any de calendari quadren, i l'herència arriba justament l'any de la mort.
  */
 export function continuaGeneracio(state: GameState): GameState {
   if ((state.fills ?? 0) <= 0) return state
   const llegat = llegatPerFill(state)
   const familia = familiaHereva(llegat)
   const edatMortProgenitor = edatAnys(state.person.edatMesos)
+  // Mesos de vida del progenitor quan va néixer el fill (el primer): la data de naixement real.
+  const naixementMesosProgenitor = state.fillsNaixement?.[0] ?? 0
+  const edatProgenitorAlNaixer = edatAnys(naixementMesosProgenitor)
   // Edat del fill quan el progenitor va morir = edat de mort − edat del progenitor quan el
-  // va tenir (el primer fill). És quan rebrà l'herència.
-  const edatProgenitorAlNaixer = edatAnys(state.fillsNaixement?.[0] ?? 0)
+  // va tenir. És quan rebrà l'herència (i, en calendari, coincideix amb l'any de la mort).
   const edatHerencia = Math.max(1, edatMortProgenitor - edatProgenitorAlNaixer)
-  // El nou protagonista neix a la data (de calendari) de la mort del progenitor.
+  // El nou protagonista neix (any 0) a l'any de calendari REAL del seu naixement.
   let dataNaixement = state.dataNaixement
   if (dataNaixement) {
-    const d = dataActual(dataNaixement, state.person.edatMesos)
+    const d = dataActual(dataNaixement, naixementMesosProgenitor)
     dataNaixement = `${d.any}-${String(d.mesIndex + 1).padStart(2, '0')}-01`
   }
   const person: Person = {

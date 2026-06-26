@@ -45,6 +45,22 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       positive: false,
     })
   }
+  // Herència en vida: surt del teu patrimoni líquid ARA (es transfereix als fills).
+  if (effect.llegatEnVidaDelta && effect.llegatEnVidaDelta > 0) {
+    badges.push({
+      label: t('effect.llegatEnVida'),
+      text: `−${formatEuros(effect.llegatEnVidaDelta)}`,
+      positive: false,
+    })
+  }
+  if (effect.salutDelta) {
+    const v = effect.salutDelta
+    badges.push({
+      label: `❤️ ${t('stat.salut')}`,
+      text: `${v > 0 ? '+' : ''}${v}`,
+      positive: v > 0,
+    })
+  }
   if (effect.mercatPct) {
     const pct = Math.round(effect.mercatPct * 100)
     badges.push({

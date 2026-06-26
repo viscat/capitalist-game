@@ -1146,6 +1146,7 @@ export const ca: Record<string, string> = {
   'effect.atur': 'Et quedes sense feina',
   'effect.despesaGreu': 'Despesa greu',
   'effect.mercat': 'Mercat',
+  'effect.llegatEnVida': '🎁 Herència als fills',
   'note.donacio': 'La família cobreix {amount}',
   'note.descobert': 'No has pogut cobrir {amount} → benestar',
   'context.atur': 'A l’atur',
