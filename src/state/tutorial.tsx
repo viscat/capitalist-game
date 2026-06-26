@@ -139,10 +139,21 @@ export function TutorialProvider({ children }: { children: ReactNode }) {
   )
 }
 
+const NOOP_TUTORIAL: TutorialCtx = {
+  enabled: false,
+  seen: {},
+  register: () => {},
+  unregister: () => {},
+  active: null,
+  refs: { current: new Map() },
+  markSeen: () => {},
+  skipAll: () => {},
+  resetTutorial: () => {},
+}
+
+/** Context del tutorial; si no hi ha provider, retorna un no-op (no peta mai). */
 export function useTutorial(): TutorialCtx {
-  const ctx = useContext(Ctx)
-  if (!ctx) throw new Error('useTutorial dins de TutorialProvider')
-  return ctx
+  return useContext(Ctx) ?? NOOP_TUTORIAL
 }
 
 /**

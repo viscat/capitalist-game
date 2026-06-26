@@ -3,12 +3,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import App from './App'
 import { I18nProvider } from './i18n'
 import { GameProvider } from './state/GameContext'
+import { TutorialProvider } from './state/tutorial'
 
 function renderApp() {
   return render(
     <I18nProvider>
       <GameProvider>
-        <App />
+        <TutorialProvider>
+          <App />
+        </TutorialProvider>
       </GameProvider>
     </I18nProvider>,
   )
