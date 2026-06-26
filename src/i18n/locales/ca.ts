@@ -478,6 +478,8 @@ export const ca: Record<string, string> = {
   'chart.title': 'Evolució de les teves inversions',
   'chart.vida.title': 'Evolució de la salut i el benestar',
   'chart.patrimoni.title': 'Evolució del patrimoni net',
+  'chart.ipc.title': 'Evolució dels preus (IPC)',
+  'chart.ipc.label': 'IPC (base 100)',
   'chart.valor': 'Valor de la cartera',
   'chart.aportat': 'Aportat (sense rendiment)',
 

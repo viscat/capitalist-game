@@ -101,6 +101,13 @@ Transicions (fites):
   **edat** visible (de `fillsNaixement`); amb fills dependents surten `FILLS_EVENTS` (alegries +benestar
   i ensurts −benestar). El `FamiliaPanel` (calaix de detalls) mostra parella i fills (nom + edat); el
   `GameOver` mostra els fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
+- **IPC (inflació)**: `GameState.ipc` (base 100 al naixement) creix cada any amb una inflació
+  (`inflacioAnual`, ~0,5–5%) DETERMINISTA a partir del RNG però **sense consumir-lo** (no altera
+  la seqüència d'esdeveniments → el balanceig es manté). S'aplica a l'**habitatge**: encareix els
+  preus de compra (`ofertaCompra`/`factorIPC`) i les ofertes de lloguer (`generaOfertesLloguer`)
+  al llarg de la vida. Es desa a `vidaHist` i es dibuixa (amb stats i patrimoni net) a `LifeCharts`,
+  que ara surt a cada **fita d'edat** (`MilestoneScreen`) i al `GameOver`. La continuació de
+  dinastia hereta l'IPC del món (els preus no es reinicien).
 - **MORT = l'únic final.** A qualsevol edat, si la `salut` arriba a **0** → `acabat = true` +
   `mort = true`. La salut (stat `Stats.salut`, 0..100) es degrada amb l'**edat**
   (`declividSalutAnual`, calibrada a l'esperança de vida ~84 per a un sa; un sa mor de vellesa,

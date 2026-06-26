@@ -12,6 +12,9 @@ import {
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
   INTERES_DEUTE,
+  IPC_INICIAL,
+  IPC_INFLACIO_MAX,
+  IPC_INFLACIO_MIN,
   PRESTACIO_ATUR_FRACCIO,
   LIMIT_DESGRAVACIO_PENSIONS,
   MATRICULA_ANUAL,
@@ -27,6 +30,7 @@ import {
   SALUT_MAX,
   SALUT_MIN,
 } from './constants'
+import { rng } from './rng'
 import type {
   Budget,
   EventEffect,
@@ -227,6 +231,24 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
   if (effect.salutDelta) stats.salut = clampSalut(stats.salut + effect.salutDelta)
 
   return { ...person, stats, patrimoni }
+}
+
+// --- IPC (inflació) ---
+
+/**
+ * Inflació d'aquest any (fracció), DETERMINISTA a partir d'una llavor (l'estat del RNG), sense
+ * consumir-lo: així no altera la seqüència d'esdeveniments (i el balanceig es manté). Es mou dins
+ * de la banda [IPC_INFLACIO_MIN, IPC_INFLACIO_MAX] (mitjana ~2,75%).
+ */
+export function inflacioAnual(seed: number): number {
+  // Offset primer per decorrelar de la selecció d'esdeveniments (que també usa el rngState).
+  const r = rng(Math.trunc(seed) + 7919)
+  return IPC_INFLACIO_MIN + r.value * (IPC_INFLACIO_MAX - IPC_INFLACIO_MIN)
+}
+
+/** Factor de preus actual (IPC/100): 1 al naixement, creix amb la inflació acumulada. */
+export function factorIPC(state: GameState): number {
+  return (state.ipc ?? IPC_INICIAL) / IPC_INICIAL
 }
 
 /** Patrimoni net total de la persona (actius menys el deute de consum pendent). */

@@ -189,3 +189,11 @@ export const TERMINIS_HIPOTECA = [20, 30]
 export const RATI_ENDEUTAMENT_MAX = 0.4
 /** Revaloració anual mitjana de l'habitatge en propietat. */
 export const REVALORACIO_HABITATGE = 0.02
+
+// --- IPC (inflació) ---
+
+/** Índex de preus al consum inicial (base 100 al naixement). Creix any rere any. */
+export const IPC_INICIAL = 100
+/** Inflació anual mínima i màxima (es sorteja dins d'aquesta banda cada any). */
+export const IPC_INFLACIO_MIN = 0.005
+export const IPC_INFLACIO_MAX = 0.05

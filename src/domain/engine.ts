@@ -12,6 +12,7 @@ import {
   EDAT_RECTA_60,
   EDAT_REVISIO_50,
   FACTOR_DESPESA_PARELLA,
+  IPC_INICIAL,
   MAX_FILLS,
   INTERES_DEUTE,
   MESOS_PER_ANY,
@@ -69,10 +70,12 @@ import {
   contribucioLlar,
   declividSalutAnual,
   factorEsperancaVida,
+  factorIPC,
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
   fillsDependents,
+  inflacioAnual,
   defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
@@ -140,6 +143,7 @@ export function newGame(
     identitat: setup.identitat,
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
+    ipc: IPC_INICIAL,
     historial: [],
     acabat: false,
   }
@@ -166,6 +170,7 @@ export function newGameAt16(
     identitat: setup.identitat,
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
+    ipc: IPC_INICIAL,
     pendingMilestone: 'postobligatori',
     historial: [],
     acabat: false,
@@ -195,6 +200,7 @@ export function newGameAtCarrera(
     identitat: setup.identitat,
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
+    ipc: IPC_INICIAL,
     teDiploma,
     salari,
     salariBase: salari,
@@ -283,6 +289,8 @@ export function continuaGeneracio(state: GameState): GameState {
     identitat: state.identitat,
     dataNaixement,
     rngState: state.rngState,
+    // L'IPC continua la línia temporal del món (els preus no es reinicien amb cada generació).
+    ipc: state.ipc ?? IPC_INICIAL,
     generacio: (state.generacio ?? 1) + 1,
     herenciaPendent: llegat > 0 ? { import: llegat, edat: edatHerencia } : undefined,
     historial: [],
@@ -338,7 +346,7 @@ function ambOfertes(state: GameState): GameState {
       next.lifeStage === 'jubilacio') &&
     next.habitatge?.tipus !== 'propietat'
   if (potLlogar) {
-    const r = generaOfertesLloguer(next.rngState)
+    const r = generaOfertesLloguer(next.rngState, factorIPC(next))
     next = { ...next, ofertesLloguer: r.ofertes, rngState: r.state }
   } else if (next.ofertesLloguer) {
     next = { ...next, ofertesLloguer: undefined }
@@ -520,6 +528,13 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
   let rngState = state.rngState
+
+  // IPC: els preus pugen cada any amb la inflació. La taxa és determinista a partir del RNG
+  // PERÒ no el consumeix (no altera la seqüència d'esdeveniments), així el balanceig es manté.
+  const ipc =
+    Math.round(
+      (state.ipc ?? IPC_INICIAL) * (1 + inflacioAnual(state.rngState + anys)) * 100,
+    ) / 100
 
   // Flux econòmic per fase.
   if (stage === 'infancia') {
@@ -744,6 +759,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     habitatge,
     patrimoniHist,
     anysExperiencia,
+    ipc,
     nivellAcademic:
       accAcademic !== 0
         ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic))
@@ -975,6 +991,7 @@ function resolveEvent(
       benestar: Math.round(person.stats.benestar),
       salut: Math.round(person.stats.salut),
       net: Math.round(patrimoniTotal(person)),
+      ipc: Math.round(state.ipc ?? IPC_INICIAL),
     },
   ]
 
