@@ -58,6 +58,8 @@ interface GameContextValue {
   setBudget: (budget: Budget) => void
   /** Desa el pla d'inversió anual (fase de carrera). */
   setPla: (pla: PlaInversio) => void
+  /** Desa la selecció d'accions de l'adolescència (es recorda entre anys). */
+  setAccionsSeleccio: (sel: Record<string, number>) => void
   /** Accepta una oferta de feina durant la cerca (fase de carrera a l'atur). */
   acceptarOferta: (ofertaId: string) => void
   /** Tria el nivell de vida (cost del dia a dia) a la fase adulta. */
@@ -117,6 +119,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
       setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
+      setAccionsSeleccio: (sel) =>
+        setState((s) => (s ? { ...s, accionsSeleccio: sel } : s)),
       acceptarOferta: (ofertaId) =>
         setState((s) => (s ? acceptarOferta(s, ofertaId) : s)),
       setNivellVida: (nivell) =>

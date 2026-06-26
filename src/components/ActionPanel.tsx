@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { MESOS_PER_ANY, SETMANES_ANY } from '../domain/constants'
 import { ajudaCasaSetmanes, pagaMensual, pagaPerAjudaCasa } from '../domain/stats'
 import type { GameAction } from '../domain/types'
@@ -12,14 +11,16 @@ import { EffectList } from './EffectList'
  * Accions de les fases joves (12-18). Multiselecció amb MULTIPLICADOR: cada any tens un
  * pressupost de TEMPS (setmanes) i de DINERS (efectiu + paga de l'any); pots repetir una
  * mateixa acció diverses vegades mentre hi càpiga. No triar res = temps lliure (l'any
- * passa sense efectes actius).
+ * passa sense efectes actius). La selecció es RECORDA entre anys (es desa a `GameState`),
+ * així el jugador no l'ha de repetir cada any.
  */
 export function ActionPanel() {
   const { t } = useT()
-  const { state, actions, nextTurn } = useGame()
-  const [counts, setCounts] = useState<Record<string, number>>({})
+  const { state, actions, nextTurn, setAccionsSeleccio } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('accions')
   if (!state) return null
+
+  const counts = state.accionsSeleccio ?? {}
 
   const dinersInicials =
     state.person.patrimoni.efectiu + pagaMensual(state.familia) * MESOS_PER_ANY
@@ -55,16 +56,14 @@ export function ActionPanel() {
 
   const inc = (id: string, setmanes: number, cost: number) => {
     if (!potAfegir(setmanes, cost)) return
-    setCounts((prev) => ({ ...prev, [id]: (prev[id] ?? 0) + 1 }))
+    setAccionsSeleccio({ ...counts, [id]: countOf(id) + 1 })
   }
   const dec = (id: string) => {
-    setCounts((prev) => {
-      const n = (prev[id] ?? 0) - 1
-      const next = { ...prev }
-      if (n <= 0) delete next[id]
-      else next[id] = n
-      return next
-    })
+    const n = countOf(id) - 1
+    const next = { ...counts }
+    if (n <= 0) delete next[id]
+    else next[id] = n
+    setAccionsSeleccio(next)
   }
 
   const viu = () => {
@@ -73,8 +72,8 @@ export function ActionPanel() {
     for (const o of actions) {
       for (let i = 0; i < countOf(o.action.id); i++) ids.push(o.action.id)
     }
+    // NO buidem la selecció: es recorda per a l'any vinent (el jugador pot ajustar-la).
     nextTurn(ids)
-    setCounts({})
   }
 
   const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
