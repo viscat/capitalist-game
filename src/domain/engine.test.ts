@@ -241,6 +241,14 @@ describe('fase laboral i pressupost', () => {
   })
 })
 
+describe('selecció d’accions recordada entre anys', () => {
+  it('accionsSeleccio es conserva en avançar un torn', () => {
+    const s = { ...newGame('mitjana', 5), accionsSeleccio: { hobby: 2, sortir_amics: 1 } }
+    const after = advanceTurn(s)
+    expect(after.accionsSeleccio).toEqual({ hobby: 2, sortir_amics: 1 })
+  })
+})
+
 describe('dinastia i herència', () => {
   it('classePerPatrimoni mapeja la riquesa heretada a una classe', () => {
     expect(classePerPatrimoni(0)).toBe('pobra')

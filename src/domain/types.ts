@@ -405,6 +405,11 @@ export interface GameState {
    * Es reparteix entre els fills quan es continua amb un descendent. Absent = 0.
    */
   llegatEnVida?: number
+  /**
+   * Selecció d'accions de les fases joves (adolescència / estudis post), recordada ENTRE anys
+   * perquè el jugador no l'hagi de repetir cada any. Mapa d'id d'acció → quantitat triada.
+   */
+  accionsSeleccio?: Record<string, number>
   /** Nombre de fills tinguts (descendència). Absent = 0. */
   fills?: number
   /**
