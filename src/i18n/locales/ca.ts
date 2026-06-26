@@ -476,6 +476,8 @@ export const ca: Record<string, string> = {
   'pla.nextYear': 'Viu un any →',
 
   'chart.title': 'Evolució de les teves inversions',
+  'chart.vida.title': 'Evolució de la salut i el benestar',
+  'chart.patrimoni.title': 'Evolució del patrimoni net',
   'chart.valor': 'Valor de la cartera',
   'chart.aportat': 'Aportat (sense rendiment)',
 

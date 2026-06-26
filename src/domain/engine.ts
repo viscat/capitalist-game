@@ -881,12 +881,25 @@ function resolveEvent(
     llegatEnVida = (state.llegatEnVida ?? 0) + donat
   }
 
+  // Història de vida: una instantània per any (benestar, salut, patrimoni net) per dibuixar
+  // l'evolució al resum final.
+  const vidaHist = [
+    ...(state.vidaHist ?? []),
+    {
+      edat: anys,
+      benestar: Math.round(person.stats.benestar),
+      salut: Math.round(person.stats.salut),
+      net: Math.round(patrimoniTotal(person)),
+    },
+  ]
+
   // Si un acomiadament ha deixat el sou a 0 a la carrera, ambOfertes hi genera
   // automàticament les ofertes de cerca de feina.
   return ambOfertes({
     ...state,
     person,
     salari,
+    vidaHist,
     ultimAugmentMes,
     salutCronica,
     vinclesSocials,

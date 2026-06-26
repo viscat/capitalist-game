@@ -380,6 +380,11 @@ export interface GameState {
    * en un gràfic. Una entrada per any viscut a la carrera.
    */
   patrimoniHist?: PatrimoniSnapshot[]
+  /**
+   * Història de vida: una instantània per any de benestar, salut i patrimoni net. Serveix per
+   * dibuixar l'evolució d'aquests indicadors al resum final (quan la persona mor).
+   */
+  vidaHist?: VidaSnapshot[]
   historial: LogEntry[]
   acabat: boolean
   /**
@@ -421,6 +426,15 @@ export interface PatrimoniSnapshot {
    * + fonsPensions) fa visible quant ha crescut la cartera pel rendiment.
    */
   aportat: number
+}
+
+/** Instantània anual de la vida (per als gràfics d'evolució del resum final). */
+export interface VidaSnapshot {
+  edat: number
+  benestar: number
+  salut: number
+  /** Patrimoni net (pot ser negatiu si hi ha deute). */
+  net: number
 }
 
 /** Una acció amb el seu estat de disponibilitat per a la UI. */
