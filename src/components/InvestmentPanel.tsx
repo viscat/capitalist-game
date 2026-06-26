@@ -16,6 +16,7 @@ import {
   costFillsAnual,
   costVidaPropi,
   defaultPlaInversio,
+  factorIPC,
   fillsDependents,
   desgravacioPensions,
   ingressosAnualsCarrera,
@@ -56,21 +57,26 @@ export function InvestmentPanel() {
   if (!state) return null
 
   // El model treballa en anual; el panell ho presenta tot en mensual. Jubilat → pensió.
-  const income = state.jubilat ? pensioPublicaAnual(state) : ingressosAnualsCarrera(state)
+  // L'IPC encareix vida i ingressos plegats (en nominal), coherent amb el motor (`advanceTurn`).
+  const f = factorIPC(state)
+  const realIncome = state.jubilat ? pensioPublicaAnual(state) : ingressosAnualsCarrera(state)
+  const income = Math.round(realIncome * f)
   const nivell = state.nivellVida ?? NIVELL_VIDA_DEFAULT
   // Viure amb els pares = un sol cost (contribució a la llar: manutenció + ajuda), sense
   // pagar el cost de vida a part ni triar-ne el nivell. Viure sol = cost de vida sencer
   // (segons el nivell) + habitatge, i s'atura l'ajuda a la família.
   const ambPares = (state.habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
   const net = state.jubilat
-    ? Math.round(income / MESOS_PER_ANY)
+    ? Math.round(realIncome / MESOS_PER_ANY)
     : netMensual(state.salari ?? 0)
   // Viure en parella reparteix les despeses estructurals (cost de vida + habitatge).
   const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
   const costVida = Math.round(
     (ambPares
       ? contribucioLlar(state.familia, net)
-      : costVidaPropi(state.familia, state.habitatge, nivell)) * factorParella,
+      : costVidaPropi(state.familia, state.habitatge, nivell)) *
+      factorParella *
+      f,
   )
   const cobertFamilia = ambPares
     ? 0

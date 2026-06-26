@@ -602,27 +602,34 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // Any de carrera o jubilació: el fons indexat rendeix segons l'atzar del mercat.
     const draw = rng(rngState)
     rngState = draw.state
-    // Ingrés de l'any: jubilat → pensió pública; en actiu amb sou → net; a l'atur → prestació.
-    const income =
+    // Ingrés de l'any en euros REALS (jubilat → pensió; actiu amb sou → net; atur → prestació).
+    const realIncome =
       stage === 'jubilacio'
         ? pensioPublicaAnual(state)
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
           : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
+    // L'IPC encareix la vida però també els sous: l'ingrés i els costos creixen plegats en
+    // termes NOMINALS (el balanceig real es manté; el benestar es calcula en termes reals).
+    const f = factorIPC(state)
+    const income = Math.round(realIncome * f)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
     // sol: cost de vida sencer (segons el nivell que tries) + habitatge, i s'atura l'ajuda.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
-    const net = stage === 'jubilacio' ? income / MESOS_PER_ANY : netMensual(state.salari ?? 0)
+    const net = stage === 'jubilacio' ? realIncome / MESOS_PER_ANY : netMensual(state.salari ?? 0)
     // Viure en parella reparteix les despeses estructurals (lloguer/hipoteca + cost de vida)
     // entre dues persones: l'altra n'assumeix una part, així que la teva minva (sigui quin
     // sigui l'habitatge: casa els pares, habitació, lloguer o propietat).
     const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
-    const costVida =
+    // Cost de vida real (× parella) i, finalment, × IPC (s'encareix amb la inflació). L'habitatge
+    // ja és nominal (el lloguer ve d'una oferta IPC i la quota d'hipoteca és nominal fixa).
+    const costVidaReal =
       (ambPares
         ? contribucioLlar(state.familia, net)
         : costVidaPropi(state.familia, habitatge, state.nivellVida)) * factorParella
+    const costVida = Math.round(costVidaReal * f)
     const costHab = ambPares
       ? 0
       : Math.round(costHabitatgeAnualNet(habitatge, state.familia) * factorParella)
@@ -640,7 +647,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       state.familia,
       0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
       ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
-      costFillsAnual(state), // criança dels fills dependents
+      costFillsAnual(state), // criança dels fills dependents (ja en euros nominals amb IPC)
+      f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
     )
     // Aportació REAL d'enguany al fons indexat + pensions = valor nou − valor crescut (el
     // que ha pujat pel rendiment no és aportació). Acumulada, és el «que has posat» que es

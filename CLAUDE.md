@@ -103,11 +103,16 @@ Transicions (fites):
   `GameOver` mostra els fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
 - **IPC (inflació)**: `GameState.ipc` (base 100 al naixement) creix cada any amb una inflació
   (`inflacioAnual`, ~0,5–5%) DETERMINISTA a partir del RNG però **sense consumir-lo** (no altera
-  la seqüència d'esdeveniments → el balanceig es manté). S'aplica a l'**habitatge**: encareix els
-  preus de compra (`ofertaCompra`/`factorIPC`) i les ofertes de lloguer (`generaOfertesLloguer`)
-  al llarg de la vida. Es desa a `vidaHist` i es dibuixa (amb stats i patrimoni net) a `LifeCharts`,
-  que ara surt a cada **fita d'edat** (`MilestoneScreen`) i al `GameOver`. La continuació de
-  dinastia hereta l'IPC del món (els preus no es reinicien).
+  la seqüència d'esdeveniments). A la **carrera/jubilació**, l'IPC encareix en NOMINAL l'**ingrés**,
+  el **cost de vida**, la **criança dels fills** (`costFillsAnual`) i l'**habitatge** (preus de
+  compra i ofertes de lloguer): tot creix plegat, així el balanceig REAL es manté. El **benestar**
+  es calcula en termes REALS: les funcions que comparen diners amb llindars absoluts es desinflen
+  per `factorIPC` (patrimoni i deute a `adultBaselineBenestar`, descobert a `applyCareerYear`, i les
+  xarxes d'ajut a `repartDeficit`/`ajutPublicMax` via el paràmetre `factorIPCActual`). Es desa a
+  `vidaHist` i es dibuixa (amb stats i patrimoni net) a `LifeCharts`, que surt a cada **fita d'edat**
+  (`MilestoneScreen`) i al `GameOver`. La dinastia hereta l'IPC del món (els preus no es reinicien).
+  El **jugador simulat** (harness) reajusta el pla d'inversió cada any a l'ingrés nominal (com qui
+  apuja la despesa amb la inflació); sense fer-ho, l'oci/estalvi fixats s'erosionarien.
 - **MORT = l'únic final.** A qualsevol edat, si la `salut` arriba a **0** → `acabat = true` +
   `mort = true`. La salut (stat `Stats.salut`, 0..100) es degrada amb l'**edat**
   (`declividSalutAnual`, calibrada a l'esperança de vida ~84 per a un sa; un sa mor de vellesa,
