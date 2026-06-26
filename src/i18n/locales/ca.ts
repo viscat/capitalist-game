@@ -1070,6 +1070,13 @@ export const ca: Record<string, string> = {
   'event.estres_cronic.title': 'Estrès crònic',
   'event.estres_cronic.desc':
     'Jornades llargues, pocs descansos i pressió constant. El desgast no es veu, però et va menjant la salut.',
+  // Herència que es rep dels pares
+  'event.ajut_pares.title': 'Els pares t’ajuden',
+  'event.ajut_pares.desc':
+    'Els teus pares et donen un cop de mà econòmic. Un coixí que no tothom té: l’origen acomodat allunya de la precarietat.',
+  'event.herencia_pares.title': 'Mor un dels teus pares',
+  'event.herencia_pares.desc':
+    'Perds un progenitor. Entre el dol, en reps l’herència: el que et deixen depèn del que la família va poder acumular.',
   // Herència en vida
   'event.herencia_en_vida.title': 'Ajudar els fills ara',
   'event.herencia_en_vida.desc':

@@ -238,6 +238,8 @@ export interface EventEffect {
    * fills i redueix el teu estate; quan continues amb un descendent, s'hi suma.
    */
   llegatEnVidaDelta?: number
+  /** Marca que els pares han mort i ja s'ha rebut la seva herència (no torna a passar). */
+  marcaHerenciaPares?: boolean
   /**
    * Nombre de fills que afegeix aquest efecte (descendència): normalment 1. El motor
    * incrementa `GameState.fills` i registra l'edat (en mesos) del progenitor al naixement
@@ -410,6 +412,8 @@ export interface GameState {
    * perquè el jugador no l'hagi de repetir cada any. Mapa d'id d'acció → quantitat triada.
    */
   accionsSeleccio?: Record<string, number>
+  /** Els pares ja han mort i s'ha rebut l'herència (perquè no es repeteixi). Absent = false. */
+  herenciaParesRebuda?: boolean
   /** Nombre de fills tinguts (descendència). Absent = 0. */
   fills?: number
   /**

@@ -1,7 +1,7 @@
 import { dataActual, edatAnys } from '../domain/time'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
-import { formatEuros } from '../lib/format'
+import { formatEurosCompact } from '../lib/format'
 import { SalutAvis, StatRings } from './StatRings'
 
 /**
@@ -79,7 +79,7 @@ export function GameHud({
           <div
             className={`text-lg font-black tabular-nums ${net < 0 ? 'text-danger' : 'text-money'}`}
           >
-            {formatEuros(net)}
+            {formatEurosCompact(net)}
           </div>
           <div className="text-[9px] uppercase tracking-wider text-inkfaint">
             {t('patrimoni.total')}

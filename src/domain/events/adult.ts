@@ -1,4 +1,4 @@
-import { augmentSou, escalaPerClasse } from '../stats'
+import { ajutParesPuntual, augmentSou, escalaPerClasse, herenciaParesMort } from '../stats'
 import { edatAnys } from '../time'
 import type { FamilyClass, GameEvent } from '../types'
 
@@ -583,6 +583,53 @@ export const HERENCIA_VIDA_EVENTS: GameEvent[] = [
         effect: {},
       },
     ],
+  },
+]
+
+// Probabilitat que els pares t'ajudin econòmicament en vida, per classe: nul·la a les llars
+// que no poden, alta a les acomodades. L'altra cara de la transmissió de capital.
+const AJUT_PARES_PES: Record<FamilyClass, number> = {
+  pobra: 0,
+  treballadora: 0.4,
+  mitjana: 0.9,
+  alta: 1.4,
+  rica: 1.8,
+  super_rica: 2.2,
+}
+
+/**
+ * Herència que es REP dels pares. En vida: un ajut puntual (els rics ajuden els fills; els
+ * pobres no poden). Per mort: quan moren els pares, n'heretes el patrimoni (una fortuna per
+ * al ric, gairebé res per al pobre). És el mecanisme directe de reproducció de classe vist
+ * des del costat de qui rep.
+ */
+export const AJUT_PARES_EVENTS: GameEvent[] = [
+  {
+    id: 'ajut_pares',
+    category: 'familia',
+    titleKey: 'event.ajut_pares.title',
+    descKey: 'event.ajut_pares.desc',
+    weight: (f) => AJUT_PARES_PES[f.classe],
+    resolve: (s) => ({ efectiu: ajutParesPuntual(s.familia), benestar: 3, vinclesDelta: 0.03 }),
+  },
+]
+
+export const HERENCIA_PARES_EVENTS: GameEvent[] = [
+  {
+    id: 'herencia_pares',
+    category: 'familia',
+    titleKey: 'event.herencia_pares.title',
+    descKey: 'event.herencia_pares.desc',
+    weight: () => 1.5,
+    // Dol (benestar/salut avall) + l'herència que reps (segons el patrimoni familiar). Marca
+    // que ja ha passat perquè no es repeteixi.
+    resolve: (s) => ({
+      estalvi: herenciaParesMort(s.familia),
+      benestar: -12,
+      vinclesDelta: -0.08,
+      salutDelta: -2,
+      marcaHerenciaPares: true,
+    }),
   },
 ]
 

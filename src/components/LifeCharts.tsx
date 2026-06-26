@@ -1,10 +1,12 @@
 import type { VidaSnapshot } from '../domain/types'
 import { useT } from '../i18n'
-import { formatEuros } from '../lib/format'
+import { formatEurosCompact } from '../lib/format'
 
 const W = 320
 const H = 140
-const PAD = 30
+const PAD = 26
+// Marge esquerre més ample per a les etiquetes de l'eix Y (imports compactes, p. ex. "1,5 M €").
+const PAD_L = 50
 
 interface Serie {
   color: string
@@ -29,7 +31,7 @@ function LineChart({
   title: string
 }) {
   const rang = max - min || 1
-  const x = (i: number) => PAD + (i / (hist.length - 1)) * (W - 2 * PAD)
+  const x = (i: number) => PAD_L + (i / (hist.length - 1)) * (W - PAD_L - PAD)
   const y = (v: number) => H - PAD - ((v - min) / rang) * (H - 2 * PAD)
   const linia = (serie: Serie) =>
     hist.map((s, i) => `${x(i).toFixed(1)},${y(serie.valor(s)).toFixed(1)}`).join(' ')
@@ -41,11 +43,11 @@ function LineChart({
     <div className="rounded-2xl bg-surface/80 p-4 ring-1 ring-line/60">
       <h3 className="mb-2 text-sm font-semibold text-inksoft">{title}</h3>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={title}>
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="#475569" strokeWidth="1" />
         {zeroY !== null && (
           <line
-            x1={PAD}
+            x1={PAD_L}
             y1={zeroY}
             x2={W - PAD}
             y2={zeroY}
@@ -54,16 +56,16 @@ function LineChart({
             strokeDasharray="3 3"
           />
         )}
-        <text x={PAD - 4} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
           {fmt(max)}
         </text>
-        <text x={PAD - 4} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
           {fmt(min)}
         </text>
-        <text x={PAD} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
           {edatMin}
         </text>
-        <text x={W - PAD} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(hist.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
           {edatMax}
         </text>
         {series.map((s) => (
@@ -117,7 +119,7 @@ export function LifeCharts({ hist }: { hist: VidaSnapshot[] }) {
         title={t('chart.patrimoni.title')}
         min={minNet}
         max={maxNet}
-        fmt={formatEuros}
+        fmt={formatEurosCompact}
         series={[
           { color: '#f5c451', label: t('patrimoni.total'), valor: (s) => s.net },
         ]}
