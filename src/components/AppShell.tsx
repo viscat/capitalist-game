@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 
 /**
@@ -13,15 +14,30 @@ export function AppShell({
   hud,
   children,
   footer,
+  scrollResetKey,
 }: {
   hud: ReactNode
   children: ReactNode
   footer?: ReactNode
+  /** Quan canvia, l'àrea de contingut torna a dalt (p. ex. en passar d'any, on surt l'esdeveniment). */
+  scrollResetKey?: string | number
 }) {
+  const mainRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    if (scrollResetKey === undefined) return
+    const el = mainRef.current
+    // `scrollTo` no existeix a jsdom (tests) ni en navegadors molt antics: protegim-ho.
+    if (!el || typeof el.scrollTo !== 'function') return
+    el.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [scrollResetKey])
+
   return (
     <div className="flex h-[100dvh] flex-col">
       {hud}
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      <main
+        ref={mainRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
         <div className="mx-auto max-w-md px-4 pt-3 pb-3">{children}</div>
       </main>
       {footer && (

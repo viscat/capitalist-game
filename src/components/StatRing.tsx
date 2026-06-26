@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 /** Color d'un anell d'estat (0..100), amb els mateixos llindars que `benestarColor`. */
 function ringHex(v: number): string {
   if (v < 20) return '#f6504f'
@@ -20,6 +22,19 @@ export function StatRing({
   label?: string
 }) {
   const v = Math.max(0, Math.min(100, Math.round(value)))
+  // Quan el valor canvia (típicament en passar d'any), mostrem la variació (+N/−N) animada i
+  // fem "pop" al número. El primer render no compta com a canvi.
+  const prevRef = useRef(v)
+  const [delta, setDelta] = useState<number | null>(null)
+  useEffect(() => {
+    const prev = prevRef.current
+    if (v === prev) return
+    prevRef.current = v
+    setDelta(v - prev)
+    const id = setTimeout(() => setDelta(null), 1100)
+    return () => clearTimeout(id)
+  }, [v])
+
   const r = (size - 6) / 2
   const c = 2 * Math.PI * r
   return (
@@ -55,8 +70,24 @@ export function StatRing({
         <span className="text-[13px]" aria-hidden>
           {icon}
         </span>
-        <span className="mt-0.5 text-[10px] font-bold tabular-nums text-ink">{v}</span>
+        <span
+          key={v}
+          className={`mt-0.5 text-[10px] font-bold tabular-nums text-ink ${
+            delta != null && delta !== 0 ? 'animate-stat-pop' : ''
+          }`}
+        >
+          {v}
+        </span>
       </span>
+      {delta != null && delta !== 0 && (
+        <span
+          className={`pointer-events-none absolute -top-0.5 left-1/2 animate-stat-delta text-[10px] font-black tabular-nums ${
+            delta > 0 ? 'text-emerald-300' : 'text-danger'
+          }`}
+        >
+          {delta > 0 ? `+${delta}` : delta}
+        </span>
+      )}
     </span>
   )
 }
