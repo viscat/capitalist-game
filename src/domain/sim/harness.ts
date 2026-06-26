@@ -40,7 +40,7 @@ export interface SimPolicy {
 /**
  * Accions que tria el jugador ACTIU en una fase d'acció. Es concentra en la via d'escapada
  * realista: estudiar a fons a la universitat (puja `nivellAcademic` → millor sou). A les
- * fases joves no tria res (evita el cost de benestar d'activitats que, amb l'espiral, poden
+ * fases joves no tria res (evita el cost de benestar d'activitats que, amb la mortalitat, poden
  * enfonsar una vida ja precària).
  */
 function activeActions(state: GameState): string[] {

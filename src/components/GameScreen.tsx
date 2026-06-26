@@ -53,6 +53,7 @@ export function GameScreen() {
       <SummaryBar
         nom={nom}
         benestar={person.stats.benestar}
+        salut={person.stats.salut}
         net={net}
         edatMesos={person.edatMesos}
         dataNaixement={state.dataNaixement}
@@ -88,6 +89,7 @@ export function GameScreen() {
         <aside className="order-2 space-y-4 lg:order-1">
           <StatBar
             benestar={person.stats.benestar}
+            salut={person.stats.salut}
             vincles={state.vinclesSocials}
             sequela={state.salutCronica}
             academic={state.nivellAcademic}

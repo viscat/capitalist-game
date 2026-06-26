@@ -23,6 +23,8 @@ import {
   SALARI_ADULT_BASE,
   SALARI_BASE_16,
   SALARI_MINIM_MENSUAL,
+  SALUT_MAX,
+  SALUT_MIN,
 } from './constants'
 import type {
   Budget,
@@ -47,6 +49,35 @@ export function clamp(value: number, min: number, max: number): number {
 
 export function clampBenestar(value: number): number {
   return clamp(value, BENESTAR_MIN, BENESTAR_MAX)
+}
+
+export function clampSalut(value: number): number {
+  return clamp(value, SALUT_MIN, SALUT_MAX)
+}
+
+/**
+ * Declivi (o recuperació) ANUAL de la salut. La salut baixa amb:
+ *  - l'EDAT (suau de jove, accelera amb els anys), de manera que una persona SANA arribi
+ *    viva als 67 i mori de vellesa més tard;
+ *  - el BENESTAR baix (estrès, ansietat, precarietat) — i si el benestar és alt, la salut es
+ *    RECUPERA una mica (delta negatiu) cap a 100;
+ *  - les SEQÜELES cròniques (`salutCronica`): una discapacitat escurça la vida.
+ * Retorna els punts de salut que es PERDEN aquest any (negatiu = es recuperen).
+ */
+export function declividSalutAnual(
+  edat: number,
+  benestar: number,
+  salutCronica = 0,
+): number {
+  // Edat: pràcticament pla fins als 40, després accelera (envelliment). Suau perquè una
+  // persona sana arribi viva als 67 (i mori de vellesa més tard).
+  const edatComp = edat <= 40 ? 0.18 : 0.18 + (edat - 40) * 0.05
+  // Benestar: per sota de 45 erosiona (estrès/precarietat); per sobre, recupera (sostre suau).
+  const benestarComp =
+    benestar < 45 ? (45 - benestar) * 0.09 : -Math.min((benestar - 45) * 0.05, 1.8)
+  // Seqüela crònica: cada punt de seqüela accelera una mica el declivi.
+  const cronicaComp = salutCronica * 0.08
+  return edatComp + benestarComp + cronicaComp
 }
 
 // --- Indicadors derivats del context familiar (0..1) ---
@@ -179,6 +210,7 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
 
   const stats = { ...person.stats }
   if (effect.benestar) stats.benestar = clampBenestar(stats.benestar + effect.benestar)
+  if (effect.salutDelta) stats.salut = clampSalut(stats.salut + effect.salutDelta)
 
   return { ...person, stats, patrimoni }
 }
@@ -214,23 +246,38 @@ export function itinerariBenestarOffset(itinerari?: Itinerari): number {
   }
 }
 
-/** Benestar de referència tenint en compte família, itinerari, fase i atur. */
+/**
+ * Penalització de benestar per salut baixa (acoblament salut → benestar): estar malalt
+ * deprimeix. Per sota de 50 de salut comença a pesar, fins a −12 quan la salut és molt baixa.
+ * Amb la deriva del benestar, la caiguda és gradual (espiral controlada, no instantània).
+ */
+export function benestarPerSalut(salut: number): number {
+  return clamp((50 - salut) / 4, 0, 12)
+}
+
+/** Benestar de referència tenint en compte família, itinerari, fase, atur i salut. */
 export function baselineBenestar(state: GameState): number {
+  const penalSalut = benestarPerSalut(state.person.stats.salut)
   // Vida d'estudiant universitari: encara depens de casa, però amb aire i propòsit.
   if (state.lifeStage === 'universitat') {
     return clampBenestar(
-      familyBaselineBenestar(state.familia) + 4 + benestarHabitatge(state.habitatge),
+      familyBaselineBenestar(state.familia) +
+        4 +
+        benestarHabitatge(state.habitatge) -
+        penalSalut,
     )
   }
   // Vida adulta: la referència ja no depèn de la família sinó del teu propi camí.
   if (state.lifeStage === 'carrera') {
-    return clampBenestar(adultBaselineBenestar(state) + benestarHabitatge(state.habitatge))
+    return clampBenestar(
+      adultBaselineBenestar(state) + benestarHabitatge(state.habitatge) - penalSalut,
+    )
   }
 
   let offset = itinerariBenestarOffset(state.itinerari)
   // A l'atur (treball amb sou 0): inseguretat i pressió.
   if (state.itinerari === 'treball' && state.salari === 0) offset -= 8
-  return clampBenestar(familyBaselineBenestar(state.familia) + offset)
+  return clampBenestar(familyBaselineBenestar(state.familia) + offset - penalSalut)
 }
 
 /**

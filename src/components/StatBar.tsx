@@ -3,12 +3,15 @@ import { benestarColor, benestarLevelKey } from '../lib/format'
 
 export function StatBar({
   benestar,
+  salut = 100,
   vincles = 0,
   sequela = 0,
   academic = 0,
   fills = 0,
 }: {
   benestar: number
+  /** Salut 0..100 (pool de mortalitat: si arriba a 0, la persona mor). */
+  salut?: number
   /** Vincles socials 0..1 (font de benestar no monetària). */
   vincles?: number
   /** Penalització crònica de benestar acumulada (seqüeles). */
@@ -20,6 +23,7 @@ export function StatBar({
 }) {
   const { t } = useT()
   const value = Math.round(benestar)
+  const salutVal = Math.round(salut)
   const vinclesPct = Math.round(vincles * 100)
   const academicPct = Math.round(academic * 100)
   return (
@@ -41,6 +45,21 @@ export function StatBar({
           style={{ width: `${value}%` }}
         />
       </div>
+
+      <div className="mt-3 mb-2 flex items-baseline justify-between">
+        <span className="text-sm font-medium text-slate-300">❤️ {t('stat.salut')}</span>
+        <span className="text-sm text-slate-400">{salutVal}/100</span>
+      </div>
+      <div
+        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
+        title={t('stat.salut.tip')}
+      >
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${benestarColor(salutVal)}`}
+          style={{ width: `${salutVal}%` }}
+        />
+      </div>
+
       {(vinclesPct > 0 || sequela > 0 || academicPct > 0 || fills > 0) && (
         <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-2.5">
           {fills > 0 && (

@@ -106,6 +106,12 @@ export interface Habitatge {
 export interface Stats {
   /** Benestar global 0..100 (condensa felicitat / angoixa / tranquil·litat). */
   benestar: number
+  /**
+   * Salut global 0..100. Es degrada amb l'edat, amb el benestar baix (estrès, ansietat) i
+   * amb els esdeveniments de salut (malalties, tractaments no pagats…). Quan arriba a 0, la
+   * persona mor (substitueix la mort per benestar 0). Comença a 100 (sa de naixement).
+   */
+  salut: number
 }
 
 export interface Patrimoni {
@@ -199,6 +205,11 @@ export interface EventEffect {
   despesaGreu?: number
   /** Marca que aquest efecte és una pujada de sou demanada (cooldown anual). */
   marcaAugmentSou?: boolean
+  /**
+   * Cop directe a la stat de salut (`Stats.salut`): malalties, estrès, ansietat, accidents.
+   * Negatiu = empitjora la salut (acosta a la mort). Es clampa a 0..100 com el benestar.
+   */
+  salutDelta?: number
   /**
    * Penalització CRÒNICA i duradora de benestar (incapacitat, seqüela permanent):
    * s'acumula a `GameState.salutCronica` i rebaixa la referència de benestar adult de
@@ -362,11 +373,11 @@ export interface GameState {
   historial: LogEntry[]
   acabat: boolean
   /**
-   * La partida ha acabat per ESPIRAL de destrucció: el benestar ha arribat a 0 (la persona
-   * entra en una espiral de la qual no se'n surt). A diferència del final per edat
-   * (jubilació), és una derrota: la precarietat acaba la partida abans d'hora. Absent = false.
+   * La partida ha acabat per MORT: la `salut` ha arribat a 0 (per edat, malalties, estrès o
+   * tractaments no pagats acumulats). Pot passar a qualsevol edat; a diferència del final per
+   * jubilació (67), és una vida truncada. Substitueix l'antiga "espiral" per benestar 0.
    */
-  espiral?: boolean
+  mort?: boolean
   /**
    * La partida ha acabat per JUBILACIÓ (s'ha arribat als 67): final "normal" amb el balanç
    * de jubilació (pensió pública + pla de pensions + rendes del patrimoni). Absent = false.

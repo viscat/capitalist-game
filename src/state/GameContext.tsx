@@ -27,7 +27,8 @@ import type {
 // v5 unifica tots els torns a 1 any, així que les partides velles (amb edats no
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
-const STORAGE_KEY = 'capitalist-game/save/v6'
+// v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
+const STORAGE_KEY = 'capitalist-game/save/v7'
 
 function loadSave(): GameState | null {
   try {

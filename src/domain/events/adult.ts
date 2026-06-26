@@ -367,17 +367,17 @@ export const CARRERA_EVENTS: GameEvent[] = [
     // amb el matalàs però igualment se'n ressent; el pobre, sense matalàs, hi suma el
     // descobert. Pes baix però escalat per l'exposició de classe.
     weight: (f) => 0.5 * EXPOSICIO_SALUT[f.classe],
-    effect: { despesaGreu: 6000, benestar: -24 },
+    effect: { despesaGreu: 6000, benestar: -24, salutDelta: -14 },
   },
   {
     id: 'esgotament',
     category: 'salut',
     titleKey: 'event.esgotament.title',
     descKey: 'event.esgotament.desc',
-    // Esgotament/salut mental per condicions de feina precàries i estrès crònic: només
-    // benestar, però molt més freqüent com més baixa és la classe.
+    // Esgotament/salut mental per condicions de feina precàries i estrès crònic: benestar i
+    // salut, molt més freqüent com més baixa és la classe.
     weight: (f) => 0.7 * EXPOSICIO_SALUT[f.classe],
-    effect: { benestar: -10 },
+    effect: { benestar: -10, salutDelta: -6 },
   },
   {
     id: 'incapacitat',
@@ -386,10 +386,10 @@ export const CARRERA_EVENTS: GameEvent[] = [
     descKey: 'event.incapacitat.desc',
     params: { cost: 9000 },
     // Molt rara, però et canvia la vida: despesa greu + cop fort + SEQÜELA permanent
-    // (penalització crònica de benestar que la deriva no recupera). És l'única via que pot
-    // enfonsar un ric fins a números clarament baixos: pura mala sort, res estructural.
+    // (penalització crònica de benestar) + gran cop de salut (acosta la mort). És una via
+    // que pot enfonsar un ric: pura mala sort, res estructural.
     weight: (f) => 0.18 * EXPOSICIO_SALUT[f.classe],
-    effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22 },
+    effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22, salutDelta: -25 },
   },
   // --- Vincles (P7): la via de benestar NO monetària (amistats, parella, comunitat) ---
   {
@@ -436,6 +436,39 @@ export const CARRERA_EVENTS: GameEvent[] = [
       },
     ],
   },
+  // --- Salut mental (estrès, ansietat): erosiona la salut; la teràpia ajuda però costa, i
+  // qui no la pot pagar (descobert) encara hi perd més salut (tractament no fet). ---
+  {
+    id: 'ansietat',
+    category: 'salut',
+    titleKey: 'event.ansietat.title',
+    descKey: 'event.ansietat.desc',
+    params: { cost: 1500 },
+    weight: (f) => 0.8 * EXPOSICIO_SALUT[f.classe],
+    choices: [
+      {
+        id: 'terapia',
+        labelKey: 'event.ansietat.choice.terapia',
+        // Vas a teràpia: despesa (matalàs familiar); si no la pots pagar, el descobert et
+        // resta més salut (tractament no fet). Si la pots pagar, te'n recuperes força.
+        effect: { despesaGreu: 1500, benestar: 2, salutDelta: -2 },
+      },
+      {
+        id: 'aguantar',
+        labelKey: 'event.ansietat.choice.aguantar',
+        effect: { benestar: -7, salutDelta: -9 },
+      },
+    ],
+  },
+  {
+    id: 'estres_cronic',
+    category: 'salut',
+    titleKey: 'event.estres_cronic.title',
+    descKey: 'event.estres_cronic.desc',
+    // Estrès crònic (jornades, conciliació, precarietat): desgast silenciós de la salut.
+    weight: (f) => 0.7 * EXPOSICIO_SALUT[f.classe],
+    effect: { benestar: -4, salutDelta: -6 },
+  },
 ]
 
 /**
@@ -451,7 +484,7 @@ export const SALUT_EDAT_EVENTS: GameEvent[] = [
     titleKey: 'event.xacra_edat.title',
     descKey: 'event.xacra_edat.desc',
     weight: (f) => 0.8 * EXPOSICIO_SALUT[f.classe],
-    effect: { benestar: -6, salutCronicaDelta: 4 },
+    effect: { benestar: -6, salutCronicaDelta: 4, salutDelta: -8 },
   },
   {
     id: 'operacio',
@@ -460,7 +493,7 @@ export const SALUT_EDAT_EVENTS: GameEvent[] = [
     descKey: 'event.operacio.desc',
     params: { cost: 5000 },
     weight: (f) => 0.6 * EXPOSICIO_SALUT[f.classe],
-    effect: { despesaGreu: 5000, benestar: -12, salutCronicaDelta: 6 },
+    effect: { despesaGreu: 5000, benestar: -12, salutCronicaDelta: 6, salutDelta: -12 },
   },
   {
     id: 'cura_pares_grans',

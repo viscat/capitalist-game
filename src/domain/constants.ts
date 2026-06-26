@@ -4,6 +4,12 @@ import type { NivellVida } from './types'
 export const BENESTAR_MIN = 0
 export const BENESTAR_MAX = 100
 
+// --- Salut (0..100): pool de mortalitat. Quan arriba a 0, la persona mor. ---
+export const SALUT_MIN = 0
+export const SALUT_MAX = 100
+/** Salut inicial al naixement (sa). */
+export const SALUT_INICIAL = 100
+
 export const MESOS_PER_ANY = 12
 
 /** Pressupost de temps anual (setmanes) per a les accions de les fases joves. */
@@ -24,7 +30,7 @@ export const EDAT_FI_UNIVERSITAT = 22
 /**
  * Edat (en anys) de la JUBILACIÓ: fi de la vida laboral i de la partida. La carrera
  * adulta s'estén fins aquí; als 67 es fa el balanç de jubilació (pensió pública + pla de
- * pensions + rendes del patrimoni). L'espiral (benestar 0) pot acabar la partida abans.
+ * pensions + rendes del patrimoni). La mort (salut 0) pot acabar la partida abans.
  */
 export const EDAT_JUBILACIO = 67
 
