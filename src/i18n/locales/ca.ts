@@ -529,8 +529,10 @@ export const ca: Record<string, string> = {
   'habitatge.preu': 'Preu',
   'habitatge.entrada': 'Entrada (20%)',
   'habitatge.ajutFamiliar': 'Ajut familiar per a l’entrada',
-  'habitatge.termini': 'Termini de la hipoteca',
+  'habitatge.ajutHipoteca': 'Ajut familiar amb la quota',
+  'habitatge.termini': 'Com ho pagues',
   'habitatge.anys': '{anys} anys',
+  'habitatge.comptat': 'Al comptat',
   'habitatge.noEntrada': 'No tens prou diners per a l’entrada',
   'habitatge.bancRebutja': 'El banc no t’aprova la hipoteca amb el teu sou actual',
   'habitatge.confirmaCompra': 'Comprar i firmar la hipoteca',
@@ -552,8 +554,11 @@ export const ca: Record<string, string> = {
   'action.ajudaCasa': 'Ja dediques {setmanes} setm. a ajudar a casa: et queda menys temps lliure.',
   'action.viu': 'Viu aquest any →',
   'action.viuLliure': 'Un any tranquil →',
+  'action.estudiar.label': 'Estudiar de valent',
+  'action.estudiar.desc':
+    'Dedicar-te als estudis. Costa una mica (menys temps lliure), però apuja el nivell acadèmic.',
   'action.sortir_amics.label': 'Sortir amb els amics',
-  'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé.',
+  'action.sortir_amics.desc': 'Quedar, fer un beure, anar al cine... Costa, però va bé. Teixeix vincles.',
   'action.hobby.label': 'Una afició',
   'action.hobby.desc': 'Música, esport, dibuix... Hi dediques temps i et fa feliç.',
   'action.ajudar_casa.label': 'Ajudar a casa',
@@ -1077,6 +1082,9 @@ export const ca: Record<string, string> = {
   'event.herencia_pares.title': 'Mor un dels teus pares',
   'event.herencia_pares.desc':
     'Perds un progenitor. Entre el dol, en reps l’herència: el que et deixen depèn del que la família va poder acumular.',
+  'event.herencia_dinastia.title': 'Mor el teu progenitor',
+  'event.herencia_dinastia.desc':
+    'Mor qui et va precedir al llinatge. Reps l’herència que et va deixar (cases, fons, estalvis...): el que va poder acumular en vida, ara és teu.',
   // Herència en vida
   'event.herencia_en_vida.title': 'Ajudar els fills ara',
   'event.herencia_en_vida.desc':

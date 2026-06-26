@@ -7,7 +7,7 @@ import {
   rendaPatrimoniAnual,
   veredicteJubilacio,
 } from '../domain/stats'
-import { costHabitatgeAnual } from '../domain/housing'
+import { costHabitatgeAnualNet } from '../domain/housing'
 import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
@@ -55,7 +55,7 @@ export function GameOver() {
   const rendaAnual = rendaJubilacioAnual(state)
   const necessitatsAnual =
     costVidaPropi(state.familia, state.habitatge, state.nivellVida) +
-    costHabitatgeAnual(state.habitatge)
+    costHabitatgeAnualNet(state.habitatge, state.familia)
   const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
 
   const salut = Math.round(state.person.stats.salut)

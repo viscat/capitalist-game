@@ -268,12 +268,13 @@ describe('dinastia i herència', () => {
     expect(classePerPatrimoni(2_000_000)).toBe('rica')
   })
 
-  it('familiaHereva: més herència ⇒ classe més alta i el patrimoni real heretat', () => {
+  it('familiaHereva: més herència ⇒ classe més alta (llar típica de la classe)', () => {
     const pobre = familiaHereva(0)
     const ric = familiaHereva(1_500_000)
     expect(pobre.classe).toBe('pobra')
     expect(ric.classe).toBe('rica')
-    expect(ric.patrimoni).toBe(1_500_000)
+    // El patrimoni de la llar és el típic de la classe; l'herència concreta arriba després.
+    expect(ric.patrimoni).toBeGreaterThan(0)
   })
 
   it('herència en vida: transfereix patrimoni al pot de llegat i el treu del teu', () => {
@@ -295,6 +296,37 @@ describe('dinastia i herència', () => {
     const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.estalvi
     const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.estalvi
     expect(liquidAbans - liquidDespres).toBe(30_000)
+  })
+
+  it('la dinastia difereix l’herència a l’edat de mort del progenitor', () => {
+    let s = newGameAtCarrera('mitjana', 3)
+    s = {
+      ...s,
+      fills: 1,
+      fillsNaixement: [30 * MESOS_PER_ANY],
+      person: {
+        ...s.person,
+        edatMesos: 60 * MESOS_PER_ANY,
+        stats: { benestar: 60, salut: 0 },
+        patrimoni: { ...s.person.patrimoni, estalvi: 300_000 },
+      },
+    }
+    const gen2 = continuaGeneracio(s)
+    // El progenitor el va tenir als 30 i va morir als 60 → herència als 30 (no al néixer).
+    expect(gen2.herenciaPendent).toEqual({ import: expect.any(Number), edat: 30 })
+    expect(gen2.person.patrimoni.estalvi).toBe(0) // no hereta al néixer
+
+    // En arribar a l'edat de l'herència, es dispara l'esdeveniment previst i la rep.
+    const previ = {
+      ...gen2,
+      lifeStage: 'carrera' as const,
+      salari: 0,
+      person: { ...gen2.person, edatMesos: 29 * MESOS_PER_ANY, stats: { benestar: 60, salut: 90 } },
+    }
+    const after = advanceTurn(previ)
+    expect(after.historial.at(-1)!.eventId).toBe('herencia_dinastia')
+    expect(after.herenciaPendent).toBeUndefined()
+    expect(after.person.patrimoni.estalvi).toBeGreaterThan(0)
   })
 
   it('continuaGeneracio comença una vida nova amb la família heretada', () => {

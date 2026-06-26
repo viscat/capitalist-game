@@ -634,6 +634,29 @@ export const HERENCIA_PARES_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * Herència de DINASTIA: quan continues amb un descendent, el progenitor (la generació
+ * anterior) mor a una edat concreta i sabuda; en aquell moment el fill rep l'herència que
+ * havies deixat (`GameState.herenciaPendent`). Esdeveniment previst (no aleatori): el motor
+ * el dispara a l'edat exacta (vegeu `advanceTurn`).
+ */
+export const HERENCIA_DINASTIA_EVENTS: GameEvent[] = [
+  {
+    id: 'herencia_dinastia',
+    category: 'familia',
+    titleKey: 'event.herencia_dinastia.title',
+    descKey: 'event.herencia_dinastia.desc',
+    weight: () => 1,
+    resolve: (s) => ({
+      estalvi: s.herenciaPendent?.import ?? 0,
+      benestar: -10,
+      vinclesDelta: -0.05,
+      salutDelta: -2,
+      marcaHerenciaPares: true,
+    }),
+  },
+]
+
+/**
  * A l'atur durant la carrera (sou 0), mentre es busca feina. Aquí NO s'hi troba
  * feina (això es fa al panell de cerca, segons l'ocupabilitat): són esdeveniments de
  * color de la temporada d'atur (un ajut econòmic, el desànim de la cerca llarga).

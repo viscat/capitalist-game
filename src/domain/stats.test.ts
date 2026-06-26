@@ -11,6 +11,7 @@ import {
   benestarNivellVida,
   clampBenestar,
   cobreixVidaFamiliar,
+  contribucioLlar,
   costVidaAnual,
   costVidaPropi,
   creixementInversions,
@@ -212,6 +213,17 @@ describe('descendència', () => {
     const s = stateFills({ person: ric, fills: 2, fillsNaixement: [35 * 12, 34 * 12] })
     expect(llegatPerFill(s)).toBeGreaterThan(0)
     expect(llegatPerFill(stateFills({ fills: 0 }))).toBe(0)
+  })
+})
+
+describe('contribucioLlar', () => {
+  it('mai supera el 100% del sou net', () => {
+    for (const cls of ['pobra', 'treballadora', 'mitjana'] as const) {
+      const net = 1100
+      expect(contribucioLlar(FAMILY_PRESETS[cls].familia, net)).toBeLessThanOrEqual(net * 12)
+    }
+    // Sense ingrés (a l'atur a casa), no s'aporta res.
+    expect(contribucioLlar(FAMILY_PRESETS.pobra.familia, 0)).toBe(0)
   })
 })
 

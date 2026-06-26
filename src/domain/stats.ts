@@ -787,7 +787,11 @@ export function aportacioFamiliarCarrera(familia: Familia, netMensual: number): 
  */
 export function contribucioLlar(familia: Familia, netMensual: number): number {
   const manutencio = costVidaPropi(familia, { tipus: 'amb_pares' }, 'mig')
-  return Math.round(manutencio + aportacioFamiliarCarrera(familia, netMensual))
+  const total = manutencio + aportacioFamiliarCarrera(familia, netMensual)
+  // MAI per sobre del 100% del sou net: vius a casa dels pares, no pots aportar més del que
+  // ingresses (el que falti per cobrir el cost real ja ho absorbeix la família).
+  const netAnual = Math.max(0, netMensual) * MESOS_PER_ANY
+  return Math.round(Math.min(total, netAnual))
 }
 
 /**

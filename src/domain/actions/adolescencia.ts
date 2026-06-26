@@ -9,11 +9,22 @@ import type { GameAction } from '../types'
 // No triar res = temps lliure (l'any passa sense efectes actius).
 export const ADOLESCENCE_ACTIONS: GameAction[] = [
   {
+    id: 'estudiar',
+    category: 'escola',
+    labelKey: 'action.estudiar.label',
+    descKey: 'action.estudiar.desc',
+    // Dedicar-se als estudis: una mica menys de benestar (esforç), però apuja el nivell
+    // acadèmic. Com més s'hi dedica (multiselecció), més puja. Val per a l'ESO i el batxillerat.
+    effect: { benestar: -2, academicDelta: 0.06 },
+    setmanes: 12,
+  },
+  {
     id: 'sortir_amics',
     category: 'escola',
     labelKey: 'action.sortir_amics.label',
     descKey: 'action.sortir_amics.desc',
-    effect: { efectiu: -45, benestar: 6 },
+    // Sortir amb els amics teixeix vincles (font de benestar no monetària).
+    effect: { efectiu: -45, benestar: 6, vinclesDelta: 0.05 },
     setmanes: 10,
   },
   {
@@ -21,7 +32,7 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     category: 'escola',
     labelKey: 'action.hobby.label',
     descKey: 'action.hobby.desc',
-    effect: { efectiu: -60, benestar: 5 },
+    effect: { efectiu: -60, benestar: 5, vinclesDelta: 0.03 },
     setmanes: 12,
   },
   {
