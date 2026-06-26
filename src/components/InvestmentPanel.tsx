@@ -1,6 +1,7 @@
 import {
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
+  FACTOR_DESPESA_PARELLA,
   INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
@@ -64,13 +65,19 @@ export function InvestmentPanel() {
   const net = state.jubilat
     ? Math.round(income / MESOS_PER_ANY)
     : netMensual(state.salari ?? 0)
-  const costVida = ambPares
-    ? contribucioLlar(state.familia, net)
-    : costVidaPropi(state.familia, state.habitatge, nivell)
+  // Viure en parella reparteix les despeses estructurals (cost de vida + habitatge).
+  const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
+  const costVida = Math.round(
+    (ambPares
+      ? contribucioLlar(state.familia, net)
+      : costVidaPropi(state.familia, state.habitatge, nivell)) * factorParella,
+  )
   const cobertFamilia = ambPares
     ? 0
     : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
-  const costHab = ambPares ? 0 : costHabitatgeAnualNet(state.habitatge, state.familia)
+  const costHab = ambPares
+    ? 0
+    : Math.round(costHabitatgeAnualNet(state.habitatge, state.familia) * factorParella)
   // Criança dels fills dependents (cost net, ja descomptada la prestació pública): és una
   // despesa obligatòria de l'any, com l'habitatge.
   const costFills = costFillsAnual(state)

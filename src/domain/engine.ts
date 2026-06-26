@@ -11,6 +11,7 @@ import {
   EDAT_JUBILACIO,
   EDAT_RECTA_60,
   EDAT_REVISIO_50,
+  FACTOR_DESPESA_PARELLA,
   MAX_FILLS,
   INTERES_DEUTE,
   MESOS_PER_ANY,
@@ -20,6 +21,7 @@ import {
   SALUT_INICIAL,
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnualNet } from './housing'
+import { nomPerSeed } from './identitat'
 import { generaOfertes } from './jobs'
 import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
 import { UNIVERSITY_ACTIONS } from './actions/universitat'
@@ -30,9 +32,11 @@ import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
   DESCENDENCIA_EVENTS,
+  FILLS_EVENTS,
   HERENCIA_DINASTIA_EVENTS,
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
+  PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from './events/adult'
@@ -64,6 +68,7 @@ import {
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
+  fillsDependents,
   defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
@@ -347,15 +352,20 @@ function eventPool(state: GameState): GameEvent[] {
       // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
       // s'afegeix al pool: el cos passa factura amb els anys.
       if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
-      // Dins de la finestra fèrtil i sense haver arribat al màxim de fills, pot aparèixer
-      // l'oportunitat de tenir descendència.
+      // Sense parella encara: pot aparèixer l'oportunitat d'establir-ne una (requisit per als fills).
+      if (!state.parella) pool.push(...PARELLA_EVENTS)
+      // Dins de la finestra fèrtil, AMB PARELLA i sense haver arribat al màxim de fills, pot
+      // aparèixer l'oportunitat de tenir descendència.
       if (
+        state.parella &&
         edat >= EDAT_FERTIL_MIN &&
         edat <= EDAT_FERTIL_MAX &&
         (state.fills ?? 0) < MAX_FILLS
       ) {
         pool.push(...DESCENDENCIA_EVENTS)
       }
+      // Amb fills dependents a càrrec: alegries i ensurts de la criança (benestar amunt i avall).
+      if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       // Amb fills i un coixí, pot sortir l'opció d'herència en vida.
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
       // Mentre els pares viuen: ajut econòmic puntual (segons classe). Quan envelleixes
@@ -370,6 +380,8 @@ function eventPool(state: GameState): GameEvent[] {
     case 'jubilacio': {
       // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
       const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
+      if (!state.parella) pool.push(...PARELLA_EVENTS)
+      if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
       // Si encara no han mort els pares (i no és una herència de dinastia prevista), poden morir.
       if (!state.herenciaParesRebuda && !state.herenciaPendent) {
@@ -565,9 +577,17 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // sol: cost de vida sencer (segons el nivell que tries) + habitatge, i s'atura l'ajuda.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
     const net = stage === 'jubilacio' ? income / MESOS_PER_ANY : netMensual(state.salari ?? 0)
-    const costVida = ambPares
-      ? contribucioLlar(state.familia, net)
-      : costVidaPropi(state.familia, habitatge, state.nivellVida)
+    // Viure en parella reparteix les despeses estructurals (lloguer/hipoteca + cost de vida)
+    // entre dues persones: l'altra n'assumeix una part, així que la teva minva (sigui quin
+    // sigui l'habitatge: casa els pares, habitació, lloguer o propietat).
+    const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
+    const costVida =
+      (ambPares
+        ? contribucioLlar(state.familia, net)
+        : costVidaPropi(state.familia, habitatge, state.nivellVida)) * factorParella
+    const costHab = ambPares
+      ? 0
+      : Math.round(costHabitatgeAnualNet(habitatge, state.familia) * factorParella)
     const indexReturn = rendimentIndexAnual(draw.value)
     // Valors invertits ABANS d'aplicar l'any (per derivar les aportacions reals d'enguany).
     const prevIndex = person.patrimoni.fonsIndexat
@@ -578,7 +598,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       income,
       indexReturn,
       costVida,
-      ambPares ? 0 : costHabitatgeAnualNet(habitatge, state.familia),
+      costHab,
       state.familia,
       0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
       ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
@@ -886,15 +906,28 @@ function resolveEvent(
       ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + effect.academicDelta))
       : state.nivellAcademic
 
+  // Parella estable: requisit per tenir fills. Se li assigna un nom DETERMINISTA (a partir
+  // del RNG) perquè la partida sigui reproduïble. Només s'estableix si encara no en tens.
+  const parella =
+    effect.marcaParella && !state.parella
+      ? { nom: nomPerSeed(state.rngState) }
+      : state.parella
+
   // Descendència: si l'efecte porta un fill, l'incrementem i registrem l'edat (mesos) del
-  // progenitor al naixement, per calcular els anys de criança (cost recurrent).
+  // progenitor al naixement (per calcular els anys de criança) i un nom per a cada fill.
   let fills = state.fills
   let fillsNaixement = state.fillsNaixement
+  let fillsNoms = state.fillsNoms
   if (effect.fillsDelta && effect.fillsDelta > 0) {
     fills = (state.fills ?? 0) + effect.fillsDelta
     const naixements = [...(state.fillsNaixement ?? [])]
-    for (let i = 0; i < effect.fillsDelta; i++) naixements.push(person.edatMesos)
+    const noms = [...(state.fillsNoms ?? [])]
+    for (let i = 0; i < effect.fillsDelta; i++) {
+      naixements.push(person.edatMesos)
+      noms.push(nomPerSeed(state.rngState + naixements.length))
+    }
     fillsNaixement = naixements
+    fillsNoms = noms
   }
 
   // Herència en vida: transfereix patrimoni líquid (efectiu → estalvi → fons indexat) al pot
@@ -938,8 +971,10 @@ function resolveEvent(
     nivellAcademic,
     herenciaParesRebuda,
     herenciaPendent,
+    parella,
     fills,
     fillsNaixement,
+    fillsNoms,
     llegatEnVida,
     pendingEvent: undefined,
     pendingMilestone,

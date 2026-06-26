@@ -603,10 +603,22 @@ les classes baixes sovint **ni arribin a jubilar-se**:
 
 ### 8.9 Descendència: la família com a privilegi de classe
 
-A la vida adulta, dins d'una **finestra fèrtil** (26–42 anys) i fins a un màxim de fills, pot
-aparèixer la decisió de **tenir un fill** (`DESCENDENCIA_EVENTS`, gated a `eventPool`). El fill
-és una font de **benestar i vincles** (P7, no monetària) però amb un **cost de criança recurrent**
-mentre és dependent (`costFillsAnual`, ~22 anys):
+**Parella primer (requisit).** Per simplificar el cicle vital, tenir fills exigeix tenir
+**parella estable** abans. A la vida adulta pot aparèixer la decisió de formar parella
+(`PARELLA_EVENTS` → `coneixer_parella`, `effect.marcaParella`); el motor li assigna un **nom
+determinista** (`nomPerSeed`, reproduïble). Tenir parella fa dues coses: (1) **desbloqueja** la
+descendència (gating a `eventPool`: `DESCENDENCIA_EVENTS` només si `state.parella`) i (2) **reparteix
+les despeses estructurals** de la llar —cost de vida + lloguer/hipoteca— entre els dos
+(`FACTOR_DESPESA_PARELLA`, ~0,62: compartir abarateix, però part del consum és personal). Val per a
+qualsevol habitatge (casa els pares, habitació, lloguer o propietat).
+
+A la vida adulta, dins d'una **finestra fèrtil** (26–42 anys), **amb parella** i fins a un màxim de
+fills, pot aparèixer la decisió de **tenir un fill** (`DESCENDENCIA_EVENTS`, gated a `eventPool`). El
+fill és una font de **benestar i vincles** (P7, no monetària) però amb un **cost de criança recurrent**
+mentre és dependent (`costFillsAnual`, ~22 anys). Cada fill té **nom** (`fillsNoms`) i se'n pot veure
+l'**edat** en tot moment (derivada de `fillsNaixement`). Mentre hi ha fills dependents, el pool inclou
+`FILLS_EVENTS`: alegries de la criança (benestar/vincles amunt) i ensurts (benestar avall quan el fill
+ho passa malament):
 
 - **Cost net** = cost brut (`COST_FILL_ANUAL`, escalat pel nivell de vida) − **prestació pública
   per fill** (`ajutFillsAnual`, *means-tested*: plena per a renda baixa, ~0 per als acomodats).

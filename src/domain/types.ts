@@ -240,6 +240,8 @@ export interface EventEffect {
   llegatEnVidaDelta?: number
   /** Marca que els pares han mort i ja s'ha rebut la seva herència (no torna a passar). */
   marcaHerenciaPares?: boolean
+  /** Marca que s'estableix una parella estable (el motor li assigna un nom). */
+  marcaParella?: boolean
   /**
    * Nombre de fills que afegeix aquest efecte (descendència): normalment 1. El motor
    * incrementa `GameState.fills` i registra l'edat (en mesos) del progenitor al naixement
@@ -420,8 +422,15 @@ export interface GameState {
   accionsSeleccio?: Record<string, number>
   /** Els pares ja han mort i s'ha rebut l'herència (perquè no es repeteixi). Absent = false. */
   herenciaParesRebuda?: boolean
+  /**
+   * Parella estable (amb nom). Cal tenir-ne per poder tenir fills; quan es viu en parella, el
+   * cost de vida i l'habitatge es comparteixen. Absent = sense parella.
+   */
+  parella?: { nom: string }
   /** Nombre de fills tinguts (descendència). Absent = 0. */
   fills?: number
+  /** Nom de cada fill (paral·lel a `fillsNaixement`). */
+  fillsNoms?: string[]
   /**
    * Edat (en mesos) del progenitor al naixement de cada fill. Permet saber quants fills són
    * encara dependents (criança) i, per tant, el cost recurrent anual. Una entrada per fill.

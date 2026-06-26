@@ -59,6 +59,12 @@ export const EDAT_FERTIL_MIN = 26
 export const EDAT_FERTIL_MAX = 42
 /** Nombre màxim de fills. */
 export const MAX_FILLS = 3
+/**
+ * Fracció de les despeses estructurals (lloguer/hipoteca + cost de vida) que assumeixes quan
+ * vius en parella: l'altra persona cobreix la resta. < 1 perquè compartir abarateix (economies
+ * d'escala de la llar), però no a la meitat exacta (part del consum segueix sent personal).
+ */
+export const FACTOR_DESPESA_PARELLA = 0.62
 /** Anys que un fill és dependent (genera cost de criança al progenitor). */
 export const DEPENDENCIA_FILLS_ANYS = 22
 /**

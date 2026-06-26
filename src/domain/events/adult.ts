@@ -391,15 +391,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
     weight: (f) => 0.18 * EXPOSICIO_SALUT[f.classe],
     effect: { despesaGreu: 9000, benestar: -18, salutCronicaDelta: 22, salutDelta: -25 },
   },
-  // --- Vincles (P7): la via de benestar NO monetària (amistats, parella, comunitat) ---
-  {
-    id: 'parella_estable',
-    category: 'familia',
-    titleKey: 'event.parella_estable.title',
-    descKey: 'event.parella_estable.desc',
-    weight: () => 1,
-    effect: { benestar: 6, vinclesDelta: 0.18 },
-  },
+  // --- Vincles (P7): la via de benestar NO monetària (amistats, comunitat) ---
   {
     id: 'arrelar_comunitat',
     category: 'familia',
@@ -537,7 +529,7 @@ export const DESCENDENCIA_EVENTS: GameEvent[] = [
         id: 'si',
         labelKey: 'event.tenir_fill.choice.si',
         // Alegria i vincle forts; el cost econòmic arriba després, any rere any.
-        effect: { benestar: 6, vinclesDelta: 0.15, fillsDelta: 1 },
+        effect: { benestar: 9, vinclesDelta: 0.2, fillsDelta: 1 },
       },
       {
         id: 'no',
@@ -545,6 +537,75 @@ export const DESCENDENCIA_EVENTS: GameEvent[] = [
         effect: {},
       },
     ],
+  },
+]
+
+/**
+ * PARELLA: conèixer algú i decidir formar una parella estable. És el requisit previ per tenir
+ * fills i, a més, fa que les despeses estructurals de la llar es comparteixin. Només apareix
+ * mentre no en tens (gating a `eventPool`). Pes alt perquè sigui ben visible com a opció.
+ */
+export const PARELLA_EVENTS: GameEvent[] = [
+  {
+    id: 'coneixer_parella',
+    category: 'familia',
+    titleKey: 'event.coneixer_parella.title',
+    descKey: 'event.coneixer_parella.desc',
+    weight: () => 5,
+    choices: [
+      {
+        id: 'si',
+        labelKey: 'event.coneixer_parella.choice.si',
+        // Establir parella: benestar i vincle forts, i marca la parella (despeses compartides).
+        effect: { benestar: 7, vinclesDelta: 0.18, marcaParella: true },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.coneixer_parella.choice.no',
+        effect: { benestar: 1 },
+      },
+    ],
+  },
+]
+
+/**
+ * FILLS: la vida amb criatures dependents. Tenir un fill no és només despesa: la criança porta
+ * alegries (fites, complicitat → benestar i vincles amunt) però també ensurts (quan el fill ho
+ * passa malament → benestar avall). Gating per fills dependents a `eventPool`.
+ */
+export const FILLS_EVENTS: GameEvent[] = [
+  {
+    id: 'fill_fita_felic',
+    category: 'familia',
+    titleKey: 'event.fill_fita_felic.title',
+    descKey: 'event.fill_fita_felic.desc',
+    weight: () => 2.4,
+    effect: { benestar: 8, vinclesDelta: 0.1 },
+  },
+  {
+    id: 'fill_complicitat',
+    category: 'familia',
+    titleKey: 'event.fill_complicitat.title',
+    descKey: 'event.fill_complicitat.desc',
+    weight: () => 2,
+    effect: { benestar: 6, vinclesDelta: 0.08 },
+  },
+  {
+    id: 'fill_dificultats',
+    category: 'familia',
+    titleKey: 'event.fill_dificultats.title',
+    descKey: 'event.fill_dificultats.desc',
+    weight: () => 1.6,
+    effect: { benestar: -7, vinclesDelta: 0.02 },
+  },
+  {
+    id: 'fill_malaltia',
+    category: 'salut',
+    titleKey: 'event.fill_malaltia.title',
+    descKey: 'event.fill_malaltia.desc',
+    weight: () => 1.2,
+    // L'ensurt fa mal (benestar), però cuidar-lo estreny el vincle.
+    effect: { benestar: -9, vinclesDelta: 0.06, despesaGreu: 1200 },
   },
 ]
 
