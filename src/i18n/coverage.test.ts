@@ -21,6 +21,7 @@ import { CHILDHOOD_EVENTS } from '../domain/events/pool'
 import { PROPIETATS } from '../domain/housing'
 import { FAMILY_PRESETS } from '../domain/family/presets'
 import { MILESTONES } from '../domain/milestones'
+import { TUTORIAL_ORDER } from '../state/tutorial'
 import type {
   EventCategory,
   FamilyClass,
@@ -162,6 +163,10 @@ describe('cobertura i18n (català)', () => {
         (h) => `tipusHabitatge.${h}`,
       ),
       ...PROPIETATS.map((p) => `propietat.${p.id}`),
+      // Mode tutorial: cada coachmark té títol i cos.
+      ...TUTORIAL_ORDER.flatMap((id) => [`tutorial.${id}.title`, `tutorial.${id}.body`]),
+      'coach.next',
+      'coach.skip',
     ]
     expect(keys.filter((k) => !has(k))).toEqual([])
   })

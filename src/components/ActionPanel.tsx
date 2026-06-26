@@ -4,6 +4,7 @@ import { ajudaCasaSetmanes, pagaMensual, pagaPerAjudaCasa } from '../domain/stat
 import type { GameAction } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { EffectList } from './EffectList'
 
@@ -17,6 +18,7 @@ export function ActionPanel() {
   const { t } = useT()
   const { state, actions, nextTurn } = useGame()
   const [counts, setCounts] = useState<Record<string, number>>({})
+  const coachRef = useCoachmark<HTMLDivElement>('accions')
   if (!state) return null
 
   const dinersInicials =
@@ -78,7 +80,7 @@ export function ActionPanel() {
   const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
       <h3 className="text-sm font-semibold text-slate-300">{t('action.title')}</h3>
       <p className="mb-3 text-xs text-slate-500">{t('action.nota')}</p>
 
@@ -168,12 +170,11 @@ export function ActionPanel() {
         })}
       </div>
 
-      <button
-        onClick={viu}
-        className="mt-4 w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
-      >
-        {totalTriades === 0 ? t('action.viuLliure') : t('action.viu')}
-      </button>
+      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-4 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
+        <button onClick={viu} className="btn-game btn-game--money">
+          {totalTriades === 0 ? t('action.viuLliure') : t('action.viu')}
+        </button>
+      </div>
     </div>
   )
 }

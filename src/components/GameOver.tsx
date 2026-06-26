@@ -12,6 +12,7 @@ import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
 import { useGame } from '../state/GameContext'
+import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { benestarLevelKey, formatEuros } from '../lib/format'
 
@@ -27,6 +28,7 @@ function Line({ label, value }: { label: string; value: string }) {
 export function GameOver() {
   const { t } = useT()
   const { state, reset, continuarGeneracio } = useGame()
+  const dinastiaRef = useCoachmark<HTMLDivElement>('dinastia')
   if (!state) return null
 
   const generacio = state.generacio ?? 1
@@ -196,28 +198,25 @@ export function GameOver() {
 
         {/* Herència i dinastia: si deixes descendència, pots continuar amb la generació següent. */}
         {fills > 0 && (
-          <div className="mt-4 rounded-xl bg-indigo-950/40 p-5 text-left ring-1 ring-indigo-800/50">
-            <h2 className="mb-2 text-sm font-semibold text-indigo-200">
+          <div
+            ref={dinastiaRef}
+            className="mt-4 rounded-2xl bg-accent/10 p-5 text-left ring-1 ring-accent/30"
+          >
+            <h2 className="mb-2 text-sm font-bold text-accent2">
               👨‍👩‍👧 {t('gameover.dinastia.titol')}
             </h2>
-            <p className="text-sm text-slate-300">
-              {t('gameover.dinastia.herencia', {
-                fills,
-                llegat: formatEuros(llegat),
-              })}
+            <p className="text-sm text-inksoft">
+              {t('gameover.dinastia.herencia', { fills, llegat: formatEuros(llegat) })}
             </p>
             <button
               onClick={continuarGeneracio}
-              className="mt-3 w-full rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500"
+              className="btn-game btn-game--gold animate-pulse-glow mt-3"
             >
               {t('gameover.dinastia.continuar', { generacio: generacio + 1 })}
             </button>
           </div>
         )}
-        <button
-          onClick={reset}
-          className="mt-4 rounded-xl bg-slate-700 px-6 py-3 font-semibold text-white transition hover:bg-slate-600"
-        >
+        <button onClick={reset} className="btn-game btn-game--ghost mt-4">
           {t('gameover.restart')}
         </button>
       </div>

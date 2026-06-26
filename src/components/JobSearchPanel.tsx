@@ -4,6 +4,7 @@ import { factorSalariPersonal, netMensual, prestacioAturAnual } from '../domain/
 import type { QualitatOferta } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 
 /** Color de l'etiqueta segons la qualitat de l'oferta. */
@@ -23,6 +24,7 @@ function tramOcupabilitat(valor: number): 'baixa' | 'mitjana' | 'alta' {
 export function JobSearchPanel() {
   const { t } = useT()
   const { state, acceptarOferta, nextTurn } = useGame()
+  const coachRef = useCoachmark<HTMLDivElement>('cerca_feina')
   if (!state) return null
 
   const ofertes = state.ofertesFeina ?? []
@@ -36,7 +38,7 @@ export function JobSearchPanel() {
   const bretxa = factorSalariPersonal(state.identitat)
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
       <h3 className="text-sm font-semibold text-slate-300">{t('jobsearch.title')}</h3>
       <p className="mt-1 text-xs text-slate-500">
         {t('jobsearch.ocupabilitat', {

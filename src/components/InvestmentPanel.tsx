@@ -28,6 +28,7 @@ import { costHabitatgeAnual } from '../domain/housing'
 import type { NivellVida, PlaInversio } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { AmountStepper } from './AmountStepper'
 
@@ -49,6 +50,8 @@ const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 export function InvestmentPanel() {
   const { t } = useT()
   const { state, setPla, setNivellVida, setVidaSenzilla, nextTurn } = useGame()
+  const coachRef = useCoachmark<HTMLDivElement>('pla_inversio')
+  const deuteRef = useCoachmark<HTMLDivElement>('deute')
   if (!state) return null
 
   // El model treballa en anual; el panell ho presenta tot en mensual. Jubilat → pensió.
@@ -114,7 +117,7 @@ export function InvestmentPanel() {
   const margeAnual = Math.max(0, assignable - total)
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-sm font-semibold text-slate-300">{t('pla.title')}</h3>
         <span className="text-sm text-slate-400">
@@ -123,7 +126,7 @@ export function InvestmentPanel() {
       </div>
 
       {deuteActual > 0 && (
-        <div className="mb-3 rounded-lg border border-red-500/40 bg-red-950/30 p-3">
+        <div ref={deuteRef} className="mb-3 rounded-lg border border-red-500/40 bg-red-950/30 p-3">
           <div className="flex justify-between text-sm">
             <span className="font-semibold text-red-300">{t('pla.deute')}</span>
             <span className="font-mono font-bold text-red-400">
@@ -347,12 +350,11 @@ export function InvestmentPanel() {
       </div>
 
       <p className="mt-3 text-xs text-slate-500">{t('pla.nota')}</p>
-      <button
-        onClick={() => nextTurn()}
-        className="mt-2 w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
-      >
-        {t('pla.nextYear')}
-      </button>
+      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-3 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
+        <button onClick={() => nextTurn()} className="btn-game btn-game--money">
+          {t('pla.nextYear')}
+        </button>
+      </div>
     </div>
   )
 }

@@ -61,6 +61,66 @@ export const ca: Record<string, string> = {
   'game.ageZero': 'Nadó (0 anys)',
   'game.turn': 'Torn {torn}',
   'game.nextYear': 'Següent any →',
+  'game.detalls': 'Detalls (patrimoni i historial)',
+  'game.tancar': 'Tancar',
+  // Mode tutorial / coachmarks
+  'coach.next': 'Entès',
+  'coach.skip': 'Salta el tutorial',
+  'coach.reset': 'Reinicia el tutorial',
+  'tutorial.benestar.title': 'El benestar',
+  'tutorial.benestar.body':
+    'És com de bé estàs (0–100). No depèn només dels diners: el temps, la salut i els vincles hi pesen molt.',
+  'tutorial.salut.title': 'La salut',
+  'tutorial.salut.body':
+    'La teva reserva de vida (0–100). Baixa amb l’edat, l’estrès i les malalties. Si arriba a 0, la partida acaba.',
+  'tutorial.diners.title': 'El patrimoni net',
+  'tutorial.diners.body':
+    'Tot el que tens menys el que deus. Obre «Detalls» per veure’n el desglossament: efectiu, estalvis, inversions i deute.',
+  'tutorial.event_result.title': 'Què passa cada any',
+  'tutorial.event_result.body':
+    'Cada any la vida et passa coses. Aquí veus què ha passat i com t’ha afectat.',
+  'tutorial.event_choice.title': 'Tens decisions',
+  'tutorial.event_choice.body':
+    'De vegades hauràs de triar. Cada opció té conseqüències diferents en diners, benestar o salut.',
+  'tutorial.milestone.title': 'Una cruïlla',
+  'tutorial.milestone.body':
+    'Has arribat a un moment clau de la vida. La teva tria marca el camí dels propers anys.',
+  'tutorial.accions.title': 'Com passes l’any',
+  'tutorial.accions.body':
+    'Reparteix el teu temps i diners en activitats. Cada una afecta el benestar, els estudis o la cartera. Després, «Viu l’any».',
+  'tutorial.pressupost.title': 'El pressupost mensual',
+  'tutorial.pressupost.body':
+    'Decideix on van els teus diners cada mes. Pots gastar més del que ingresses, però tiraràs d’estalvis.',
+  'tutorial.pla_inversio.title': 'El pla d’inversió',
+  'tutorial.pla_inversio.body':
+    'El que estalvies i inverteixes compon any rere any. El fons indexat ret més però és volàtil; les pensions, estables però bloquejades.',
+  'tutorial.cerca_feina.title': 'Buscar feina',
+  'tutorial.cerca_feina.body':
+    'Entrar al món laboral no et regala feina. Accepta una oferta o segueix buscant (perds un any i ànim). Estudis i experiència obren millors portes.',
+  'tutorial.habitatge.title': 'On vius',
+  'tutorial.habitatge.body':
+    'Viure amb els pares és barat però limita. Llogar o comprar costa més; comprar necessita entrada i que el banc t’aprovi.',
+  'tutorial.vincles.title': 'Els vincles',
+  'tutorial.vincles.body':
+    'Amistats, parella i comunitat. Sostenen el benestar encara que tinguis pocs diners; són difícils de mantenir si vas desbordat.',
+  'tutorial.academic.title': 'El nivell acadèmic',
+  'tutorial.academic.body':
+    'L’esforç als estudis. No dóna benestar immediat, però millora el sou de partida i les ofertes de feina.',
+  'tutorial.fills.title': 'La descendència',
+  'tutorial.fills.body':
+    'Tenir fills dóna sentit, però la criança és una despesa obligatòria durant anys. En morir, els deixes l’herència.',
+  'tutorial.deute.title': 'El deute',
+  'tutorial.deute.body':
+    'Allò que ni els estalvis ni la família cobreixen es torna deute, que creix amb interessos i bloqueja la inversió fins que el saldis.',
+  'tutorial.sequela.title': 'Les seqüeles',
+  'tutorial.sequela.body':
+    'Algunes lesions deixen petjada: rebaixen el teu benestar de referència de manera permanent.',
+  'tutorial.jubilacio.title': 'La jubilació',
+  'tutorial.jubilacio.body':
+    'S’acaba el sou. Ara vius de la pensió pública i del que vas estalviar i invertir. Aquí es nota tot el que has fet abans.',
+  'tutorial.dinastia.title': 'La dinastia',
+  'tutorial.dinastia.body':
+    'Pots continuar amb un descendent. Hereta part del teu patrimoni: l’origen condiciona el punt de sortida de la generació següent.',
   'game.birth.title': 'Acabes de néixer',
   'game.birth.desc':
     'Comences la teva vida en aquesta família. Prem «Següent any» per créixer.',

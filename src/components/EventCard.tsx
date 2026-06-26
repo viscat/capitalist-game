@@ -1,18 +1,20 @@
 import type { EventCategory, GameEvent, LogEntry } from '../domain/types'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { EffectList } from './EffectList'
 
 function CategoryBadge({ category }: { category: EventCategory }) {
   const { t } = useT()
   return (
-    <span className="inline-block rounded-full bg-slate-700/70 px-2.5 py-0.5 text-xs font-medium text-slate-300">
+    <span className="inline-flex items-center rounded-full bg-accent/15 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-accent2 ring-1 ring-accent/25">
       {t(`category.${category}`)}
     </span>
   )
 }
 
-const CARD = 'rounded-2xl bg-slate-800/70 p-6 ring-1 ring-slate-700/50'
+const CARD =
+  'relative overflow-hidden rounded-2xl bg-surface/90 p-5 ring-1 ring-line/60 shadow-card animate-card-in'
 
 export function EventCard({
   pending,
@@ -24,26 +26,26 @@ export function EventCard({
   onChoose: (id: string) => void
 }) {
   const { t } = useT()
+  const choiceRef = useCoachmark<HTMLDivElement>('event_choice')
+  const resultRef = useCoachmark<HTMLDivElement>('event_result')
 
   if (pending) {
     return (
-      <div className={CARD}>
+      <div ref={choiceRef} className={CARD} key={pending.id}>
+        <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent to-accent2" />
         <CategoryBadge category={pending.category} />
-        <h2 className="mt-3 text-xl font-bold text-slate-100">
-          {t(pending.titleKey)}
-        </h2>
-        <p className="mt-2 text-slate-300">{t(pending.descKey, pending.params)}</p>
-        <div className="mt-5 mb-2 text-sm font-semibold text-slate-400">
+        <h2 className="mt-3 text-xl font-bold text-ink">{t(pending.titleKey)}</h2>
+        <p className="mt-2 text-inksoft">{t(pending.descKey, pending.params)}</p>
+        <div className="mt-5 mb-2 text-xs font-bold uppercase tracking-wider text-inkfaint">
           {t('event.choose')}
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2.5">
           {pending.choices?.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => onChoose(c.id)}
-              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-left font-medium text-white transition hover:bg-indigo-500"
-            >
-              {t(c.labelKey)}
+            <button key={c.id} onClick={() => onChoose(c.id)} className="option-card group">
+              <span className="font-semibold text-ink">{t(c.labelKey)}</span>
+              <span className="text-accent2 transition-transform group-active:translate-x-0.5">
+                ›
+              </span>
             </button>
           ))}
         </div>
@@ -53,19 +55,16 @@ export function EventCard({
 
   if (lastEntry) {
     return (
-      <div className={CARD}>
-        <div className="mb-2 text-xs uppercase tracking-wide text-slate-500">
+      <div ref={resultRef} className={CARD} key={lastEntry.torn + lastEntry.eventId}>
+        <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-money to-money2 opacity-60" />
+        <div className="mb-2 text-[11px] font-bold uppercase tracking-wider text-inkfaint">
           {t('event.thisYear')}
         </div>
         <CategoryBadge category={lastEntry.category} />
-        <h2 className="mt-3 text-xl font-bold text-slate-100">
-          {t(lastEntry.titleKey)}
-        </h2>
-        <p className="mt-2 text-slate-300">
-          {t(lastEntry.descKey, lastEntry.params)}
-        </p>
+        <h2 className="mt-3 text-xl font-bold text-ink">{t(lastEntry.titleKey)}</h2>
+        <p className="mt-2 text-inksoft">{t(lastEntry.descKey, lastEntry.params)}</p>
         {lastEntry.choiceLabelKey && (
-          <p className="mt-2 text-sm italic text-slate-400">
+          <p className="mt-2 text-sm italic text-inkfaint">
             {t('log.choice', { opcio: t(lastEntry.choiceLabelKey) })}
           </p>
         )}
@@ -88,10 +87,9 @@ export function EventCard({
 
   return (
     <div className={CARD}>
-      <h2 className="text-xl font-bold text-slate-100">
-        {t('game.birth.title')}
-      </h2>
-      <p className="mt-2 text-slate-300">{t('game.birth.desc')}</p>
+      <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent to-accent2" />
+      <h2 className="text-xl font-bold text-ink">{t('game.birth.title')}</h2>
+      <p className="mt-2 text-inksoft">{t('game.birth.desc')}</p>
     </div>
   )
 }
