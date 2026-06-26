@@ -1,6 +1,7 @@
 import { MILESTONES } from '../domain/milestones'
 import { patrimoniTotal } from '../domain/stats'
 import { useGame } from '../state/GameContext'
+import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 
@@ -15,6 +16,8 @@ function benestarBucket(b: number): string {
 export function MilestoneScreen() {
   const { t } = useT()
   const { state, chooseMilestone } = useGame()
+  const esJubilacio = state?.pendingMilestone === 'jubilacio'
+  const coachRef = useCoachmark<HTMLDivElement>(esJubilacio ? 'jubilacio' : 'milestone')
   if (!state?.pendingMilestone) return null
 
   const def = MILESTONES[state.pendingMilestone]
@@ -23,9 +26,9 @@ export function MilestoneScreen() {
   const unaOpcio = def.options.length === 1
 
   return (
-    <div className="flex min-h-full items-center justify-center p-6">
-      <div className="max-w-xl">
-        <p className="text-sm font-semibold uppercase tracking-wide text-indigo-400">
+    <div className="flex min-h-[100dvh] items-center justify-center p-6">
+      <div ref={coachRef} className="w-full max-w-md animate-card-in">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent2">
           {t(def.kickerKey)}
         </p>
         <h1 className="mt-1 text-4xl font-black text-slate-100">
@@ -81,22 +84,20 @@ export function MilestoneScreen() {
         {unaOpcio ? (
           <button
             onClick={() => chooseMilestone(def.options[0].id)}
-            className="mt-6 w-full rounded-xl bg-indigo-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-indigo-500"
+            className="btn-game btn-game--gold animate-pulse-glow mt-6"
           >
             {t(def.options[0].labelKey)}
           </button>
         ) : (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-2.5">
             {def.options.map((o) => (
               <button
                 key={o.id}
                 onClick={() => chooseMilestone(o.id)}
-                className="flex flex-col gap-1 rounded-xl bg-slate-800/70 p-4 text-left ring-1 ring-slate-700/50 transition hover:bg-indigo-600/80 hover:ring-indigo-500"
+                className="option-card flex-col items-start gap-1"
               >
-                <span className="font-semibold text-slate-100">
-                  {t(o.labelKey)}
-                </span>
-                <span className="text-xs text-slate-400">{t(o.descKey)}</span>
+                <span className="font-semibold text-ink">{t(o.labelKey)}</span>
+                <span className="text-xs text-inksoft">{t(o.descKey)}</span>
               </button>
             ))}
           </div>

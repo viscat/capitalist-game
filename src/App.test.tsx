@@ -3,12 +3,15 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import App from './App'
 import { I18nProvider } from './i18n'
 import { GameProvider } from './state/GameContext'
+import { TutorialProvider } from './state/tutorial'
 
 function renderApp() {
   return render(
     <I18nProvider>
       <GameProvider>
-        <App />
+        <TutorialProvider>
+          <App />
+        </TutorialProvider>
       </GameProvider>
     </I18nProvider>,
   )
@@ -34,13 +37,15 @@ describe('flux de l’app', () => {
     expect(screen.getByText('Qui seràs?')).toBeTruthy()
     fireEvent.click(screen.getByText('Començar la vida'))
 
-    // Pantalla de joc: es mostra la barra de benestar
-    expect(screen.getByText('Benestar')).toBeTruthy()
+    // Pantalla de joc: la targeta de naixement i l'accés al detall.
+    expect(screen.getByText('Acabes de néixer')).toBeTruthy()
+    expect(screen.getByText(/Detalls/)).toBeTruthy()
 
     // Avancem un any (si no apareix una decisió que oculti el botó)
     const next = screen.queryByText('Següent any →')
     if (next) fireEvent.click(next)
-    expect(screen.getByText('Benestar')).toBeTruthy()
+    // Seguim a la pantalla de joc (l'accés al detall hi és sempre).
+    expect(screen.getByText(/Detalls/)).toBeTruthy()
   })
 
   it('el quick-start de carrera mostra el panell d’inversió', () => {

@@ -11,6 +11,7 @@ import {
 import type { Budget } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { AmountStepper } from './AmountStepper'
 
@@ -19,6 +20,7 @@ const CATEGORIES: (keyof Budget)[] = ['estalvi', 'oci', 'compres', 'casa']
 export function BudgetPanel() {
   const { t } = useT()
   const { state, setBudget, nextTurn } = useGame()
+  const coachRef = useCoachmark<HTMLDivElement>('pressupost')
   if (!state) return null
 
   const income = ingressosMensuals16(state)
@@ -56,7 +58,7 @@ export function BudgetPanel() {
   const marge = Math.max(0, assignable - total)
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-sm font-semibold text-slate-300">
           {t('budget.title')}
@@ -137,12 +139,11 @@ export function BudgetPanel() {
       </div>
 
       <p className="mt-4 text-xs text-slate-500">{t('budget.nota')}</p>
-      <button
-        onClick={() => nextTurn()}
-        className="mt-2 w-full rounded-xl bg-emerald-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-emerald-500"
-      >
-        {t('budget.nextYear')}
-      </button>
+      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-3 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
+        <button onClick={() => nextTurn()} className="btn-game btn-game--money">
+          {t('budget.nextYear')}
+        </button>
+      </div>
     </div>
   )
 }

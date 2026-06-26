@@ -1,4 +1,5 @@
 import { useGame } from '../state/GameContext'
+import { useTutorial } from '../state/tutorial'
 import { useT } from '../i18n'
 
 export function StartScreen({
@@ -12,43 +13,45 @@ export function StartScreen({
 }) {
   const { t } = useT()
   const { hasSave, continueGame } = useGame()
+  const { resetTutorial } = useTutorial()
 
   return (
-    <div className="flex min-h-full items-center justify-center p-6">
-      <div className="max-w-lg text-center">
-        <h1 className="text-5xl font-black tracking-tight text-slate-100">
+    <div className="flex min-h-[100dvh] items-center justify-center p-6">
+      <div className="w-full max-w-md text-center animate-card-in">
+        <div className="mb-2 text-5xl">💸</div>
+        <h1 className="bg-gradient-to-b from-ink to-inksoft bg-clip-text text-4xl font-black tracking-tight text-transparent">
           {t('app.title')}
         </h1>
-        <p className="mt-4 text-lg text-slate-300">{t('start.subtitle')}</p>
-        <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          {t('start.intro')}
-        </p>
-        <div className="mt-8 flex flex-col items-center gap-3">
-          <button
-            onClick={onNew}
-            className="w-64 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500"
-          >
+        <p className="mt-3 text-base text-inksoft">{t('start.subtitle')}</p>
+        <p className="mt-3 text-sm leading-relaxed text-inkfaint">{t('start.intro')}</p>
+        <div className="mt-8 flex flex-col items-stretch gap-3">
+          <button onClick={onNew} className="btn-game animate-pulse-glow">
             {t('start.new')}
           </button>
           {hasSave && (
-            <button
-              onClick={continueGame}
-              className="w-64 rounded-xl bg-slate-700 px-6 py-3 font-semibold text-slate-100 transition hover:bg-slate-600"
-            >
+            <button onClick={continueGame} className="btn-game btn-game--ghost">
               {t('start.continue')}
             </button>
           )}
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              onClick={onNewAt16}
+              className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
+            >
+              🧪 {t('start.newAt16')}
+            </button>
+            <button
+              onClick={onNewAtCarrera}
+              className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
+            >
+              🧪 {t('start.newAtCarrera')}
+            </button>
+          </div>
           <button
-            onClick={onNewAt16}
-            className="mt-2 w-64 rounded-xl border border-dashed border-slate-600 px-6 py-2 text-sm font-medium text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
+            onClick={resetTutorial}
+            className="mt-2 text-xs text-inkfaint underline-offset-2 transition hover:text-inksoft hover:underline"
           >
-            🧪 {t('start.newAt16')}
-          </button>
-          <button
-            onClick={onNewAtCarrera}
-            className="w-64 rounded-xl border border-dashed border-slate-600 px-6 py-2 text-sm font-medium text-slate-400 transition hover:border-slate-400 hover:text-slate-200"
-          >
-            🧪 {t('start.newAtCarrera')}
+            {t('coach.reset')}
           </button>
         </div>
       </div>
