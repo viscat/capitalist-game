@@ -9,6 +9,19 @@ export const SALUT_MIN = 0
 export const SALUT_MAX = 100
 /** Salut inicial al naixement (sa). */
 export const SALUT_INICIAL = 100
+/**
+ * Esperança de vida de referència (anys) per a una persona SANA i benestant: el declivi per
+ * edat es calibra perquè la mort natural arribi al voltant d'aquesta edat (≈ Espanya actual).
+ */
+export const ESPERANCA_VIDA = 84
+/**
+ * Any de calendari de referència per a l'esperança de vida "actual". Per a anys posteriors,
+ * el progrés mèdic allarga la vida (futur); per a anys anteriors, l'escurça. Vegeu
+ * `factorEsperancaVida` a `stats.ts`.
+ */
+export const ANY_REFERENCIA_ESPERANCA = 2025
+/** Anys de vida guanyats per dècada de progrés mèdic (esperança de vida futura creixent). */
+export const GUANY_ESPERANCA_PER_DECADA = 1.2
 
 export const MESOS_PER_ANY = 12
 

@@ -1,4 +1,5 @@
 import {
+  ANY_REFERENCIA_ESPERANCA,
   BENESTAR_MAX,
   BENESTAR_MIN,
   COST_FILL_ANUAL,
@@ -56,22 +57,35 @@ export function clampSalut(value: number): number {
 }
 
 /**
+ * Factor de l'envelliment segons l'època (esperança de vida actual i FUTURA). El progrés
+ * mèdic allarga la vida: per a anys de calendari posteriors a la referència, el declivi per
+ * edat és més lent (factor < 1 → es viu més); per a anys anteriors, més ràpid. Com que cada
+ * generació de la dinastia neix dècades més tard, els descendents viuen una mica més.
+ */
+export function factorEsperancaVida(anyCalendari: number): number {
+  const decades = (anyCalendari - ANY_REFERENCIA_ESPERANCA) / 10
+  return clamp(1 - decades * 0.03, 0.7, 1.3)
+}
+
+/**
  * Declivi (o recuperació) ANUAL de la salut. La salut baixa amb:
- *  - l'EDAT (suau de jove, accelera amb els anys), de manera que una persona SANA arribi
- *    viva als 67 i mori de vellesa més tard;
+ *  - l'EDAT (gairebé nul·la de jove, accelera molt a la vellesa): calibrada perquè una
+ *    persona SANA i benestant mori de vellesa cap als ~84 anys (esperança de vida actual);
  *  - el BENESTAR baix (estrès, ansietat, precarietat) — i si el benestar és alt, la salut es
- *    RECUPERA una mica (delta negatiu) cap a 100;
+ *    RECUPERA una mica (delta negatiu) cap a 100 (per això els benestants viuen més);
  *  - les SEQÜELES cròniques (`salutCronica`): una discapacitat escurça la vida.
+ * `factorEpoca` (≈1) modula l'envelliment segons el progrés mèdic de l'època.
  * Retorna els punts de salut que es PERDEN aquest any (negatiu = es recuperen).
  */
 export function declividSalutAnual(
   edat: number,
   benestar: number,
   salutCronica = 0,
+  factorEpoca = 1,
 ): number {
-  // Edat: pràcticament pla fins als 40, després accelera (envelliment). Suau perquè una
-  // persona sana arribi viva als 67 (i mori de vellesa més tard).
-  const edatComp = edat <= 40 ? 0.18 : 0.18 + (edat - 40) * 0.05
+  // Edat: gairebé pla fins als 45, després accelera fort (envelliment). El pendent està
+  // calibrat amb l'esperança de vida (vegeu harness): un sa mor de vellesa cap als ~84.
+  const edatComp = (edat <= 45 ? 0.15 : 0.15 + (edat - 45) * 0.15) * factorEpoca
   // Benestar: per sota de 45 erosiona (estrès/precarietat); per sobre, recupera (sostre suau).
   const benestarComp =
     benestar < 45 ? (45 - benestar) * 0.09 : -Math.min((benestar - 45) * 0.05, 1.8)
@@ -1208,14 +1222,21 @@ export function costFillsAnual(state: GameState): number {
 }
 
 /**
- * Llegat per fill: el patrimoni net que cada fill heretaria al final de la partida. Tanca el
- * cercle de la reproducció de classe (com l'`herenciaVida` que la persona va rebre als 18):
- * el que has pogut acumular el transmets, i els teus fills arrenquen des d'aquí.
+ * Llegat per fill: el que CADA fill hereta. Suma dues vies:
+ *  - **en morir**: el patrimoni net (≥0) es reparteix entre els fills i cada part tributa per
+ *    successions (progressiu, per hereu — vegeu `impostSuccessions`);
+ *  - **en vida**: el que ja s'ha transferit (`llegatEnVida`), lliure d'impost, repartit.
+ * Tanca el cercle de la reproducció de classe (com l'`herenciaVida` rebuda als 18): el que
+ * has acumulat el transmets, i els teus fills arrenquen des d'aquí.
  */
 export function llegatPerFill(state: GameState): number {
   const fills = state.fills ?? 0
   if (fills === 0) return 0
-  return Math.round(Math.max(0, patrimoniTotal(state.person)) / fills / 100) * 100
+  const estate = Math.max(0, patrimoniTotal(state.person))
+  const perFillBrut = estate / fills
+  const perFillMortNet = perFillBrut - impostSuccessions(perFillBrut)
+  const enVidaPerFill = (state.llegatEnVida ?? 0) / fills
+  return Math.round(Math.max(0, perFillMortNet + enVidaPerFill) / 100) * 100
 }
 
 // --- Jubilació (als 67): el balanç financer final, el clímax del joc ---

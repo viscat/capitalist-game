@@ -55,6 +55,8 @@ export const ca: Record<string, string> = {
   'game.stage.laboral': 'Vida laboral',
   'game.stage.universitat': 'Universitat',
   'game.stage.carrera': 'Vida adulta',
+  'game.stage.jubilacio': 'Jubilació',
+  'game.generacio': 'Generació {n}',
   'game.age': '{anys} anys',
   'game.ageZero': 'Nadó (0 anys)',
   'game.turn': 'Torn {torn}',
@@ -311,6 +313,28 @@ export const ca: Record<string, string> = {
   'milestone.recta_60.desaccelerar.desc':
     'Vas deixant pas: menys sou, però arribes a la jubilació amb més benestar i vincles.',
 
+  // Jubilació (67): transició a viure de la pensió fins a la mort
+  'milestone.jubilacio.kicker': 'Fas 67 anys',
+  'milestone.jubilacio.title': 'Et jubiles',
+  'milestone.jubilacio.summaryTitle': 'Com arribes a la jubilació',
+  'milestone.jubilacio.summary.molt_baix':
+    'Arribes a la jubilació esgotat i sense coixí: els anys que vénen seran difícils.',
+  'milestone.jubilacio.summary.baix':
+    'Et jubiles amb poc marge; tocarà estirar la pensió i el poc que hi ha.',
+  'milestone.jubilacio.summary.mig':
+    'Tanques la vida laboral amb una base raonable per encarar els anys que vénen.',
+  'milestone.jubilacio.summary.alt':
+    'Arribes a la jubilació en bona forma i amb els comptes sanejats.',
+  'milestone.jubilacio.summary.molt_alt':
+    'Et jubiles amb tot resolt: pots gaudir d’aquesta etapa amb tranquil·litat.',
+  'milestone.jubilacio.loreTitle': 'Una nova etapa',
+  'milestone.jubilacio.lore1':
+    'S’acaba la vida laboral. A partir d’ara vius de la pensió pública i del que hagis estalviat i invertit.',
+  'milestone.jubilacio.lore2':
+    'La vida continua fins al final. Encara pots decidir com gastes, com cuides la salut i què deixes als teus.',
+  'milestone.jubilacio.jubilar.label': 'Començar la jubilació',
+  'milestone.jubilacio.jubilar.desc': 'Deixes de treballar i passes a viure de la pensió i els estalvis.',
+
   // Pressupost mensual (fase laboral)
   'budget.title': 'El teu pressupost mensual',
   'budget.income': 'Ingrés net',
@@ -547,6 +571,11 @@ export const ca: Record<string, string> = {
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
   'gameover.notaLlegat':
     'Deixes {fills} fill/s. A cada un li tocaria un llegat d’uns {llegat}: com tu vas arrencar d’on et van deixar els teus pares, ells arrenquen d’aquí. Així es transmet (o no) l’avantatge entre generacions.',
+  // Dinastia: herència i continuació amb un descendent
+  'gameover.dinastia.titol': 'El llinatge continua',
+  'gameover.dinastia.herencia':
+    'Deixes {fills} fill/s. Cadascun hereta uns {llegat} (mort + herència en vida, menys impostos). Com tu vas arrencar d’on et van deixar els teus pares, ells arrenquen d’aquí.',
+  'gameover.dinastia.continuar': 'Continuar com a fill/a (generació {generacio})',
   // Balanç de jubilació
   'gameover.jubilacio.titol': 'D’on viuràs a partir d’ara',
   'gameover.jubilacio.pensio': '🏛️ Pensió pública',
@@ -976,6 +1005,12 @@ export const ca: Record<string, string> = {
   'event.estres_cronic.title': 'Estrès crònic',
   'event.estres_cronic.desc':
     'Jornades llargues, pocs descansos i pressió constant. El desgast no es veu, però et va menjant la salut.',
+  // Herència en vida
+  'event.herencia_en_vida.title': 'Ajudar els fills ara',
+  'event.herencia_en_vida.desc':
+    'Tens un coixí i els fills el necessiten per arrencar (un pis, un projecte...). Pots avançar-los part de l’herència ara, lliure d’impostos, o esperar.',
+  'event.herencia_en_vida.choice.donar': 'Avançar-los una part',
+  'event.herencia_en_vida.choice.no': 'Millor ho guardo',
   // Descendència
   'event.tenir_fill.title': 'Voleu tenir un fill?',
   'event.tenir_fill.desc':

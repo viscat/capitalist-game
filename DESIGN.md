@@ -668,3 +668,37 @@ duia l'espiral, però més rica i realista.
 > Els **sans i benestants arriben a jubilar-se** (mitjana ~83% via estudis, rics ~90%+); la
 > mort prematura ve de la **salut erosionada** —precarietat, malalties i tractaments no
 > pagats—, no de l'edat en si. La desigualtat ja no és només viure pitjor: és **viure menys**.
+
+### 8.11 La vida sencera i la dinastia: mort, esperança de vida i herència
+
+El joc ja no acaba als 67. La vida **continua fins a la mort** (`salut = 0`), i la jubilació
+passa a ser una **fase jugable** (`jubilacio`, 67 → mort): es viu de la pensió pública i dels
+estalvis/inversions, sense sou. Així el cicle financer es tanca de debò —incloent-hi com es
+gasta (o s'esgota) el que s'ha acumulat a la vellesa.
+
+**Esperança de vida (actual i futura).** El declivi de salut per edat (`declividSalutAnual`)
+es calibra perquè una persona **sana i benestant** mori de vellesa cap als **~84 anys**
+(esperança de vida actual). El benestar alt allarga la vida (recuperació de salut) i el baix
+l'escurça → un **gradient de longevitat per classe** mesurat: rics ~82–83, mitjana ~77,
+treballadora ~64, pobra ~36–43. El **progrés mèdic** (`factorEsperancaVida`) modula
+l'envelliment per any de calendari: les generacions futures viuen una mica més (esperança de
+vida creixent).
+
+**Herència i reproducció de classe (dinastia).** En morir amb descendència, es pot
+**continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del naixement
+en una llar la riquesa de la qual és l'**herència** que has deixat. L'herència per fill
+(`llegatPerFill`) suma:
+- el **patrimoni en morir** (≥0), repartit entre els fills i tributat per **successions**
+  (progressiu, per hereu);
+- l'**herència en vida** (`llegatEnVida`), transferida mentre vivies (event `herencia_en_vida`),
+  **lliure d'impost** — l'avantatge fiscal de donar aviat, un missatge financer real.
+
+La **classe de la nova generació** surt del patrimoni heretat (`classePerPatrimoni`): el fill
+d'un ric neix en una llar rica; el d'algú que mor sense res, en una de pobra. I com que
+l'estate es **reparteix** entre els fills, la riquesa es **dilueix** entre hereus (mobilitat
+descendent si no s'acumula prou). El cicle es tanca amb el que l'obria —l'`herenciaVida` que
+es rep als 18—: **neixes on et deixen els teus, i deixes els teus on has pogut arribar.**
+
+> La mort i l'herència fan literal la tesi del joc: la desigualtat no és només viure pitjor
+> ni viure menys, sinó **transmetre (o no) el punt de sortida a la generació següent**. La
+> dinastia converteix la reproducció de classe en la mecànica central del llarg termini.

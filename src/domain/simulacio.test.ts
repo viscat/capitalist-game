@@ -104,8 +104,8 @@ function jugaPartida(s0: GameState, estrategia: Estrategia): {
   return { estat: s, fites }
 }
 
-describe('simulació de partides completes (naixement → 35)', () => {
-  it('no es bloqueja, manté els invariants i acaba a l’edat final per a totes les classes i itineraris', () => {
+describe('simulació de partides completes (naixement → mort)', () => {
+  it('no es bloqueja, manté els invariants i acaba SEMPRE per mort (salut 0)', () => {
     for (const classe of FAMILY_PRESET_ORDER) {
       for (const [nom, estrategia] of Object.entries(ESTRATEGIES)) {
         for (let seed = 1; seed <= 8; seed++) {
@@ -113,22 +113,22 @@ describe('simulació de partides completes (naixement → 35)', () => {
           const { estat, fites } = jugaPartida(newGame(classe, seed), estrategia)
 
           expect(estat.acabat, `${ctx}: partida acabada`).toBe(true)
+          // L'únic final és la mort (salut 0), a qualsevol edat (ja no s'acaba als 67).
+          expect(estat.mort, `${ctx}: acaba per mort`).toBe(true)
+          expect(Math.round(estat.person.stats.salut), `${ctx}: mort amb salut 0`).toBe(0)
 
           const edatFinal = edatAnys(estat.person.edatMesos)
           const ids = fites.map((f) => f.id)
-          if (estat.mort) {
-            // Mort: la salut ha arribat a 0 i la partida s'acaba abans (o just) als 67,
-            // sense haver de completar totes les fases.
-            expect(edatFinal, `${ctx}: la mort arriba abans dels ${EDAT_JUBILACIO}`)
-              .toBeLessThanOrEqual(EDAT_JUBILACIO)
-            expect(Math.round(estat.person.stats.salut), `${ctx}: mort amb salut 0`)
-              .toBe(0)
-          } else {
-            // Partida completa: es jubila als 67 i passa per les fites obligatòries.
-            expect(edatFinal, `${ctx}: es jubila a ${EDAT_JUBILACIO}`).toBe(EDAT_JUBILACIO)
-            expect(estat.jubilat, `${ctx}: marcat com a jubilat`).toBe(true)
+          // Si ha viscut prou, ha de passar per les fites obligatòries.
+          if (edatFinal >= 13)
             expect(ids, `${ctx}: passa per la fita d'institut`).toContain('institut')
+          if (edatFinal >= 17)
             expect(ids, `${ctx}: passa per la fita de postobligatori`).toContain('postobligatori')
+          // Qui viu més enllà dels 67 s'ha jubilat (transició, no final). Qui mor JUST als
+          // 67 pot haver mort abans de jubilar-se (la mort té prioritat sobre la fita).
+          if (edatFinal > EDAT_JUBILACIO) {
+            expect(ids, `${ctx}: passa per la jubilació`).toContain('jubilacio')
+            expect(estat.jubilat, `${ctx}: marcat com a jubilat`).toBe(true)
           }
 
           // Les fites que s'hagin disparat ho fan exactament a l'edat llindar.
@@ -137,6 +137,7 @@ describe('simulació de partides completes (naixement → 35)', () => {
             if (f.id === 'postobligatori') expect(f.edat, `${ctx}: postobligatori als 16`).toBe(16)
             if (f.id === 'majoria') expect(f.edat, `${ctx}: majoria als 18`).toBe(18)
             if (f.id === 'fi_uni') expect(f.edat, `${ctx}: fi d'universitat als 22`).toBe(22)
+            if (f.id === 'jubilacio') expect(f.edat, `${ctx}: jubilació als 67`).toBe(EDAT_JUBILACIO)
           }
         }
       }

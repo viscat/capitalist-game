@@ -30,9 +30,12 @@ export function GameScreen() {
   const esInfancia = lifeStage === 'infancia'
   const esUniversitat = lifeStage === 'universitat'
   const esCarrera = lifeStage === 'carrera'
+  const esJubilacio = lifeStage === 'jubilacio'
   // A la carrera sense sou s'està buscant feina (a l'entrada o després d'un acomiadament).
   const esCercaFeina = esCarrera && !salari
-  const esAdult = esUniversitat || esCarrera
+  const esAdult = esUniversitat || esCarrera || esJubilacio
+  // El pla d'inversió/estalvi val a la carrera i a la jubilació (gestió de patrimoni).
+  const esInversio = esCarrera || esJubilacio
   // El botó simple de «Següent any» val només per a la infància (la universitat té el seu
   // panell de dedicació anual).
   const esAnual = esInfancia
@@ -72,6 +75,8 @@ export function GameScreen() {
           {state.identitat && (
             <div className="text-xs text-slate-500">
               {t(`family.${familia.classe}.name`)}
+              {(state.generacio ?? 1) > 1 &&
+                ` · ${t('game.generacio', { n: state.generacio ?? 1 })}`}
             </div>
           )}
         </div>
@@ -117,8 +122,8 @@ export function GameScreen() {
           {!pendingEvent && esUniversitat && <UniversityPanel />}
           {!pendingEvent && esCercaFeina && <JobSearchPanel />}
           {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
-          {!pendingEvent && esCarrera && !esCercaFeina && <InvestmentPanel />}
-          {esCarrera && state.patrimoniHist && state.patrimoniHist.length >= 2 && (
+          {!pendingEvent && esInversio && !esCercaFeina && <InvestmentPanel />}
+          {esInversio && state.patrimoniHist && state.patrimoniHist.length >= 2 && (
             <InvestmentChart hist={state.patrimoniHist} />
           )}
           {!pendingEvent && esAnual && (

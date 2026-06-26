@@ -207,4 +207,23 @@ export const MILESTONES: Record<MilestoneId, MilestoneDef> = {
       },
     ],
   },
+  // Jubilació als 67: deixes de treballar i passes a viure de la pensió i els estalvis. La
+  // vida continua (fins a la mort), no s'acaba la partida.
+  jubilacio: {
+    id: 'jubilacio',
+    kickerKey: 'milestone.jubilacio.kicker',
+    titleKey: 'milestone.jubilacio.title',
+    summaryTitleKey: 'milestone.jubilacio.summaryTitle',
+    summaryPrefix: 'milestone.jubilacio.summary',
+    loreTitleKey: 'milestone.jubilacio.loreTitle',
+    loreKeys: ['milestone.jubilacio.lore1', 'milestone.jubilacio.lore2'],
+    options: [
+      {
+        id: 'jubilar',
+        labelKey: 'milestone.jubilacio.jubilar.label',
+        descKey: 'milestone.jubilacio.jubilar.desc',
+        lifeStage: 'jubilacio',
+      },
+    ],
+  },
 }
