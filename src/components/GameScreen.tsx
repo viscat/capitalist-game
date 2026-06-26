@@ -89,7 +89,7 @@ export function GameScreen() {
   ) : null
 
   return (
-    <AppShell hud={hud} footer={footer}>
+    <AppShell hud={hud} footer={footer} scrollResetKey={state.torn}>
       <EventCard pending={pendingEvent} lastEntry={lastEntry} onChoose={choose} />
 
       {!pendingEvent && esAccions && <ActionPanel />}
