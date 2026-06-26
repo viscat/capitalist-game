@@ -23,7 +23,10 @@ import {
   estalviAnualCriatura,
   familyBaselineBenestar,
   ajutFillsAnual,
+  benestarPerSalut,
+  clampSalut,
   costFillsAnual,
+  declividSalutAnual,
   fillsDependents,
   llegatPerFill,
   pagaMensual,
@@ -42,7 +45,7 @@ import type { GameState, Patrimoni, Person } from './types'
 
 const person: Person = {
   edatMesos: 0,
-  stats: { benestar: 50 },
+  stats: { benestar: 50, salut: 100 },
   patrimoni: {
     efectiu: 0,
     estalvi: 0,
@@ -70,7 +73,7 @@ describe('applyEffect', () => {
   })
 
   it('acota el benestar al màxim', () => {
-    const next = applyEffect({ ...person, stats: { benestar: 98 } }, { benestar: 10 })
+    const next = applyEffect({ ...person, stats: { benestar: 98, salut: 100 } }, { benestar: 10 })
     expect(next.stats.benestar).toBe(100)
   })
 
@@ -129,6 +132,37 @@ describe('estalviAnualCriatura', () => {
     const rica = estalviAnualCriatura(FAMILY_PRESETS.rica.familia)
     expect(pobra).toBeLessThan(rica)
     expect(pobra).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('salut i mort', () => {
+  it('clampSalut manté el valor dins de 0..100', () => {
+    expect(clampSalut(-5)).toBe(0)
+    expect(clampSalut(130)).toBe(100)
+    expect(clampSalut(60)).toBe(60)
+  })
+
+  it('applyEffect aplica salutDelta i el clampa', () => {
+    const next = applyEffect(person, { salutDelta: -30 })
+    expect(next.stats.salut).toBe(70)
+    expect(applyEffect(person, { salutDelta: 999 }).stats.salut).toBe(100)
+  })
+
+  it('el declivi de salut creix amb l’edat, el benestar baix i les seqüeles', () => {
+    // Benestar baix erosiona més que benestar alt (a igualtat d'edat).
+    expect(declividSalutAnual(50, 10)).toBeGreaterThan(declividSalutAnual(50, 70))
+    // Més edat, més declivi (a igualtat de benestar).
+    expect(declividSalutAnual(65, 50)).toBeGreaterThan(declividSalutAnual(30, 50))
+    // Les seqüeles cròniques acceleren el declivi.
+    expect(declividSalutAnual(50, 50, 30)).toBeGreaterThan(declividSalutAnual(50, 50, 0))
+    // Jove i amb molt benestar: la salut es recupera (declivi negatiu).
+    expect(declividSalutAnual(25, 90)).toBeLessThan(0)
+  })
+
+  it('benestarPerSalut: estar malalt rebaixa el benestar de referència', () => {
+    expect(benestarPerSalut(100)).toBe(0)
+    expect(benestarPerSalut(10)).toBeGreaterThan(0)
+    expect(benestarPerSalut(0)).toBeGreaterThanOrEqual(benestarPerSalut(30))
   })
 })
 
@@ -253,7 +287,7 @@ describe('augmentSou', () => {
 describe('applyBudgetYear — benestar segons la despesa', () => {
   const base = {
     ...person,
-    stats: { benestar: 50 },
+    stats: { benestar: 50, salut: 100 },
     patrimoni: {
       efectiu: 0,
       estalvi: 0,
@@ -316,7 +350,7 @@ describe('aportacioMinima', () => {
 describe('resolveDespesaGreu (matalàs familiar)', () => {
   const ambEstalvi = (estalvi: number): Person => ({
     ...person,
-    stats: { benestar: 70 },
+    stats: { benestar: 70, salut: 100 },
     patrimoni: {
       efectiu: 0,
       estalvi,
@@ -419,7 +453,7 @@ describe('desgravacioPensions', () => {
 describe('applyCareerYear', () => {
   const adult: Person = {
     edatMesos: 22 * 12,
-    stats: { benestar: 50 },
+    stats: { benestar: 50, salut: 100 },
     patrimoni: patrimoniAmb({ efectiu: 20000 }),
   }
 
@@ -435,7 +469,7 @@ describe('applyCareerYear', () => {
   it('no genera deute encara que el pla superi el disponible', () => {
     const pobre: Person = {
       edatMesos: 22 * 12,
-      stats: { benestar: 50 },
+      stats: { benestar: 50, salut: 100 },
       patrimoni: patrimoniAmb({ efectiu: 0 }),
     }
     const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
@@ -457,7 +491,7 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
   const cap = 0
   const adult = (efectiu: number, estalvi: number, benestar = 60): Person => ({
     edatMesos: 22 * 12,
-    stats: { benestar },
+    stats: { benestar, salut: 100 },
     patrimoni: patrimoniAmb({ efectiu, estalvi }),
   })
   const plaZero = { oci: cap, estalvi: cap, fonsIndexat: cap, fonsPensions: cap }
@@ -483,7 +517,7 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
   it('applyBudgetYear: gastar per sobre del sou tira de l’estalvi (no deute)', () => {
     const person: Person = {
       edatMesos: 16 * 12,
-      stats: { benestar: 50 },
+      stats: { benestar: 50, salut: 100 },
       patrimoni: patrimoniAmb({ efectiu: 0, estalvi: 3000 }),
     }
     // Sou 100/mes però 300/mes d’oci → dèficit anual cobert per l’estalvi.

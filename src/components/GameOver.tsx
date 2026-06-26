@@ -53,18 +53,20 @@ export function GameOver() {
     costHabitatgeAnual(state.habitatge)
   const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
 
-  // Tipus de final. L'ESPIRAL (benestar 0) és una derrota i preval. Si t'has jubilat (67),
-  // el veredicte és el balanç econòmic de la jubilació, EXCEPTE si has fet una "vida plena"
+  const salut = Math.round(state.person.stats.salut)
+
+  // Tipus de final. La MORT (salut 0) preval: una vida truncada. Si t'has jubilat (67), el
+  // veredicte és el balanç econòmic de la jubilació, EXCEPTE si has fet una "vida plena"
   // no-monetària (benestar i vincles forts amb poc patrimoni), que es reconeix amb dignitat.
   const finalTipus:
-    | 'espiral'
+    | 'mort'
     | 'plena'
     | 'jub_daurada'
     | 'jub_tranquila'
     | 'jub_precaria'
     | 'solid'
-    | 'precaria' = state.espiral
-    ? 'espiral'
+    | 'precaria' = state.mort
+    ? 'mort'
     : state.jubilat
       ? benestar >= 55 && vincles >= 0.45 && total < 100_000
         ? 'plena'
@@ -82,8 +84,8 @@ export function GameOver() {
           {t(`gameover.final.${finalTipus}.title`)}
         </h1>
         <p className="mt-3 text-slate-400">
-          {finalTipus === 'espiral'
-            ? t('gameover.final.espiral.desc', { edat: edatAnys(state.person.edatMesos) })
+          {finalTipus === 'mort'
+            ? t('gameover.final.mort.desc', { edat: edatAnys(state.person.edatMesos) })
             : t(`gameover.final.${finalTipus}.desc`)}
         </p>
 
@@ -130,6 +132,7 @@ export function GameOver() {
             )}
           </div>
           <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-3">
+            <Line label={`❤️ ${t('stat.salut')}`} value={`${salut}/100`} />
             <Line
               label={`🤝 ${t('stat.vincles')}`}
               value={`${Math.round(vincles * 100)}%`}
@@ -194,7 +197,7 @@ export function GameOver() {
           </div>
         )}
 
-        {finalTipus !== 'espiral' && (
+        {finalTipus !== 'mort' && (
           <p className="mt-6 text-sm italic text-slate-500">{t('gameover.soon')}</p>
         )}
         <button

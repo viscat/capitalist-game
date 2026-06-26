@@ -630,3 +630,41 @@ cordes): la **capacitat de formar família està estratificada per classe**.
 > La descendència **no trenca** la corba de classe ni la viabilitat de la treballadora: qui
 > pot permetre-s'ho té família i en gaudeix; qui va just hi renuncia o ho paga car. El dret a
 > tenir fills, com tota la resta, depèn del punt de sortida.
+
+### 8.10 La mort: la salut com a pool de mortalitat
+
+La mort deixa de ser un interruptor cru (abans: `benestar = 0` → espiral instantània) i passa
+a ser el resultat d'una stat de **salut (`Stats.salut`, 0..100)**. Quan la salut arriba a 0, la
+persona **mor** (`GameState.mort`), a qualsevol edat. Substitueix l'espiral: el benestar 0 ja
+no mata de cop, sinó que **erosiona la salut** (la precarietat mata, però gradualment).
+
+**Què degrada la salut** (`declividSalutAnual` + `EventEffect.salutDelta`, a `stats.ts`/`engine.ts`):
+- **Edat**: declivi suau que accelera amb els anys (una persona sana arriba viva als 67 i
+  moriria de vellesa més tard). Calibrat perquè l'edat *sola* no mati abans de jubilar-se.
+- **Benestar baix** (estrès, ansietat, precarietat): per sota de ~45 de benestar la salut
+  s'erosiona; per sobre, es **recupera** una mica. És el canal pel qual la pobresa escurça la
+  vida.
+- **Seqüeles cròniques** (`salutCronica`): una discapacitat redueix qualitat (benestar) **i**
+  esperança de vida (accelera el declivi) — decisió de disseny: unificades.
+- **Esdeveniments de salut**: malalties, esgotament, ansietat, operacions, xacres d'edat
+  (ponderats per `EXPOSICIO_SALUT[classe]`: la precarietat hi exposa més). I **els tractaments
+  que no es poden pagar** (descobert d'una despesa `category:'salut'`) fan **mal extra** a la
+  salut: no poder pagar la cura es paga amb anys de vida.
+
+**Acoblament bidireccional**: salut baixa rebaixa el benestar de referència (`benestarPerSalut`);
+amb la deriva, això crea una **espiral gradual** (malaltia → menys benestar → menys salut)
+en comptes d'una mort instantània.
+
+**Corba mesurada** (mortalitat abans dels 67, harness): manté la tesi de classe que abans
+duia l'espiral, però més rica i realista.
+
+| Classe | Mortalitat (via estudis activa) | Edat de mort (med) |
+|--------|--------------------------------|---------------------|
+| pobra | ~97–100% | ~36–43 |
+| treballadora | ~51% (estudis) · ~82% (treball, sense títol) | ~54–55 |
+| mitjana | ~17–27% | ~54–61 |
+| rica / super-rica | ~5–14% | ~57–65 |
+
+> Els **sans i benestants arriben a jubilar-se** (mitjana ~83% via estudis, rics ~90%+); la
+> mort prematura ve de la **salut erosionada** —precarietat, malalties i tractaments no
+> pagats—, no de l'edat en si. La desigualtat ja no és només viure pitjor: és **viure menys**.

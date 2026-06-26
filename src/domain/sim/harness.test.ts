@@ -63,8 +63,11 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
         `\n=== Discriminació (${cls}, estudis) ===\n` +
           `${row('home/autòcton', p)}\n${row('dona/migrant', d)}`,
       )
-      // El privilegi (home/autòcton) acaba, de mediana, igual o per sobre.
-      expect(p.patrimoniMediana).toBeGreaterThanOrEqual(d.patrimoniMediana - 5000)
+      // El privilegi (home/autòcton) acaba, de mediana, amb almenys tant BENESTAR (la
+      // mètrica de victòria). No comparem patrimoni: en una classe condemnada (pobra), qui
+      // pateix més discriminació mor abans i acumula MENYS deute, cosa que invertiria el
+      // signe del patrimoni net (artefacte del moment de la mort, no un avantatge real).
+      expect(p.benestarMediana).toBeGreaterThanOrEqual(d.benestarMediana)
     }
 
     // Invariants (robustos, no de balanceig fi):

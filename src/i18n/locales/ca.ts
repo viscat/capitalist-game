@@ -66,6 +66,9 @@ export const ca: Record<string, string> = {
   'stat.benestar': 'Benestar',
   'stat.benestar.tip':
     'El benestar gravita cap a la teva referència d’entorn: es recupera lentament i cau de pressa (un cop dolent costa de remuntar).',
+  'stat.salut': 'Salut',
+  'stat.salut.tip':
+    'La salut baixa amb l’edat, amb el benestar baix (estrès, ansietat) i amb les malalties (sobretot si no pots pagar els tractaments). Si arriba a 0, la persona mor.',
   'stat.vincles': 'Vincles',
   'stat.vincles.tip':
     'Amistats, parella i comunitat. Una font de benestar que no es compra; pot sostenir una vida plena amb poc patrimoni. Es construeix amb decisions socials (i costa molt si vas endeutat).',
@@ -525,9 +528,9 @@ export const ca: Record<string, string> = {
   'gameover.final.precaria.title': 'Anys de lluita',
   'gameover.final.precaria.desc':
     'Han estat anys durs i el marge segueix sent escàs. L’origen ha pesat, i remar a contracorrent esgota.',
-  'gameover.final.espiral.title': 'L’espiral',
-  'gameover.final.espiral.desc':
-    'Als {edat} anys, el benestar s’ha esfondrat del tot. La precarietat, els cops i el cansament s’han acumulat fins que ja no hi havia marge per aixecar-se: una espiral de la qual no se’n surt. La partida acaba aquí.',
+  'gameover.final.mort.title': 'Fi del camí',
+  'gameover.final.mort.desc':
+    'Als {edat} anys, la salut s’ha esgotat del tot. Els anys, les malalties, l’estrès i els cops que no s’han pogut tractar a temps s’han acumulat fins al final. La vida s’acaba aquí.',
   'gameover.final.jub_daurada.title': 'Una jubilació daurada',
   'gameover.final.jub_daurada.desc':
     'Arribes als 67 amb la vida resolta: la pensió i les rendes del teu patrimoni cobreixen de sobres el que necessites. Pots gaudir d’aquests anys sense neguit.',
@@ -964,6 +967,15 @@ export const ca: Record<string, string> = {
     'Els teus pares ja no es valen sols i necessiten cures. Has de decidir com els atens (uns {amount} € de despesa).',
   'event.cura_pares_grans.choice.cuidar': 'Cuidar-los tu mateix',
   'event.cura_pares_grans.choice.residencia': 'Pagar una residència',
+  // Salut mental (estrès / ansietat)
+  'event.ansietat.title': 'Atacs d’ansietat',
+  'event.ansietat.desc':
+    'L’angoixa s’ha apoderat del teu dia a dia. Pots posar-t’hi en mans d’un professional (uns {cost} €) o intentar tirar endavant pel teu compte.',
+  'event.ansietat.choice.terapia': 'Anar a teràpia',
+  'event.ansietat.choice.aguantar': 'Aguantar com puguis',
+  'event.estres_cronic.title': 'Estrès crònic',
+  'event.estres_cronic.desc':
+    'Jornades llargues, pocs descansos i pressió constant. El desgast no es veu, però et va menjant la salut.',
   // Descendència
   'event.tenir_fill.title': 'Voleu tenir un fill?',
   'event.tenir_fill.desc':

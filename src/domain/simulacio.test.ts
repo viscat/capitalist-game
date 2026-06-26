@@ -116,12 +116,12 @@ describe('simulació de partides completes (naixement → 35)', () => {
 
           const edatFinal = edatAnys(estat.person.edatMesos)
           const ids = fites.map((f) => f.id)
-          if (estat.espiral) {
-            // Espiral de destrucció: el benestar ha arribat a 0 i la partida s'acaba abans
-            // (o just) als 67, sense haver de completar totes les fases.
-            expect(edatFinal, `${ctx}: espiral acaba abans dels ${EDAT_JUBILACIO}`)
+          if (estat.mort) {
+            // Mort: la salut ha arribat a 0 i la partida s'acaba abans (o just) als 67,
+            // sense haver de completar totes les fases.
+            expect(edatFinal, `${ctx}: la mort arriba abans dels ${EDAT_JUBILACIO}`)
               .toBeLessThanOrEqual(EDAT_JUBILACIO)
-            expect(Math.round(estat.person.stats.benestar), `${ctx}: espiral amb benestar 0`)
+            expect(Math.round(estat.person.stats.salut), `${ctx}: mort amb salut 0`)
               .toBe(0)
           } else {
             // Partida completa: es jubila als 67 i passa per les fites obligatòries.

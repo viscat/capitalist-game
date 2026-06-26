@@ -17,6 +17,7 @@ import {
   NIVELL_VIDA_DEFAULT,
   RENDIMENT_PENSIONS,
   REVALORACIO_HABITATGE,
+  SALUT_INICIAL,
 } from './constants'
 import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
 import { generaOfertes } from './jobs'
@@ -52,7 +53,9 @@ import {
   baselineBenestar,
   benestarNivellVida,
   clampBenestar,
+  clampSalut,
   contribucioLlar,
+  declividSalutAnual,
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
@@ -109,7 +112,7 @@ export function newGame(
   const familia = { ...preset.familia }
   const person: Person = {
     edatMesos: 0,
-    stats: { benestar: familyBaselineBenestar(familia) },
+    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
     patrimoni: emptyPatrimoni(),
   }
   return {
@@ -135,7 +138,7 @@ export function newGameAt16(
   const familia = { ...preset.familia }
   const person: Person = {
     edatMesos: EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY,
-    stats: { benestar: familyBaselineBenestar(familia) },
+    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
     patrimoni: { ...emptyPatrimoni(), efectiu: 50, estalvi: 200 },
   }
   return {
@@ -164,7 +167,7 @@ export function newGameAtCarrera(
   const salari = salariAdultInicial(familia, teDiploma)
   const person: Person = {
     edatMesos: EDAT_FI_UNIVERSITAT * MESOS_PER_ANY,
-    stats: { benestar: 55 },
+    stats: { benestar: 55, salut: SALUT_INICIAL },
     patrimoni: { ...emptyPatrimoni(), efectiu: 3000, estalvi: 2000 },
   }
   return {
@@ -355,10 +358,19 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   const benestar = clampBenestar(
     Math.round(state.person.stats.benestar + gap * derivaFactor),
   )
+  // Declivi anual de la salut: edat + benestar (estrès/precarietat) + seqüeles. El benestar
+  // que es fa servir és el ja derivat d'aquest any. Pot recuperar-se (delta negatiu) si la
+  // persona és jove i benestant. Els esdeveniments de salut hi sumaran cops a sobre.
+  const salut = clampSalut(
+    Math.round(
+      state.person.stats.salut -
+        declividSalutAnual(anys, benestar, state.salutCronica ?? 0),
+    ),
+  )
   let person: Person = {
     ...state.person,
     edatMesos,
-    stats: { ...state.person.stats, benestar },
+    stats: { ...state.person.stats, benestar, salut },
   }
   let habitatge = state.habitatge
   let patrimoniHist = state.patrimoniHist
@@ -626,8 +638,13 @@ function resolveEvent(
     person = res.person
     donacio = res.donacio || undefined
     descobert = res.descobert || undefined
+    // Tractament no pagat: si una despesa de SALUT no es pot cobrir (descobert), la cura no
+    // es fa i la salut se'n ressent (a banda del cop de benestar que ja aplica el descobert).
+    if (event.category === 'salut' && res.descobert > 0) {
+      person = applyEffect(person, { salutDelta: -Math.ceil(res.descobert / 600) })
+    }
   }
-  // Resta d'efectes sobre stats i patrimoni.
+  // Resta d'efectes sobre stats i patrimoni (inclou salutDelta).
   person = applyEffect(person, effect)
 
   // Canvis de sou persistents.
@@ -671,14 +688,16 @@ function resolveEvent(
     mesos >= edat * MESOS_PER_ANY &&
     mesos - MESOS_PER_ANY < edat * MESOS_PER_ANY
   let acabat = false
-  // Espiral de destrucció (a qualsevol edat): si el benestar arriba a 0, la partida
-  // acaba. No és el final per edat (jubilació), és una derrota: la precarietat t'arrossega.
-  let espiral = state.espiral ?? false
+  // MORT (a qualsevol edat): si la salut arriba a 0, la persona mor. És el resultat acumulat
+  // de l'edat, la precarietat (benestar baix), les malalties i els tractaments no pagats.
+  // (Substitueix l'antiga mort instantània per benestar 0: ara el benestar baix erosiona la
+  // salut, però no mata de cop.)
+  let mort = state.mort ?? false
   let jubilat = state.jubilat ?? false
   let pendingMilestone = state.pendingMilestone
-  if (person.stats.benestar <= 0) {
+  if (person.stats.salut <= 0) {
     acabat = true
-    espiral = true
+    mort = true
   } else if (mesos >= EDAT_JUBILACIO * MESOS_PER_ANY) {
     // Jubilació als 67: final "normal" amb el balanç de jubilació.
     acabat = true
@@ -769,7 +788,7 @@ function resolveEvent(
     pendingMilestone,
     historial: [...state.historial, entry],
     acabat,
-    espiral,
+    mort,
     jubilat,
   })
 }

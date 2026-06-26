@@ -94,10 +94,14 @@ Transicions (fites):
   **cost de criança net** anual (`costFillsAnual` = cost − prestació pública `ajutFillsAnual`)
   a les necessitats de la carrera mentre és dependent (~22 anys). El `GameOver` mostra els
   fills i el **llegat per fill** (`llegatPerFill`). Vegeu DESIGN.md §8.9.
-- **A qualsevol edat**, si el `benestar` arriba a **0** → `acabat = true` + `espiral = true`
-  → **espiral de destrucció**: la partida acaba abans d'hora (és una derrota, no el final
-  per edat). Es comprova a `resolveEvent` **abans** del final per edat. La precarietat fa
-  que les classes baixes sovint ni arribin als 67.
+- **A qualsevol edat**, si la `salut` arriba a **0** → `acabat = true` + `mort = true` →
+  **mort**: la vida s'acaba abans d'hora. La salut (stat `Stats.salut`, 0..100) es degrada
+  amb l'**edat** (suau, accelera amb els anys), amb el **benestar baix** (estrès/precarietat:
+  `declividSalutAnual` a `stats.ts`) i amb els **esdeveniments de salut** (`EventEffect.salutDelta`;
+  les malalties no pagades —descobert d'una despesa `category:'salut'`— fan mal extra). Acoblament
+  bidireccional: salut baixa també rebaixa el benestar (`benestarPerSalut`). Es comprova a
+  `resolveEvent` **abans** del final per edat. **El benestar 0 ja NO mata** (substituït): ara
+  erosiona la salut, i la precarietat hi porta gradualment → les classes baixes moren joves.
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.
@@ -110,8 +114,8 @@ Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 6. Si l'esdeveniment té `choices`, el deixa com a `pendingEvent` i espera
    `applyChoice`. Si no, el resol immediatament (`resolveEvent`).
 7. `resolveEvent` aplica efectes, persisteix canvis de sou (amb **sostre salarial**),
-   escriu al `historial` i marca fita/final. **Si el `benestar` ha arribat a 0**, acaba la
-   partida com a **espiral** (`acabat` + `espiral`); si no, comprova la **jubilació als 67**
+   escriu al `historial` i marca fita/final. **Si la `salut` ha arribat a 0**, acaba la
+   partida com a **mort** (`acabat` + `mort`); si no, comprova la **jubilació als 67**
    (`acabat` + `jubilat`) i les fites del llindar (incloses 40/50/60).
 
 Punts clau perquè res no es bloquegi:
@@ -157,16 +161,21 @@ Punts clau perquè res no es bloquegi:
   negatiu. És la trampa estructural de la pobresa (vegeu DESIGN.md §8). A les fases prèvies
   (infància, laboral) el que no es pot pagar encara es modela com a *descobert* puntual
   (`penalitzacioDescobert`), no com a deute acumulat.
-- **El benestar sempre 0..100** (`clampBenestar`). Però **arribar a 0 acaba la partida**
-  (espiral de destrucció): no és un estat estable del qual es remunti, és una derrota.
+- **El benestar sempre 0..100** (`clampBenestar`). Arribar a 0 ja **no** mata, però erosiona
+  ràpidament la salut.
+- **La salut sempre 0..100** (`clampSalut`). **Arribar a 0 = mort** (fi de partida a qualsevol
+  edat). És el pool de mortalitat: edat + benestar baix + malalties.
 
 ## Model econòmic i de benestar (la “física” del joc)
 
-- **`benestar`** (0..100) és l'única stat. Cada torn gravita cap a una **referència
-  d'entorn** (`familyBaselineBenestar` + ajustos d'itinerari/atur). La referència puja
-  amb la cura rebuda, la seguretat econòmica i el patrimoni (rendiments decreixents) i
-  baixa amb la **precarietat de classe** (penalització explícita per a `pobra` i
-  `treballadora`).
+- **`benestar`** (0..100) és la stat de **qualitat de vida** (com es viu). Cada torn gravita
+  cap a una **referència d'entorn** (`familyBaselineBenestar` + ajustos d'itinerari/atur). La
+  referència puja amb la cura rebuda, la seguretat econòmica i el patrimoni (rendiments
+  decreixents) i baixa amb la **precarietat de classe** (penalització explícita per a `pobra`
+  i `treballadora`) i amb la **salut baixa** (`benestarPerSalut`).
+- **`salut`** (0..100) és la stat de **mortalitat** (quant es viu): es degrada amb l'edat, el
+  benestar baix i les malalties; a 0, la persona mor. Benestar i salut s'acoblen: la
+  precarietat (benestar baix) escurça la vida, i la malaltia (salut baixa) deprimeix.
 - Els esdeveniments i accions empenyen el benestar amunt/avall sobre aquesta deriva.
 - **Diners**: durant la infància la família aporta un estalvi anual; a l'adolescència
   hi ha una paga trimestral i accions per ingressar/gastar; a la fase laboral hi ha sou

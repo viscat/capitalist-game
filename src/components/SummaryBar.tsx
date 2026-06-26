@@ -10,12 +10,15 @@ import { benestarColor, formatEuros } from '../lib/format'
 export function SummaryBar({
   nom,
   benestar,
+  salut,
   net,
   edatMesos,
   dataNaixement,
 }: {
   nom?: string
   benestar: number
+  /** Salut 0..100 (pool de mortalitat). */
+  salut: number
   /** Patrimoni net (pot ser negatiu si hi ha deute). */
   net: number
   edatMesos: number
@@ -23,6 +26,7 @@ export function SummaryBar({
 }) {
   const { t } = useT()
   const b = Math.round(benestar)
+  const s = Math.round(salut)
   const anys = edatAnys(edatMesos)
   const dt = dataNaixement ? dataActual(dataNaixement, edatMesos) : null
 
@@ -37,6 +41,10 @@ export function SummaryBar({
         <span className="flex items-center gap-1.5" title={t('stat.benestar')}>
           <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${benestarColor(b)}`} />
           <span className="font-medium text-slate-200">{b}</span>
+        </span>
+        <span className="flex items-center gap-1" title={t('stat.salut')}>
+          <span aria-hidden>❤️</span>
+          <span className="font-medium text-slate-200">{s}</span>
         </span>
         <span
           className={`font-medium tabular-nums ${net < 0 ? 'text-red-400' : 'text-emerald-300'}`}

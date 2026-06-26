@@ -180,7 +180,7 @@ describe('sou dinàmic i atur', () => {
 
   it('una despesa greu que no pots pagar baixa el benestar (família pobra)', () => {
     let s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
-    s = { ...s, person: { ...s.person, stats: { benestar: 70 } } }
+    s = { ...s, person: { ...s.person, stats: { benestar: 70, salut: 100 } } }
     const after = resolWith(s, [
       { id: 'a', labelKey: 'x', effect: { despesaGreu: 3000 } },
     ])
@@ -269,24 +269,54 @@ describe('descendència', () => {
   })
 })
 
-describe('espiral de destrucció (benestar 0 = fi)', () => {
-  it('quan el benestar arriba a 0, la partida acaba marcada com a espiral', () => {
+describe('mort (salut 0 = fi)', () => {
+  it('quan la salut arriba a 0, la partida acaba marcada com a mort', () => {
     let s = laboralTreball()
-    // Deixem el benestar molt baix i apliquem un cop que el porta a 0.
-    s = { ...s, person: { ...s.person, stats: { benestar: 4 } } }
-    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -10 } }])
-    expect(after.person.stats.benestar).toBe(0)
+    // Deixem la salut molt baixa i apliquem un cop que la porta a 0.
+    s = { ...s, person: { ...s.person, stats: { benestar: 50, salut: 6 } } }
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { salutDelta: -10 } }])
+    expect(after.person.stats.salut).toBe(0)
     expect(after.acabat).toBe(true)
-    expect(after.espiral).toBe(true)
+    expect(after.mort).toBe(true)
   })
 
-  it('un cop dur que NO arriba a 0 no acaba la partida', () => {
+  it('el benestar a 0 NO mata (només erosiona la salut)', () => {
     let s = laboralTreball()
-    s = { ...s, person: { ...s.person, stats: { benestar: 30 } } }
-    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -10 } }])
-    expect(after.person.stats.benestar).toBeGreaterThan(0)
+    s = { ...s, person: { ...s.person, stats: { benestar: 5, salut: 80 } } }
+    const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -20 } }])
+    expect(after.person.stats.benestar).toBe(0)
     expect(after.acabat).toBe(false)
-    expect(after.espiral ?? false).toBe(false)
+    expect(after.mort ?? false).toBe(false)
+  })
+
+  it('avançar un any amb benestar baix degrada la salut', () => {
+    let s = newGameAtCarrera('pobra', 4)
+    s = { ...s, person: { ...s.person, stats: { benestar: 10, salut: 80 } } }
+    const after = advanceTurn(s)
+    expect(after.person.stats.salut).toBeLessThan(80)
+  })
+
+  it('una despesa de salut no pagada (descobert) fa mal extra a la salut', () => {
+    let s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
+    s = {
+      ...s,
+      person: {
+        ...s.person,
+        stats: { benestar: 60, salut: 90 },
+        patrimoni: { ...s.person.patrimoni, efectiu: 0, estalvi: 0 },
+      },
+    }
+    const ev: GameEvent = {
+      id: 'op_test',
+      category: 'salut',
+      titleKey: 't',
+      descKey: 'd',
+      weight: () => 1,
+      choices: [{ id: 'x', labelKey: 'x', effect: { despesaGreu: 8000, salutDelta: -5 } }],
+    }
+    const after = applyChoice({ ...s, pendingEvent: ev }, 'x')
+    // Cau més de 5 (el salutDelta directe) perquè el descobert hi afegeix dany.
+    expect(after.person.stats.salut).toBeLessThan(85)
   })
 })
 
@@ -295,18 +325,18 @@ describe('final als 67 (jubilació)', () => {
     const s = playToEnd('mitjana', 11, 'batxillerat')
     expect(s.acabat).toBe(true)
     expect(s.teDiploma).toBe(true)
-    // Si no ha caigut en espiral, la jubilació arriba exactament als 67.
-    if (!s.espiral) {
+    // Si no ha mort, la jubilació arriba exactament als 67.
+    if (!s.mort) {
       expect(s.jubilat).toBe(true)
       expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
     }
   })
 
-  it('la branca laboral acaba als 67 (o espiral) amb benestar i comptes acotats', () => {
+  it('la branca laboral acaba als 67 (o mort) amb benestar i comptes acotats', () => {
     const s = playToEnd('treballadora', 5, 'treball')
     expect(s.acabat).toBe(true)
     expect(s.teDiploma).toBe(false) // ha entrat a la carrera sense passar per la uni
-    if (!s.espiral) {
+    if (!s.mort) {
       expect(s.person.edatMesos).toBe(EDAT_JUBILACIO * MESOS_PER_ANY)
     }
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
