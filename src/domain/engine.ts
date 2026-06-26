@@ -20,7 +20,11 @@ import {
   REVALORACIO_HABITATGE,
   SALUT_INICIAL,
 } from './constants'
-import { amortitzaHipoteca, costHabitatgeAnualNet } from './housing'
+import {
+  amortitzaHipoteca,
+  costHabitatgeAnualNet,
+  generaOfertesLloguer,
+} from './housing'
 import { nomPerSeed } from './identitat'
 import { generaOfertes } from './jobs'
 import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
@@ -318,12 +322,28 @@ function stageActions(state: GameState): GameAction[] {
  * feina perquè aparegui automàticament a tots els punts on s'acaba un torn a l'atur.
  */
 function ambOfertes(state: GameState): GameState {
-  if (state.lifeStage === 'carrera' && (state.salari ?? 0) === 0) {
-    const { ofertes, rngState } = generaOfertes(state, state.rngState)
-    return { ...state, ofertesFeina: ofertes, rngState }
+  let next = state
+  // Feina: a l'atur (carrera, sou 0) hi ha cerca de feina; amb sou, s'esborren les ofertes.
+  if (next.lifeStage === 'carrera' && (next.salari ?? 0) === 0) {
+    const { ofertes, rngState } = generaOfertes(next, next.rngState)
+    next = { ...next, ofertesFeina: ofertes, rngState }
+  } else if (next.ofertesFeina) {
+    next = { ...next, ofertesFeina: undefined }
   }
-  if (state.ofertesFeina) return { ...state, ofertesFeina: undefined }
-  return state
+  // Lloguer: a les fases adultes, si no ets propietari, el mercat ofereix unes quantes opcions
+  // (preus variats) CADA any. En comprar (propietari), s'esborren.
+  const potLlogar =
+    (next.lifeStage === 'universitat' ||
+      next.lifeStage === 'carrera' ||
+      next.lifeStage === 'jubilacio') &&
+    next.habitatge?.tipus !== 'propietat'
+  if (potLlogar) {
+    const r = generaOfertesLloguer(next.rngState)
+    next = { ...next, ofertesLloguer: r.ofertes, rngState: r.state }
+  } else if (next.ofertesLloguer) {
+    next = { ...next, ofertesLloguer: undefined }
+  }
+  return next
 }
 
 /** Pot oferir herència en vida: té fills i prou patrimoni líquid per avançar-ne una part. */

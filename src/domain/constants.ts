@@ -168,9 +168,19 @@ export const MATRICULA_ANUAL = 2000
 export const LLOGUER_HABITACIO_ANUAL = 4200
 /** Lloguer anual d'un pis sencer. */
 export const LLOGUER_PIS_ANUAL = 10800
+/** Nombre d'ofertes de lloguer que apareixen cada any al mercat. */
+export const LLOGUER_OFERTES_PER_ANY = 3
 
 /** Entrada mínima per comprar un habitatge (fracció del preu). */
 export const ENTRADA_HIPOTECA = 0.2
+/**
+ * Despeses de compra (fracció del preu), a banda de l'entrada i pagades també al comptat:
+ * impost de transmissions/IVA (~10%), notaria, registre, gestoria, tassació i comissió. És el
+ * sobrecost real que fa que comprar exigeixi molt més que l'entrada nominal.
+ */
+export const DESPESES_COMPRA = 0.12
+/** En parella, la fracció de l'entrada + despeses que paga cadascú (l'altra meitat, la parella). */
+export const FRACCIO_ENTRADA_PARELLA = 0.5
 /** Interès anual de la hipoteca. */
 export const INTERES_HIPOTECA = 0.03
 /** Terminis d'hipoteca oferts (anys). */

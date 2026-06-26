@@ -44,6 +44,18 @@ export interface OfertaFeina {
   qualitat: QualitatOferta
 }
 
+/**
+ * Oferta de lloguer del mercat (es regenera cada any): una habitació o un pis sencer amb un
+ * preu concret. Objecte pla i serialitzable (autosave). Trobar lloguer barat és qüestió de sort.
+ */
+export interface OfertaLloguer {
+  /** Id estable dins del lot d'ofertes (p. ex. "ll0"). */
+  id: string
+  tipus: 'habitacio' | 'pis_lloguer'
+  /** Lloguer anual concret d'aquesta oferta. */
+  lloguerAnual: number
+}
+
 /** Fites de la vida que obren una pantalla de decisió. */
 export type MilestoneId =
   | 'institut'
@@ -359,6 +371,8 @@ export interface GameState {
   anysExperiencia?: number
   /** Ofertes de feina actives mentre es busca feina a la carrera (sou 0 = a l'atur). */
   ofertesFeina?: OfertaFeina[]
+  /** Ofertes de lloguer del mercat aquest any (es regeneren cada torn a les fases adultes). */
+  ofertesLloguer?: OfertaLloguer[]
   /**
    * Penalització crònica de benestar acumulada (incapacitat, seqüeles permanents). Resta
    * de la referència de benestar adult de manera duradora. Absent o 0 = sense seqüeles.
