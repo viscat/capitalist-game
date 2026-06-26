@@ -11,6 +11,7 @@ import { costHabitatgeAnual } from '../domain/housing'
 import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
+import { LifeCharts } from './LifeCharts'
 import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
@@ -190,8 +191,15 @@ export function GameOver() {
           </div>
         )}
 
-        {state.patrimoniHist && state.patrimoniHist.length >= 2 && (
+        {/* Evolució de la vida: salut+benestar i patrimoni net, al llarg de tots els anys. */}
+        {state.vidaHist && state.vidaHist.length >= 2 && (
           <div className="mt-4 text-left">
+            <LifeCharts hist={state.vidaHist} />
+          </div>
+        )}
+
+        {state.patrimoniHist && state.patrimoniHist.length >= 2 && (
+          <div className="mt-3 text-left">
             <InvestmentChart hist={state.patrimoniHist} />
           </div>
         )}
