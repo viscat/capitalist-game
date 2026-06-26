@@ -13,7 +13,12 @@ import {
   applyMilestoneChoice,
   newGame,
 } from '../engine'
-import { defaultPlaInversio, ingressosAnualsCarrera, patrimoniTotal } from '../stats'
+import {
+  defaultPlaInversio,
+  factorIPC,
+  ingressosAnualsCarrera,
+  patrimoniTotal,
+} from '../stats'
 import type {
   EventEffect,
   FamilyClass,
@@ -143,10 +148,18 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
     ) {
       const best = [...s.ofertesFeina].sort((a, b) => b.sou - a.sou)[0]
       s = acceptarOferta(s, best.id)
-      // El pla d'inversió ara comença buit (el jugador el reparteix a mà); el jugador
-      // simulat representa algú «raonable», així que adopta el pla per defecte sensat.
-      s = { ...s, plaInversio: defaultPlaInversio(ingressosAnualsCarrera(s)) }
       continue
+    }
+    // Jugador «raonable»: adopta el pla d'inversió per defecte i el reajusta cada any a
+    // l'ingrés NOMINAL d'aquell any (com qui apuja la despesa/estalvi amb la inflació), perquè
+    // el seu oci/estalvi no s'erosioni amb l'IPC al llarg de dècades.
+    if ((s.lifeStage === 'carrera' || s.lifeStage === 'jubilacio') && (s.salari ?? 0) > 0) {
+      s = {
+        ...s,
+        plaInversio: defaultPlaInversio(
+          Math.round(ingressosAnualsCarrera(s) * factorIPC(s)),
+        ),
+      }
     }
     s = advanceTurn(s, policy.actiu ? activeActions(s) : undefined)
   }

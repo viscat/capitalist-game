@@ -357,8 +357,9 @@ export function adultBaselineBenestar(state: GameState): number {
   const incomeM = netMensual(state.salari ?? 0)
   const econ = clamp(incomeM / 3500, 0, 1)
   // El patrimoni net ja descompta el deute; pesa menys que abans (P7: 16→10), perquè
-  // la riquesa acumulada no és el factor dominant del benestar a la vida adulta.
-  const wealth = clamp(patrimoniTotal(state.person) / 600_000, 0, 1)
+  // la riquesa acumulada no és el factor dominant del benestar a la vida adulta. Es DESINFLA
+  // amb l'IPC (el benestar depèn del poder adquisitiu real, no del nombre nominal inflat).
+  const wealth = clamp(patrimoniTotal(state.person) / factorIPC(state) / 600_000, 0, 1)
   // El nivell de vida ja NO desplaça el baseline (es notava massa poc per la deriva):
   // ara és un delta anual felt a `applyCareerYear`, com l'oci.
   let base = 38 + econ * 30 + wealth * 10
@@ -368,8 +369,12 @@ export function adultBaselineBenestar(state: GameState): number {
   // ja en cobreix part). Per al pobre, en canvi, és una font de benestar plena —i una via
   // de "vida plena" amb poc patrimoni— però costa de construir quan vas desbordat.
   base += (state.vinclesSocials ?? 0) * 18 * (1 - wealth * 0.5)
-  // Viure endeutat rebaixa la referència de benestar (no només via el patrimoni net).
-  base -= penalitzacioDeute(state.person.patrimoni.deute ?? 0, incomeM * MESOS_PER_ANY)
+  // Viure endeutat rebaixa la referència de benestar (no només via el patrimoni net). El deute
+  // és nominal: el desinflem per l'IPC perquè la seva relació amb l'ingrés (real) sigui correcta.
+  base -= penalitzacioDeute(
+    (state.person.patrimoni.deute ?? 0) / factorIPC(state),
+    incomeM * MESOS_PER_ANY,
+  )
   // Seqüeles cròniques (incapacitat): rebaixa duradora, no recuperable amb la deriva.
   base -= state.salutCronica ?? 0
   // Cost ecològic del consum: un nivell de vida alt i l'acumulació material pesen una mica.
@@ -506,11 +511,16 @@ export function repartDeficit(
   reservaPropia: number,
   familia?: Familia,
   ajutPublicMax = 0,
+  factorAjutFamiliar = 1,
 ): RepartDeficit {
   if (deficit <= 0) return { propi: 0, donacio: 0, ajutPublic: 0, descobert: 0 }
   const propi = Math.min(deficit, Math.max(0, reservaPropia))
   let falta = deficit - propi
-  const donacio = familia ? Math.min(falta, ajutFamiliarMax(familia)) : 0
+  // El matalàs familiar es mesura en euros nominals: si hi ha inflació, escala amb l'IPC
+  // (`factorAjutFamiliar`) perquè cobreixi la mateixa proporció real al llarg de la vida.
+  const donacio = familia
+    ? Math.min(falta, Math.round(ajutFamiliarMax(familia) * factorAjutFamiliar))
+    : 0
   falta -= donacio
   const ajutPublic = Math.min(falta, Math.max(0, ajutPublicMax))
   falta -= ajutPublic
@@ -1161,12 +1171,15 @@ export function applyCareerYear(
   aportacioFamilia = 0,
   benestarNivell = 0,
   costFills = 0,
+  factorIPCActual = 1,
 ): Person {
+  const f = factorIPCActual
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
   // Sostre del deute: cap entitat presta sense fre. Es pot deure fins a ~2,5 anys
   // d'ingrés (o un mínim si no hi ha sou); l'excés no es pot finançar i és un descobert
   // dur (vas sense, no t'endeutes més). El deute compon al seu interès, capat al sostre.
-  const maxDeute = Math.max(annualIncome * 2.5, 15000)
+  // El terra (en euros nominals) escala amb l'IPC.
+  const maxDeute = Math.max(annualIncome * 2.5, 15000 * f)
   let deute = Math.min(
     Math.round((patrimoni.deute ?? 0) * (1 + INTERES_DEUTE)),
     maxDeute,
@@ -1205,11 +1218,15 @@ export function applyCareerYear(
     // Dèficit: estalvis propis → xarxa familiar → xarxa pública (IMV degradat) → el que
     // ningú cobreix es converteix en DEUTE (s'acumula i compon). El que no es pot ni
     // finançar (per sobre del sostre) és descobert dur: un xoc puntual de benestar.
+    // Les xarxes (pública i familiar) es mesuren en euros nominals: amb inflació, els seus
+    // llindars es desinflen (means-test en termes reals) i la cobertura es reinfla, perquè
+    // protegeixin la mateixa proporció real (no s'erosionin numèricament amb l'IPC).
     const r = repartDeficit(
       necessitats - caixa,
       estalvi,
       familia,
-      ajutPublicMax(patrimoniTotal(person), annualIncome),
+      ajutPublicMax(patrimoniTotal(person) / f, annualIncome / f) * f,
+      f,
     )
     estalvi -= r.propi
     deute += r.descobert
@@ -1225,10 +1242,13 @@ export function applyCareerYear(
   // El benestar d'aquest any reflecteix l'estil de vida (oci + nivell de vida) i el XOC
   // d'un dèficit nou no finançable. L'estrès CRÒNIC de viure endeutat NO es resta aquí
   // (seria doble comptabilitat): ja rebaixa la referència a `adultBaselineBenestar`.
+  // L'oci i l'ingrés ja són tots dos nominals → la seva relació (i el benestar que en surt) és
+  // correcta sense desinflar. El descobert, en canvi, és un import absolut: es desinfla per l'IPC
+  // perquè un descobert nominal més gran per inflació no resti més benestar del que toca en real.
   const deltaBenestar =
     benestarOciAnual(pla.oci, annualIncome) +
     benestarNivell -
-    penalitzacioDescobert(nouDescobert)
+    penalitzacioDescobert(Math.round(nouDescobert / f))
   const stats = {
     ...person.stats,
     benestar: clampBenestar(person.stats.benestar + deltaBenestar),
@@ -1281,7 +1301,9 @@ export function costFillsAnual(state: GameState): number {
   const factorNivell =
     state.nivellVida === 'alt' ? 1.2 : state.nivellVida === 'minim' ? 0.85 : 1
   const brut = deps * COST_FILL_ANUAL * factorNivell
-  return Math.max(0, Math.round(brut - ajutFillsAnual(state)))
+  const net = Math.max(0, brut - ajutFillsAnual(state))
+  // Criar un fill també s'encareix amb l'IPC al llarg de la vida.
+  return Math.round(net * factorIPC(state))
 }
 
 /**

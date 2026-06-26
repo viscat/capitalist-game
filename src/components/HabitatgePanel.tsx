@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TERMINIS_HIPOTECA } from '../domain/constants'
+import { MESOS_PER_ANY, TERMINIS_HIPOTECA } from '../domain/constants'
 import {
   PROPIETATS,
   ajutHipotecaFamiliar,
@@ -24,6 +24,8 @@ export function HabitatgePanel() {
 
   const habitatge = state.habitatge ?? { tipus: 'amb_pares' as const }
   const esPropietari = habitatge.tipus === 'propietat'
+  // Els torns són anuals, però lloguer i quota es mostren en MENSUAL (com la resta de panells).
+  const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 
   const CARD = 'rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50'
 
@@ -96,7 +98,7 @@ export function HabitatgePanel() {
           {oferta.hipoteca.quotaAnual > 0 && (
             <Row
               label={t('habitatge.quota')}
-              value={`${formatEuros(oferta.hipoteca.quotaAnual)}/any`}
+              value={`${formatEuros(perMes(oferta.hipoteca.quotaAnual))}/mes`}
             />
           )}
           {(() => {
@@ -107,7 +109,7 @@ export function HabitatgePanel() {
             return ajutHip > 0 ? (
               <div className="flex justify-between">
                 <span className="text-slate-400">{t('habitatge.ajutHipoteca')}</span>
-                <span className="font-medium text-emerald-300">−{formatEuros(ajutHip)}/any</span>
+                <span className="font-medium text-emerald-300">−{formatEuros(perMes(ajutHip))}/mes</span>
               </div>
             ) : null
           })()}
@@ -164,7 +166,7 @@ export function HabitatgePanel() {
         {habitatge.lloguerAnual ? (
           <Row
             label={t('habitatge.lloguer')}
-            value={`${formatEuros(habitatge.lloguerAnual)}/any`}
+            value={`${formatEuros(perMes(habitatge.lloguerAnual))}/mes`}
           />
         ) : null}
         {esPropietari && (
@@ -179,7 +181,7 @@ export function HabitatgePanel() {
               <>
                 <Row
                   label={t('habitatge.quota')}
-                  value={`${formatEuros(habitatge.hipoteca.quotaAnual)}/any`}
+                  value={`${formatEuros(perMes(habitatge.hipoteca.quotaAnual))}/mes`}
                 />
                 <Row
                   label={t('habitatge.deute')}
@@ -210,7 +212,7 @@ export function HabitatgePanel() {
                   {t(`tipusHabitatge.${o.tipus}`)}
                 </span>
                 <span className="font-mono text-sm text-slate-300">
-                  {formatEuros(o.lloguerAnual)}/any
+                  {formatEuros(perMes(o.lloguerAnual))}/mes
                 </span>
               </button>
             )
