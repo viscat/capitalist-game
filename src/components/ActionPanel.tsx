@@ -16,7 +16,7 @@ import { EffectList } from './EffectList'
  */
 export function ActionPanel() {
   const { t } = useT()
-  const { state, actions, nextTurn, setAccionsSeleccio } = useGame()
+  const { state, actions, setAccionsSeleccio } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('accions')
   if (!state) return null
 
@@ -48,7 +48,6 @@ export function ActionPanel() {
   )
   const tempsRestant = tempsTotal - tempsUsat
   const dinersRestants = dinersInicials + dinersDelta
-  const totalTriades = actions.reduce((s, o) => s + countOf(o.action.id), 0)
 
   // Pots afegir-ne una més si hi cap en temps i si no et deixa els diners en negatiu.
   const potAfegir = (setmanes: number, cost: number) =>
@@ -66,15 +65,6 @@ export function ActionPanel() {
     setAccionsSeleccio(next)
   }
 
-  const viu = () => {
-    // Construeix la llista d'accions repetint cada id segons el seu multiplicador.
-    const ids: string[] = []
-    for (const o of actions) {
-      for (let i = 0; i < countOf(o.action.id); i++) ids.push(o.action.id)
-    }
-    // NO buidem la selecció: es recorda per a l'any vinent (el jugador pot ajustar-la).
-    nextTurn(ids)
-  }
 
   const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
 
@@ -168,12 +158,33 @@ export function ActionPanel() {
           )
         })}
       </div>
-
-      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-4 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
-        <button onClick={viu} className="btn-game btn-game--money">
-          {totalTriades === 0 ? t('action.viuLliure') : t('action.viu')}
-        </button>
-      </div>
     </div>
+  )
+}
+
+/**
+ * CTA primari de la fase d'accions ("Viu l'any"). Viu al peu FIX del shell (`AppShell.footer`),
+ * separat del cos scrollable, perquè sempre sigui accessible. Llegeix la selecció del context.
+ */
+export function ActionCTA() {
+  const { t } = useT()
+  const { state, actions, nextTurn } = useGame()
+  if (!state) return null
+  const counts = state.accionsSeleccio ?? {}
+  const countOf = (id: string) => counts[id] ?? 0
+  const totalTriades = actions.reduce((s, o) => s + countOf(o.action.id), 0)
+  const viu = () => {
+    // Construeix la llista d'accions repetint cada id segons el seu multiplicador.
+    const ids: string[] = []
+    for (const o of actions) {
+      for (let i = 0; i < countOf(o.action.id); i++) ids.push(o.action.id)
+    }
+    // NO buidem la selecció: es recorda per a l'any vinent (el jugador pot ajustar-la).
+    nextTurn(ids)
+  }
+  return (
+    <button onClick={viu} className="btn-game btn-game--money">
+      {totalTriades === 0 ? t('action.viuLliure') : t('action.viu')}
+    </button>
   )
 }

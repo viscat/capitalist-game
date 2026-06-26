@@ -50,7 +50,7 @@ const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 
 export function InvestmentPanel() {
   const { t } = useT()
-  const { state, setPla, setNivellVida, setVidaSenzilla, nextTurn } = useGame()
+  const { state, setPla, setNivellVida, setVidaSenzilla } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('pla_inversio')
   const deuteRef = useCoachmark<HTMLDivElement>('deute')
   if (!state) return null
@@ -357,11 +357,6 @@ export function InvestmentPanel() {
       </div>
 
       <p className="mt-3 text-xs text-slate-500">{t('pla.nota')}</p>
-      <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-3 rounded-b-2xl border-t border-line/50 bg-surface/90 px-5 py-3 backdrop-blur-xl">
-        <button onClick={() => nextTurn()} className="btn-game btn-game--money">
-          {t('pla.nextYear')}
-        </button>
-      </div>
     </div>
   )
 }
