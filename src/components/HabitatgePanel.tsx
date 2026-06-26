@@ -3,6 +3,7 @@ import { TERMINIS_HIPOTECA } from '../domain/constants'
 import {
   OPCIONS_LLOGUER,
   PROPIETATS,
+  ajutHipotecaFamiliar,
   liquidDisponible,
   ofertaCompra,
 } from '../domain/housing'
@@ -74,16 +75,30 @@ export function HabitatgePanel() {
               </span>
             </div>
           )}
-          <Row
-            label={t('habitatge.quota')}
-            value={`${formatEuros(oferta.hipoteca.quotaAnual)}/any`}
-          />
+          {oferta.hipoteca.quotaAnual > 0 && (
+            <Row
+              label={t('habitatge.quota')}
+              value={`${formatEuros(oferta.hipoteca.quotaAnual)}/any`}
+            />
+          )}
+          {(() => {
+            const ajutHip = ajutHipotecaFamiliar(state.familia, {
+              tipus: 'propietat',
+              hipoteca: oferta.hipoteca,
+            })
+            return ajutHip > 0 ? (
+              <div className="flex justify-between">
+                <span className="text-slate-400">{t('habitatge.ajutHipoteca')}</span>
+                <span className="font-medium text-emerald-300">−{formatEuros(ajutHip)}/any</span>
+              </div>
+            ) : null
+          })()}
         </div>
 
         <div className="mt-3">
           <div className="mb-1 text-xs text-slate-500">{t('habitatge.termini')}</div>
-          <div className="flex gap-2">
-            {TERMINIS_HIPOTECA.map((n) => (
+          <div className="flex flex-wrap gap-2">
+            {[0, ...TERMINIS_HIPOTECA].map((n) => (
               <button
                 key={n}
                 onClick={() => setAnys(n)}
@@ -93,7 +108,7 @@ export function HabitatgePanel() {
                     : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
-                {t('habitatge.anys', { anys: n })}
+                {n === 0 ? t('habitatge.comptat') : t('habitatge.anys', { anys: n })}
               </button>
             ))}
           </div>

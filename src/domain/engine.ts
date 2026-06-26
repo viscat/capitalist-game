@@ -19,7 +19,7 @@ import {
   REVALORACIO_HABITATGE,
   SALUT_INICIAL,
 } from './constants'
-import { amortitzaHipoteca, costHabitatgeAnual } from './housing'
+import { amortitzaHipoteca, costHabitatgeAnualNet } from './housing'
 import { generaOfertes } from './jobs'
 import { ADOLESCENCE_ACTIONS } from './actions/adolescencia'
 import { UNIVERSITY_ACTIONS } from './actions/universitat'
@@ -30,6 +30,7 @@ import {
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
   DESCENDENCIA_EVENTS,
+  HERENCIA_DINASTIA_EVENTS,
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
   SALUT_EDAT_EVENTS,
@@ -229,26 +230,31 @@ export function classePerPatrimoni(patrimoni: number): FamilyClass {
 }
 
 /**
- * Família d'origen de la nova generació: classe segons el patrimoni heretat, amb el perfil
- * d'ingressos/cura d'aquella classe però amb el patrimoni REAL heretat. Així el fill d'un ric
- * neix en una llar rica; el d'algú que mor sense res, en una de pobra.
+ * Família d'origen de la nova generació: la llar TÍPICA de la classe que correspon a
+ * l'herència rebuda (el fill d'un ric neix en una llar rica; el d'algú que mor sense res, en
+ * una de pobra). El patrimoni concret heretat NO es posa aquí: arriba més tard, a l'edat que
+ * el progenitor va morir (vegeu `continuaGeneracio` i `herenciaPendent`).
  */
 export function familiaHereva(patrimoniHeretat: number): Familia {
-  const classe = classePerPatrimoni(patrimoniHeretat)
-  const base = FAMILY_PRESETS[classe].familia
-  return { ...base, patrimoni: Math.max(0, Math.round(patrimoniHeretat)) }
+  return FAMILY_PRESETS[classePerPatrimoni(patrimoniHeretat)].familia
 }
 
 /**
- * Continua la dinastia amb un descendent: comença una vida nova (des del naixement) per a un
- * fill, que neix en una llar la riquesa de la qual és l'herència que li deixes (mort + en
- * vida). El nou protagonista neix a la data de la teva mort (dècades després → més esperança
- * de vida) i conserva el cognom (llinatge). Reutilitza tot el cicle de vida (0 → mort).
+ * Continua la dinastia amb un descendent: comença una vida NOVA des del naixement. El fill
+ * neix en una llar de la classe que correspon a l'herència, però **no la rep al néixer**:
+ * la rebrà a l'edat que tenia quan el progenitor (tu) va morir (es recorda a `herenciaPendent`
+ * i s'atorga llavors amb un esdeveniment previst). Conserva el cognom (llinatge) i neix a la
+ * data de la teva mort (dècades després → més esperança de vida).
  */
 export function continuaGeneracio(state: GameState): GameState {
   if ((state.fills ?? 0) <= 0) return state
   const llegat = llegatPerFill(state)
   const familia = familiaHereva(llegat)
+  const edatMortProgenitor = edatAnys(state.person.edatMesos)
+  // Edat del fill quan el progenitor va morir = edat de mort − edat del progenitor quan el
+  // va tenir (el primer fill). És quan rebrà l'herència.
+  const edatProgenitorAlNaixer = edatAnys(state.fillsNaixement?.[0] ?? 0)
+  const edatHerencia = Math.max(1, edatMortProgenitor - edatProgenitorAlNaixer)
   // El nou protagonista neix a la data (de calendari) de la mort del progenitor.
   let dataNaixement = state.dataNaixement
   if (dataNaixement) {
@@ -269,6 +275,7 @@ export function continuaGeneracio(state: GameState): GameState {
     dataNaixement,
     rngState: state.rngState,
     generacio: (state.generacio ?? 1) + 1,
+    herenciaPendent: llegat > 0 ? { import: llegat, edat: edatHerencia } : undefined,
     historial: [],
     acabat: false,
   }
@@ -352,10 +359,11 @@ function eventPool(state: GameState): GameEvent[] {
       // Amb fills i un coixí, pot sortir l'opció d'herència en vida.
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
       // Mentre els pares viuen: ajut econòmic puntual (segons classe). Quan envelleixes
-      // (~40+), poden morir i n'heretes (un sol cop).
+      // (~40+), poden morir i n'heretes (un sol cop). En una dinastia, l'herència del
+      // progenitor ja està PREVISTA (`herenciaPendent`), així que no en surt una d'aleatòria.
       if (!state.herenciaParesRebuda) {
         pool.push(...AJUT_PARES_EVENTS)
-        if (edat >= 40) pool.push(...HERENCIA_PARES_EVENTS)
+        if (edat >= 40 && !state.herenciaPendent) pool.push(...HERENCIA_PARES_EVENTS)
       }
       return pool
     }
@@ -363,8 +371,10 @@ function eventPool(state: GameState): GameEvent[] {
       // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
       const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
-      // Si encara no han mort els pares, a aquesta edat segurament ho faran.
-      if (!state.herenciaParesRebuda) pool.push(...HERENCIA_PARES_EVENTS)
+      // Si encara no han mort els pares (i no és una herència de dinastia prevista), poden morir.
+      if (!state.herenciaParesRebuda && !state.herenciaPendent) {
+        pool.push(...HERENCIA_PARES_EVENTS)
+      }
       return pool
     }
     case 'laboral': {
@@ -502,7 +512,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // familiar es paga amb anys de deute. La família pobra, a més, no et pot mantenir
     // (suport 0) i et necessita aportant a casa: estudiar de l'origen humil és dur.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
-    const costHab = ambPares ? 0 : costHabitatgeAnual(habitatge)
+    const costHab = ambPares ? 0 : costHabitatgeAnualNet(habitatge, state.familia)
     const costVidaUni = ambPares ? 0 : costVidaAnual('minim')
     const fluxNet = balancUniversitatAnual(state.familia) - costHab - costVidaUni
     let efectiu = person.patrimoni.efectiu
@@ -568,7 +578,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       income,
       indexReturn,
       costVida,
-      ambPares ? 0 : costHabitatgeAnual(habitatge),
+      ambPares ? 0 : costHabitatgeAnualNet(habitatge, state.familia),
       state.familia,
       0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
       ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
@@ -668,12 +678,20 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     }
   }
 
-  const { event, rngState: nextRng } = selectEvent(
-    eventPool(state),
-    state.familia,
-    rngState,
-    state.ultimEventId,
-  )
+  // Herència de dinastia PREVISTA: si el fill arriba a l'edat en què va morir el progenitor,
+  // es dispara l'esdeveniment d'herència (no aleatori), en lloc d'un esdeveniment normal.
+  const herenciaDue =
+    state.herenciaPendent !== undefined && anys >= state.herenciaPendent.edat
+  let event: GameEvent
+  let nextRng: number
+  if (herenciaDue) {
+    event = HERENCIA_DINASTIA_EVENTS[0]
+    nextRng = rngState
+  } else {
+    const sel = selectEvent(eventPool(state), state.familia, rngState, state.ultimEventId)
+    event = sel.event
+    nextRng = sel.rngState
+  }
 
   // Aplica els stats no monetaris acumulats per les accions (gating de vincles per deute,
   // com a resolveEvent). Els events del torn hi sumaran els seus deltes a sobre.
@@ -838,8 +856,9 @@ function resolveEvent(
     ? person.edatMesos
     : state.ultimAugmentMes
 
-  // Herència dels pares: un cop morts i heretat, no torna a passar.
+  // Herència dels pares: un cop morts i heretat, no torna a passar (i s'esborra la pendent).
   const herenciaParesRebuda = effect.marcaHerenciaPares || state.herenciaParesRebuda
+  const herenciaPendent = effect.marcaHerenciaPares ? undefined : state.herenciaPendent
 
   // Seqüela crònica (incapacitat): s'acumula i perdura, rebaixant la referència adulta.
   // Amb sostre (40) perquè incapacitats repetides no la facin créixer sense límit.
@@ -918,6 +937,7 @@ function resolveEvent(
     vinclesSocials,
     nivellAcademic,
     herenciaParesRebuda,
+    herenciaPendent,
     fills,
     fillsNaixement,
     llegatEnVida,

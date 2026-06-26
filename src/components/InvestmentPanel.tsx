@@ -24,7 +24,7 @@ import {
   pensioPublicaAnual,
   repartDeficit,
 } from '../domain/stats'
-import { costHabitatgeAnual } from '../domain/housing'
+import { costHabitatgeAnualNet } from '../domain/housing'
 import type { NivellVida, PlaInversio } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
@@ -70,7 +70,7 @@ export function InvestmentPanel() {
   const cobertFamilia = ambPares
     ? 0
     : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
-  const costHab = ambPares ? 0 : costHabitatgeAnual(state.habitatge)
+  const costHab = ambPares ? 0 : costHabitatgeAnualNet(state.habitatge, state.familia)
   // Criança dels fills dependents (cost net, ja descomptada la prestació pública): és una
   // despesa obligatòria de l'any, com l'habitatge.
   const costFills = costFillsAnual(state)

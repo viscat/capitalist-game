@@ -403,6 +403,12 @@ export interface GameState {
   /** Generació de la dinastia (1 = protagonista inicial; 2+ = descendents continuats). */
   generacio?: number
   /**
+   * Herència de dinastia PENDENT de rebre: quan continues amb un descendent, no reps
+   * l'herència al néixer, sinó a l'edat que tenies quan el teu progenitor (la generació
+   * anterior) va morir. `import` = capital a rebre; `edat` = anys del fill en aquell moment.
+   */
+  herenciaPendent?: { import: number; edat: number }
+  /**
    * Patrimoni transferit als descendents EN VIDA (herència anticipada, lliure de successions).
    * Es reparteix entre els fills quan es continua amb un descendent. Absent = 0.
    */

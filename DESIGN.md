@@ -686,8 +686,10 @@ vida creixent).
 
 **Herència i reproducció de classe (dinastia).** En morir amb descendència, es pot
 **continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del naixement
-en una llar la riquesa de la qual és l'**herència** que has deixat. L'herència per fill
-(`llegatPerFill`) suma:
+en una llar de la **classe** que correspon a l'herència. L'herència NO es rep al néixer: el
+motor recorda l'edat que tenia el fill quan el progenitor va morir (`herenciaPendent`) i, en
+arribar-hi, dispara un **esdeveniment previst** (`herencia_dinastia`) que la lliura (cases,
+fons, estalvis convertits en capital). L'herència per fill (`llegatPerFill`) suma:
 - el **patrimoni en morir** (≥0), repartit entre els fills i tributat per **successions**
   (progressiu, per hereu);
 - l'**herència en vida** (`llegatEnVida`), transferida mentre vivies (event `herencia_en_vida`),
