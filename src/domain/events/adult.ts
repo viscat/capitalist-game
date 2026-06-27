@@ -541,6 +541,30 @@ export const DESCENDENCIA_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * LLOGUER: riscos de viure de lloguer. El propietari ven, no et renoven el contracte o et
+ * desnonen: perds el pis/habitació i tornes a casa els pares (un cop). Gating per estar de
+ * lloguer a `eventPool`. És la inseguretat habitacional de qui no és propietari.
+ */
+export const LLOGUER_EVENTS: GameEvent[] = [
+  {
+    id: 'fi_contracte_lloguer',
+    category: 'economia',
+    titleKey: 'event.fi_contracte_lloguer.title',
+    descKey: 'event.fi_contracte_lloguer.desc',
+    weight: () => 0.7,
+    effect: { benestar: -8, perdHabitatge: true },
+  },
+  {
+    id: 'desnonament',
+    category: 'economia',
+    titleKey: 'event.desnonament.title',
+    descKey: 'event.desnonament.desc',
+    weight: () => 0.4,
+    effect: { benestar: -12, perdHabitatge: true },
+  },
+]
+
+/**
  * PARELLA: conèixer algú i decidir formar una parella estable. És el requisit previ per tenir
  * fills i, a més, fa que les despeses estructurals de la llar es comparteixin. Només apareix
  * mentre no en tens (gating a `eventPool`). Pes alt perquè sigui ben visible com a opció.

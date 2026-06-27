@@ -254,6 +254,8 @@ export interface EventEffect {
   marcaHerenciaPares?: boolean
   /** Marca que s'estableix una parella estable (el motor li assigna un nom). */
   marcaParella?: boolean
+  /** Perds l'habitatge de lloguer (desnonament, fi de contracte): tornes a casa els pares. */
+  perdHabitatge?: boolean
   /**
    * Nombre de fills que afegeix aquest efecte (descendència): normalment 1. El motor
    * incrementa `GameState.fills` i registra l'edat (en mesos) del progenitor al naixement

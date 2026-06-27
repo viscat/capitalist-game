@@ -41,6 +41,7 @@ import {
   HERENCIA_DINASTIA_EVENTS,
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
+  LLOGUER_EVENTS,
   PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
@@ -357,6 +358,13 @@ function ambOfertes(state: GameState): GameState {
   return next
 }
 
+/** Viu de lloguer (habitació o pis): exposat a la inseguretat habitacional. */
+function esLloguer(state: GameState): boolean {
+  return (
+    state.habitatge?.tipus === 'habitacio' || state.habitatge?.tipus === 'pis_lloguer'
+  )
+}
+
 /** Pot oferir herència en vida: té fills i prou patrimoni líquid per avançar-ne una part. */
 function potHeretarEnVida(state: GameState): boolean {
   const p = state.person.patrimoni
@@ -383,6 +391,8 @@ function eventPool(state: GameState): GameEvent[] {
       // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
       // s'afegeix al pool: el cos passa factura amb els anys.
       if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
+      // De lloguer: inseguretat habitacional (fi de contracte, desnonament → perds el pis).
+      if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
       // Sense parella encara: pot aparèixer l'oportunitat d'establir-ne una (requisit per als fills).
       if (!state.parella) pool.push(...PARELLA_EVENTS)
       // Dins de la finestra fèrtil, AMB PARELLA i sense haver arribat al màxim de fills, pot
@@ -411,6 +421,7 @@ function eventPool(state: GameState): GameEvent[] {
     case 'jubilacio': {
       // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
       const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
+      if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
       if (!state.parella) pool.push(...PARELLA_EVENTS)
       if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
@@ -706,6 +717,17 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     if (habitatge?.tipus === 'propietat' && habitatge.hipoteca) {
       habitatge = { ...habitatge, hipoteca: amortitzaHipoteca(habitatge.hipoteca) }
     }
+    // El lloguer PUJA cada any amb la inflació (revisió de renda): mai baixa.
+    if (
+      (habitatge?.tipus === 'habitacio' || habitatge?.tipus === 'pis_lloguer') &&
+      habitatge.lloguerAnual
+    ) {
+      const inflacioFactor = ipc / (state.ipc ?? IPC_INICIAL)
+      habitatge = {
+        ...habitatge,
+        lloguerAnual: Math.round((habitatge.lloguerAnual * inflacioFactor) / 100) * 100,
+      }
+    }
   }
 
   const entries: LogEntry[] = []
@@ -833,6 +855,15 @@ function resolveEvent(
   }
   // Resta d'efectes sobre stats i patrimoni (inclou salutDelta).
   person = applyEffect(person, effect)
+
+  // Perdre l'habitatge de lloguer (desnonament / fi de contracte): tornes a casa els pares.
+  let habitatge = state.habitatge
+  if (
+    effect.perdHabitatge &&
+    (habitatge?.tipus === 'habitacio' || habitatge?.tipus === 'pis_lloguer')
+  ) {
+    habitatge = { tipus: 'amb_pares' }
+  }
 
   // Canvis de sou persistents.
   let salari = state.salari
@@ -1011,6 +1042,7 @@ function resolveEvent(
   return ambOfertes({
     ...state,
     person,
+    habitatge,
     salari,
     vidaHist,
     ultimAugmentMes,
