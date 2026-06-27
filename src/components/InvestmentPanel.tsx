@@ -2,6 +2,7 @@ import {
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
   FACTOR_DESPESA_PARELLA,
+  FRUGALITAT_LLINDAR,
   INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
@@ -18,6 +19,8 @@ import {
   defaultPlaInversio,
   factorIPC,
   fillsDependents,
+  frugalitat,
+  potViureFrugal,
   desgravacioPensions,
   ingressosAnualsCarrera,
   minimOciAnual,
@@ -114,7 +117,12 @@ export function InvestmentPanel() {
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
   const desgravacio = desgravacioPensions(pla.fonsPensions)
-  const benNivell = ambPares ? 0 : benestarNivellVida(nivell, state.vidaSenzilla)
+  // Frugalitat: viure de mínim sense penalització només si el nivell de frugalitat hi arriba.
+  const nivellFrugalitat = frugalitat(state)
+  const potFrugal = potViureFrugal(state)
+  const benNivell = ambPares
+    ? 0
+    : benestarNivellVida(nivell, Boolean(state.vidaSenzilla) && potFrugal)
   // Benestar felt de l'any: oci + nivell de vida (tots dos es noten cada any).
   const benestarAny = benestar + benNivell
   // Petjada ecològica (indicador cosmètic): com més consum/patrimoni material, més alta.
@@ -204,18 +212,31 @@ export function InvestmentPanel() {
             </div>
             {nivell === 'minim' && (
               <button
-                onClick={() => setVidaSenzilla(!state.vidaSenzilla)}
+                onClick={() => potFrugal && setVidaSenzilla(!state.vidaSenzilla)}
+                disabled={!potFrugal}
                 className={`mt-2 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition ${
-                  state.vidaSenzilla
-                    ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  !potFrugal
+                    ? 'cursor-not-allowed bg-slate-800 text-slate-500'
+                    : state.vidaSenzilla
+                      ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                 }`}
               >
-                <span>🌱 {t('pla.vidaSenzilla')}</span>
-                <span>{state.vidaSenzilla ? '✓' : ''}</span>
+                <span>
+                  {potFrugal ? '🌱' : '🔒'} {t('pla.vidaSenzilla')}
+                </span>
+                <span>{potFrugal && state.vidaSenzilla ? '✓' : ''}</span>
               </button>
             )}
-            {nivell === 'minim' && state.vidaSenzilla && (
+            {nivell === 'minim' && !potFrugal && (
+              <p className="mt-1 text-xs text-amber-400/80">
+                {t('pla.frugalitat.bloquejat', {
+                  nivell: nivellFrugalitat,
+                  llindar: FRUGALITAT_LLINDAR,
+                })}
+              </p>
+            )}
+            {nivell === 'minim' && potFrugal && state.vidaSenzilla && (
               <p className="mt-1 text-xs text-emerald-300/80">{t('pla.vidaSenzilla.nota')}</p>
             )}
             {benNivell !== 0 && (

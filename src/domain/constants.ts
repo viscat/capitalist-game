@@ -60,6 +60,11 @@ export const EDAT_FERTIL_MAX = 42
 /** Nombre màxim de fills. */
 export const MAX_FILLS = 3
 /**
+ * Nivell de frugalitat (0..100) mínim per poder viure de manera frugal sense penalització de
+ * benestar. Es guanya amb la formació (nivell acadèmic) i amb l'edat (saviesa/experiència).
+ */
+export const FRUGALITAT_LLINDAR = 75
+/**
  * Fracció de les despeses estructurals (lloguer/hipoteca + cost de vida) que assumeixes quan
  * vius en parella: l'altra persona cobreix la resta. < 1 perquè compartir abarateix (economies
  * d'escala de la llar), però no a la meitat exacta (part del consum segueix sent personal).
