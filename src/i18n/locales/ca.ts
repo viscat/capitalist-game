@@ -1107,6 +1107,12 @@ export const ca: Record<string, string> = {
   'familia.parella': 'Parella',
   'familia.fill': 'Fill/a',
   'familia.edat': '{anys} anys',
+  'event.fi_contracte_lloguer.title': 'No et renoven el contracte',
+  'event.fi_contracte_lloguer.desc':
+    'El propietari ven el pis i no et renova el lloguer. A corre-cuita, tornes a casa els pares mentre busques on viure.',
+  'event.desnonament.title': 'Desnonament',
+  'event.desnonament.desc':
+    'Les pujades de lloguer t’ofeguen i acabes fora del pis. Un cop dur: tornes a casa els pares.',
   'event.coneixer_parella.title': 'Una relació que arrela',
   'event.coneixer_parella.desc':
     'Coneixes algú amb qui compartir la vida. Formar parella no es compra amb el sou (pesa molt al benestar) i, a més, repartiu les despeses de la llar i obre la porta a tenir fills.',
