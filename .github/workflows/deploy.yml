@@ -22,6 +22,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    # Disponibles per al pas de notificació; el seu `if` els consulta per saltar-lo si no hi són.
+    env:
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -50,3 +54,26 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # Avís per correu quan el desplegament a producció acaba correctament.
+      # Cal configurar els secrets del repositori MAIL_USERNAME i MAIL_PASSWORD (per a Gmail,
+      # una "app password"). Si no hi són, el pas se salta i el desplegament no falla.
+      - name: Notifica per correu
+        if: ${{ success() && env.MAIL_USERNAME != '' && env.MAIL_PASSWORD != '' }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: Capitalist Game CI <${{ secrets.MAIL_USERNAME }}>
+          to: viscat88@gmail.com
+          subject: "✅ Capitalist Game desplegat a producció"
+          body: |
+            Nou desplegament de Capitalist Game a GitHub Pages.
+
+            Commit: ${{ github.sha }}
+            Missatge: ${{ github.event.head_commit.message }}
+            URL: ${{ steps.deployment.outputs.page_url }}
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
