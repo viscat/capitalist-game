@@ -71,6 +71,25 @@ describe('comprarCasa', () => {
     expect(liquidDespres).toBeLessThan(liquidAbans)
   })
 
+  it('es pot comprar més d’una casa (les hipoteques es combinen)', () => {
+    let s = ricCarrera()
+    s = {
+      ...s,
+      person: {
+        ...s.person,
+        patrimoni: { ...s.person.patrimoni, efectiu: 200_000, inversions: 100_000 },
+      },
+    }
+    s = comprarCasa(s, 'estudi', 30)
+    expect(s.person.patrimoni.cases.length).toBe(1)
+    const after = comprarCasa(s, 'estudi', 30)
+    expect(after.person.patrimoni.cases.length).toBe(2)
+    // La quota combinada és la suma de les dues hipoteques.
+    expect(after.habitatge?.hipoteca?.quotaAnual).toBeGreaterThan(
+      s.habitatge?.hipoteca?.quotaAnual ?? 0,
+    )
+  })
+
   it('no compra si no es pot pagar l’entrada', () => {
     const pobre = newGameAtCarrera('mitjana', 1) // poc líquid d'inici
     const after = comprarCasa(pobre, 'casa', 30)

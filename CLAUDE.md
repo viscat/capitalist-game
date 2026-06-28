@@ -132,6 +132,14 @@ Transicions (fites):
   amb `fraccioSenseAscens`): qui neix pobre mor pobre ~100%; treballador → treballador o pobre; etc.
   L'**herència en vida** (event `herencia_en_vida` → `EventEffect.llegatEnVidaDelta`) transfereix
   patrimoni als fills mentre vius (lliure de successions; acumulat a `GameState.llegatEnVida`).
+  En **continuar el llinatge**, l'herència es reparteix en tres: (1) l'**herència en vida** la
+  rep l'hereu d'entrada (patrimoni inicial: els regals que va rebre de petit); (2) l'**estat
+  líquid** a la mort (net de successions) i (3) les **cases** (s'hereten com a propietat) es
+  difereixen a `herenciaPendent` i arriben a l'edat de la mort del progenitor (`EventEffect.heretaCases`).
+- **Habitatge: múltiples cases.** Es pot comprar **més d'una casa** (`comprarCasa` no bloqueja si ja
+  ets propietari): les hipoteques es **combinen** en una de sola (deute i quota sumats) i el banc
+  mira el límit d'endeutament sobre el **total** de quotes. El preu de compra i el lloguer segueixen
+  l'**índex d'habitatge** (`factorHabitatge`/`indexHabitatge`), NO l'IPC.
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.

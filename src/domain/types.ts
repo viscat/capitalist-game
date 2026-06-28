@@ -208,6 +208,8 @@ export interface EventEffect {
   efectiu?: number
   /** Variació de la cartera d'inversió (estalvi/inversió de tota la vida). */
   inversions?: number
+  /** Cases (valors) que s'hereten com a PROPIETAT (p. ex. l'herència del progenitor). */
+  heretaCases?: number[]
   /** Xoc de mercat: variació percentual aplicada a la cartera d'inversió (p. ex. -0.3 = -30%). */
   mercatPct?: number
   /** Canvi persistent del sou mensual (fase laboral). */
@@ -436,7 +438,14 @@ export interface GameState {
    * l'herència al néixer, sinó a l'edat que tenies quan el teu progenitor (la generació
    * anterior) va morir. `import` = capital a rebre; `edat` = anys del fill en aquell moment.
    */
-  herenciaPendent?: { import: number; edat: number }
+  herenciaPendent?: {
+    /** Capital líquid a rebre (efectiu/inversions, net de successions). */
+    import: number
+    /** Cases (valors) que s'hereten com a PROPIETAT en aquell moment. */
+    cases?: number[]
+    /** Anys del fill quan el rep (= edat que tenia quan el progenitor va morir). */
+    edat: number
+  }
   /**
    * Patrimoni transferit als descendents EN VIDA (herència anticipada, lliure de successions).
    * Es reparteix entre els fills quan es continua amb un descendent. Absent = 0.

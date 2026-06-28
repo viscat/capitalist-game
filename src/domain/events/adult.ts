@@ -733,6 +733,7 @@ export const HERENCIA_DINASTIA_EVENTS: GameEvent[] = [
     weight: () => 1,
     resolve: (s) => ({
       inversions: s.herenciaPendent?.import ?? 0,
+      heretaCases: s.herenciaPendent?.cases,
       benestar: -10,
       vinclesDelta: -0.05,
       salutDelta: -2,

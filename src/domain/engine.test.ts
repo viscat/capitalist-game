@@ -277,6 +277,27 @@ describe('dinastia i herència', () => {
     expect(ric.patrimoni).toBeGreaterThan(0)
   })
 
+  it('la nova generació rep l’herència en vida d’entrada i les cases es difereixen', () => {
+    let s = newGameAtCarrera('mitjana', 3)
+    s = {
+      ...s,
+      fills: 1,
+      fillsNaixement: [30 * MESOS_PER_ANY],
+      llegatEnVida: 40_000,
+      person: {
+        ...s.person,
+        edatMesos: 60 * MESOS_PER_ANY,
+        stats: { benestar: 60, salut: 0 },
+        patrimoni: { efectiu: 0, inversions: 0, cases: [200_000] },
+      },
+    }
+    const gen2 = continuaGeneracio(s)
+    // L'herència EN VIDA es rep d'entrada (els regals que va fer el progenitor mentre vivia).
+    expect(gen2.person.patrimoni.inversions).toBeGreaterThan(0)
+    // Les CASES s'hereten com a propietat, diferides a l'edat de la mort del progenitor.
+    expect(gen2.herenciaPendent?.cases).toEqual([200_000])
+  })
+
   it('classeHereu: inèrcia de classe forta (cau lliure, puja gairebé mai)', () => {
     // Qui neix pobre, mor pobre encara que acumuli força (no n'hi ha prou per pujar).
     expect(classeHereu('pobra', 0)).toBe('pobra')
@@ -325,7 +346,7 @@ describe('dinastia i herència', () => {
     }
     const gen2 = continuaGeneracio(s)
     // El progenitor el va tenir als 30 i va morir als 60 → herència als 30 (no al néixer).
-    expect(gen2.herenciaPendent).toEqual({ import: expect.any(Number), edat: 30 })
+    expect(gen2.herenciaPendent).toMatchObject({ import: expect.any(Number), edat: 30 })
     expect(gen2.person.patrimoni.inversions).toBe(0) // no hereta al néixer
 
     // En arribar a l'edat de l'herència, es dispara l'esdeveniment previst i la rep.
