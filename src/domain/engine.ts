@@ -1193,10 +1193,12 @@ export function applyMilestoneChoice(
     itinerari: option.itinerari ?? state.itinerari,
     pendingMilestone: undefined,
   }
-  // Jubilació: deixes de treballar. El sou passa a 0 (la pensió, derivada de `salariBase`,
-  // és l'ingrés); s'esborren ofertes de feina pendents.
+  // Jubilació: deixes de treballar. La pensió (derivada de `salariBase`) és l'ingrés.
   if (option.lifeStage === 'jubilacio') {
     next.jubilat = true
+    // BASE REGULADORA = el sou que tenies en JUBILAR-TE (amb tots els augments de la carrera),
+    // no el sou inicial. Si arribes als 67 a l'atur, es manté l'última base coneguda.
+    if ((state.salari ?? 0) > 0) next.salariBase = state.salari
     next.salari = 0
     next.ofertesFeina = undefined
   }
