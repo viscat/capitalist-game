@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
@@ -17,10 +19,16 @@ export function moralitatIcon(moralitat: number): string {
   return n === 'bo' ? '😇' : n === 'malvat' ? '😈' : '😐'
 }
 
+type StatId = 'benestar' | 'salut' | 'moralitat' | 'academic' | 'vincles'
+
 /**
- * Els 4 stats vitals com a anells (icona + indicador circular), sempre visibles: benestar,
- * salut, nivell acadèmic i vincles. La salut pulsa en vermell quan el risc de mort és alt.
- * Cada anell registra el seu coachmark del tutorial.
+ * Els stats vitals com a anells (icona + indicador circular), sempre visibles: benestar, salut,
+ * moralitat, nivell acadèmic i vincles. La salut pulsa en vermell quan el risc de mort és alt.
+ *
+ * Cada anell és un BOTÓ: en tocar-lo (pensat per a mòbil, on no hi ha hover) s'obre una targeta
+ * explicativa amb el nom, el valor i què significa la stat. Tornar a tocar-lo o tocar fora la tanca.
+ * Així les ajudes són accessibles amb el dit, no només amb el ratolí (`title`). Cada anell registra
+ * també el seu coachmark del tutorial.
  */
 export function StatRings({
   benestar,
@@ -38,39 +46,114 @@ export function StatRings({
   size?: number
 }) {
   const { t } = useT()
-  const benestarRef = useCoachmark<HTMLDivElement>('benestar')
-  const salutRef = useCoachmark<HTMLDivElement>('salut')
-  const moralitatRef = useCoachmark<HTMLDivElement>('moralitat')
+  const benestarRef = useCoachmark<HTMLButtonElement>('benestar')
+  const salutRef = useCoachmark<HTMLButtonElement>('salut')
+  const moralitatRef = useCoachmark<HTMLButtonElement>('moralitat')
   // Acadèmic i vincles són sempre visibles, però el tutorial només surt quan ja són rellevants.
-  const academicRef = useCoachmark<HTMLDivElement>('academic', academic > 0)
-  const vinclesRef = useCoachmark<HTMLDivElement>('vincles', vincles > 0)
+  const academicRef = useCoachmark<HTMLButtonElement>('academic', academic > 0)
+  const vinclesRef = useCoachmark<HTMLButtonElement>('vincles', vincles > 0)
   const alerta = salutAlerta(salut)
 
+  // Quin stat té la targeta d'ajuda oberta (null = cap). Tocar a fora la tanca.
+  const [obert, setObert] = useState<StatId | null>(null)
+  const arrelRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!obert) return
+    const fora = (e: PointerEvent) => {
+      if (!arrelRef.current?.contains(e.target as Node)) setObert(null)
+    }
+    document.addEventListener('pointerdown', fora)
+    return () => document.removeEventListener('pointerdown', fora)
+  }, [obert])
+
+  const moralBanda = nivellMoralitat(moralitat)
+  const rings: {
+    id: StatId
+    icon: string
+    valor: number
+    valorText: string
+    ref: RefObject<HTMLButtonElement | null>
+    wrapClass?: string
+  }[] = [
+    {
+      id: 'benestar',
+      icon: '🙂',
+      valor: benestar,
+      valorText: `${Math.round(benestar)}/100`,
+      ref: benestarRef,
+    },
+    {
+      id: 'salut',
+      icon: '❤️',
+      valor: salut,
+      valorText: `${Math.round(salut)}/100`,
+      ref: salutRef,
+      wrapClass: alerta !== 'none' ? `salut-alerta-${alerta}` : undefined,
+    },
+    {
+      id: 'moralitat',
+      icon: moralitatIcon(moralitat),
+      valor: moralitat,
+      valorText: `${t(`moralitat.banda.${moralBanda}`)} · ${Math.round(moralitat)}/100`,
+      ref: moralitatRef,
+    },
+    {
+      id: 'academic',
+      icon: '🎓',
+      valor: academic * 100,
+      valorText: `${Math.round(academic * 100)}%`,
+      ref: academicRef,
+    },
+    {
+      id: 'vincles',
+      icon: '🤝',
+      valor: vincles * 100,
+      valorText: `${Math.round(vincles * 100)}%`,
+      ref: vinclesRef,
+    },
+  ]
+
+  const seleccionat = rings.find((r) => r.id === obert)
+
   return (
-    <div className="flex items-center gap-2">
-      <div ref={benestarRef}>
-        <StatRing value={benestar} icon="🙂" size={size} label={t('stat.benestar')} />
+    <div ref={arrelRef} className="relative">
+      <div className="flex items-center gap-2">
+        {rings.map((r) => (
+          <button
+            key={r.id}
+            ref={r.ref}
+            type="button"
+            onClick={() => setObert((prev) => (prev === r.id ? null : r.id))}
+            aria-label={`${t(`stat.${r.id}`)}: ${r.valorText}`}
+            aria-expanded={obert === r.id}
+            className={`rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent/60 ${
+              obert === r.id ? 'ring-2 ring-accent/50' : ''
+            } ${r.wrapClass ?? ''}`}
+          >
+            <StatRing value={r.valor} icon={r.icon} size={size} label={t(`stat.${r.id}`)} />
+          </button>
+        ))}
       </div>
-      <div
-        ref={salutRef}
-        className={alerta !== 'none' ? `salut-alerta-${alerta}` : undefined}
-      >
-        <StatRing value={salut} icon="❤️" size={size} label={t('stat.salut')} />
-      </div>
-      <div ref={moralitatRef}>
-        <StatRing
-          value={moralitat}
-          icon={moralitatIcon(moralitat)}
-          size={size}
-          label={t('stat.moralitat')}
-        />
-      </div>
-      <div ref={academicRef}>
-        <StatRing value={academic * 100} icon="🎓" size={size} label={t('stat.academic')} />
-      </div>
-      <div ref={vinclesRef}>
-        <StatRing value={vincles * 100} icon="🤝" size={size} label={t('stat.vincles')} />
-      </div>
+
+      {seleccionat && (
+        <div
+          role="status"
+          className="absolute left-0 right-0 top-full z-50 mt-2 animate-card-in rounded-xl border border-line/70 bg-bg2/95 p-3 text-left shadow-xl backdrop-blur-xl"
+        >
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-sm font-bold text-ink">
+              <span aria-hidden>{seleccionat.icon}</span>
+              {t(`stat.${seleccionat.id}`)}
+            </span>
+            <span className="text-xs font-semibold tabular-nums text-inksoft">
+              {seleccionat.valorText}
+            </span>
+          </div>
+          <p className="text-xs leading-relaxed text-inksoft">
+            {t(`stat.${seleccionat.id}.tip`)}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

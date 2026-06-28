@@ -2,6 +2,7 @@ import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { benestarColor, benestarLevelKey } from '../lib/format'
 import { moralitatIcon } from './StatRings'
+import { Tip } from './Tip'
 
 export function StatBar({
   benestar,
@@ -41,16 +42,13 @@ export function StatBar({
     <div className="rounded-xl bg-slate-800/60 p-4">
       <div className="mb-2 flex items-baseline justify-between">
         <span className="text-sm font-medium text-slate-300">
-          {t('stat.benestar')}
+          <Tip text={t('stat.benestar.tip')}>{t('stat.benestar')}</Tip>
         </span>
         <span className="text-sm text-slate-400">
           {t(benestarLevelKey(value))} · {value}/100
         </span>
       </div>
-      <div
-        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
-        title={t('stat.benestar.tip')}
-      >
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-700">
         <div
           className={`h-full rounded-full transition-all duration-500 ${benestarColor(value)}`}
           style={{ width: `${value}%` }}
@@ -58,13 +56,12 @@ export function StatBar({
       </div>
 
       <div className="mt-3 mb-2 flex items-baseline justify-between">
-        <span className="text-sm font-medium text-slate-300">❤️ {t('stat.salut')}</span>
+        <span className="text-sm font-medium text-slate-300">
+          <Tip text={t('stat.salut.tip')}>❤️ {t('stat.salut')}</Tip>
+        </span>
         <span className="text-sm text-slate-400">{salutVal}/100</span>
       </div>
-      <div
-        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
-        title={t('stat.salut.tip')}
-      >
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-700">
         <div
           className={`h-full rounded-full transition-all duration-500 ${benestarColor(salutVal)}`}
           style={{ width: `${salutVal}%` }}
@@ -73,16 +70,15 @@ export function StatBar({
 
       <div className="mt-3 mb-2 flex items-baseline justify-between">
         <span className="text-sm font-medium text-slate-300">
-          {moralitatIcon(moralVal)} {t('stat.moralitat')}
+          <Tip text={t('stat.moralitat.tip')}>
+            {moralitatIcon(moralVal)} {t('stat.moralitat')}
+          </Tip>
         </span>
         <span className="text-sm text-slate-400">
           {t(`moralitat.banda.${moralBanda}`)} · {moralVal}/100
         </span>
       </div>
-      <div
-        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
-        title={t('stat.moralitat.tip')}
-      >
+      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-700">
         <div
           className={`h-full rounded-full transition-all duration-500 ${benestarColor(moralVal)}`}
           style={{ width: `${moralVal}%` }}
@@ -97,8 +93,8 @@ export function StatBar({
         <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-2.5">
           {fills > 0 && (
             <div className="flex items-baseline justify-between text-xs">
-              <span className="text-slate-400" title={t('stat.fills.tip')}>
-                👶 {t('stat.fills')}
+              <span className="text-slate-400">
+                <Tip text={t('stat.fills.tip')}>👶 {t('stat.fills')}</Tip>
               </span>
               <span className="font-medium text-slate-200">{fills}</span>
             </div>
@@ -106,8 +102,8 @@ export function StatBar({
           {vinclesPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-400" title={t('stat.vincles.tip')}>
-                  🤝 {t('stat.vincles')}
+                <span className="text-slate-400">
+                  <Tip text={t('stat.vincles.tip')}>🤝 {t('stat.vincles')}</Tip>
                 </span>
                 <span className="text-slate-400">{vinclesPct}%</span>
               </div>
@@ -122,8 +118,8 @@ export function StatBar({
           {academicPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-400" title={t('stat.academic.tip')}>
-                  🎓 {t('stat.academic')}
+                <span className="text-slate-400">
+                  <Tip text={t('stat.academic.tip')}>🎓 {t('stat.academic')}</Tip>
                 </span>
                 <span className="text-slate-400">{academicPct}%</span>
               </div>
@@ -138,8 +134,8 @@ export function StatBar({
           {sindicatPct > 0 && (
             <div>
               <div className="flex items-baseline justify-between text-xs">
-                <span className="text-slate-400" title={t('stat.sindicat.tip')}>
-                  ✊ {t('stat.sindicat')}
+                <span className="text-slate-400">
+                  <Tip text={t('stat.sindicat.tip')}>✊ {t('stat.sindicat')}</Tip>
                 </span>
                 <span className="text-slate-400">{sindicatPct}%</span>
               </div>
@@ -153,8 +149,8 @@ export function StatBar({
           )}
           {sequela > 0 && (
             <div className="flex items-baseline justify-between text-xs">
-              <span className="text-red-300" title={t('stat.sequela.tip')}>
-                🩹 {t('stat.sequela')}
+              <span className="text-red-300">
+                <Tip text={t('stat.sequela.tip')}>🩹 {t('stat.sequela')}</Tip>
               </span>
               <span className="font-medium text-red-400">−{Math.round(sequela)}</span>
             </div>
