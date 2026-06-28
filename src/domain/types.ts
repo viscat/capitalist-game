@@ -357,6 +357,10 @@ export interface GameState {
   itinerari?: Itinerari
   /** Pressupost mensual actiu (fase laboral). */
   pressupost?: Budget
+  /** Acció fixa: inverteix cada any en SALUT (recupera salut a canvi d'un cost anual). */
+  inversioSalut?: boolean
+  /** Acció fixa: inverteix cada any en FORMACIÓ (puja el nivell acadèmic a canvi d'un cost anual). */
+  inversioFormacio?: boolean
   /** Pla d'estalvi i inversió anual actiu (fase de carrera). */
   plaInversio?: PlaInversio
   /** Nivell de vida triat (cost del dia a dia) a la fase adulta. Per defecte, mitjà. */

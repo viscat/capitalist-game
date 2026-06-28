@@ -10,11 +10,15 @@ import {
   EDAT_FI_UNIVERSITAT,
   EDAT_JUBILACIO,
   EDAT_RECTA_60,
+  COST_FORMACIO_ANUAL,
+  COST_SALUT_ANUAL,
   EDAT_REVISIO_50,
   FACTOR_DESPESA_PARELLA,
+  FORMACIO_INVERSIO_DELTA,
   IPC_INICIAL,
   MAX_FILLS,
   INTERES_DEUTE,
+  SALUT_INVERSIO_DELTA,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
   REVALORACIO_HABITATGE,
@@ -637,7 +641,10 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       (ambPares
         ? contribucioLlar(state.familia, net)
         : costVidaPropi(state.familia, habitatge, state.nivellVida)) * factorParella
-    const costVida = Math.round(costVidaReal * f)
+    // Accions fixes: inversió en salut i/o formació (cost anual nominal afegit a les necessitats).
+    const costSalut = state.inversioSalut ? Math.round(COST_SALUT_ANUAL * f) : 0
+    const costFormacio = state.inversioFormacio ? Math.round(COST_FORMACIO_ANUAL * f) : 0
+    const costVida = Math.round(costVidaReal * f) + costSalut + costFormacio
     const costHab = ambPares
       ? 0
       : Math.round(costHabitatgeAnualNet(habitatge, state.familia) * factorParella)
@@ -678,6 +685,17 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         aportat: aportatAcum,
       },
     ]
+    // Efecte de l'acció fixa de SALUT: recupera salut (ja n'has pagat el cost amb costVida).
+    if (state.inversioSalut) {
+      person = {
+        ...person,
+        stats: {
+          ...person.stats,
+          salut: clampSalut(person.stats.salut + SALUT_INVERSIO_DELTA),
+        },
+      }
+    }
+    // L'efecte de FORMACIÓ (puja el nivell acadèmic) s'aplica a `base` més avall (extraAcademic).
   } else {
     // Fases d'acció (adolescència / estudis postobligatoris): la paga i l'estipendi
     // es decideixen en mensual i s'ingressen per tot l'any (× 12).
@@ -778,6 +796,12 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     const sel = selectEvent(eventPool(state), state.familia, rngState, state.ultimEventId)
     event = sel.event
     nextRng = sel.rngState
+  }
+
+  // Formació contínua (acció fixa de la vida adulta): puja el nivell acadèmic cada any (ja
+  // n'has pagat el cost amb costVida). El nivell acadèmic alimenta la frugalitat i el benestar.
+  if ((stage === 'carrera' || stage === 'jubilacio') && state.inversioFormacio) {
+    accAcademic += FORMACIO_INVERSIO_DELTA
   }
 
   // Aplica els stats no monetaris acumulats per les accions (gating de vincles per deute,

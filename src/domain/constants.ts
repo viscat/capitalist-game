@@ -130,6 +130,17 @@ export const IMV_COBERTURA = 0.3
 /** Fracció del net que cobreix la prestació d'atur (depèn d'haver cotitzat). */
 export const PRESTACIO_ATUR_FRACCIO = 0.6
 
+// --- Inversió en salut i formació (accions fixes de la vida adulta) ---
+
+/** Cost anual (real, s'escala amb l'IPC) de cuidar la salut: gimnàs, revisions, bona alimentació. */
+export const COST_SALUT_ANUAL = 1800
+/** Punts de salut que recupera cada any qui hi inverteix (compensa part del declivi). */
+export const SALUT_INVERSIO_DELTA = 5
+/** Cost anual (real, s'escala amb l'IPC) de seguir formant-se al llarg de la vida. */
+export const COST_FORMACIO_ANUAL = 2200
+/** Increment anual de nivell acadèmic (0..1) per qui inverteix en formació contínua. */
+export const FORMACIO_INVERSIO_DELTA = 0.05
+
 // --- Rendiment anual de la inversió (fase de carrera) ---
 
 /** Rendiment anual de la cartera d'inversió = MIN + aleatori·RANG (mitjana ≈ +6%, volàtil). */

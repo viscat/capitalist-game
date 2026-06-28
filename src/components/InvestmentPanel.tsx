@@ -1,6 +1,8 @@
 import {
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
+  COST_FORMACIO_ANUAL,
+  COST_SALUT_ANUAL,
   FACTOR_DESPESA_PARELLA,
   FRUGALITAT_LLINDAR,
   INTERES_DEUTE,
@@ -48,7 +50,14 @@ const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 
 export function InvestmentPanel() {
   const { t } = useT()
-  const { state, setPla, setNivellVida, setVidaSenzilla } = useGame()
+  const {
+    state,
+    setPla,
+    setNivellVida,
+    setVidaSenzilla,
+    setInversioSalut,
+    setInversioFormacio,
+  } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('pla_inversio')
   const deuteRef = useCoachmark<HTMLDivElement>('deute')
   if (!state) return null
@@ -58,6 +67,9 @@ export function InvestmentPanel() {
   const f = factorIPC(state)
   const realIncome = state.jubilat ? pensioPublicaAnual(state) : ingressosAnualsCarrera(state)
   const income = Math.round(realIncome * f)
+  // Cost nominal de les accions fixes de salut i formació (s'encareixen amb l'IPC, com el motor).
+  const costSalutNominal = Math.round(COST_SALUT_ANUAL * f)
+  const costFormacioNominal = Math.round(COST_FORMACIO_ANUAL * f)
   const nivell = state.nivellVida ?? NIVELL_VIDA_DEFAULT
   // Viure amb els pares = un sol cost (contribució a la llar: manutenció + ajuda), sense
   // pagar el cost de vida a part ni triar-ne el nivell. Viure sol = cost de vida sencer
@@ -85,7 +97,10 @@ export function InvestmentPanel() {
   // despesa obligatòria de l'any, com l'habitatge.
   const costFills = costFillsAnual(state)
   const fillsDeps = fillsDependents(state)
-  const obligatori = costVida + costHab + costFills
+  // Accions fixes triades (salut/formació) compten com a despesa obligatòria de l'any.
+  const costSalut = state.inversioSalut ? costSalutNominal : 0
+  const costFormacio = state.inversioFormacio ? costFormacioNominal : 0
+  const obligatori = costVida + costHab + costFills + costSalut + costFormacio
   const efectiu = state.person.patrimoni.efectiu
   const inversionsActuals = state.person.patrimoni.inversions
   // Pots repartir el sou + els teus estalvis (efectiu + cartera), per damunt del sou.
@@ -307,6 +322,26 @@ export function InvestmentPanel() {
             />
           </div>
         ))}
+
+        {/* Accions fixes: invertir en salut i en formació (cost anual, milloren els stats). */}
+        <div className="space-y-2 border-t border-slate-700/60 pt-3">
+          <Toggle
+            on={Boolean(state.inversioSalut)}
+            icon="❤️‍🩹"
+            label={t('pla.inversioSalut')}
+            nota={t('pla.inversioSalut.nota', { cost: formatEuros(perMes(costSalutNominal)) })}
+            onClick={() => setInversioSalut(!state.inversioSalut)}
+          />
+          <Toggle
+            on={Boolean(state.inversioFormacio)}
+            icon="📚"
+            label={t('pla.inversioFormacio')}
+            nota={t('pla.inversioFormacio.nota', {
+              cost: formatEuros(perMes(costFormacioNominal)),
+            })}
+            onClick={() => setInversioFormacio(!state.inversioFormacio)}
+          />
+        </div>
       </div>
 
       <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-sm">
@@ -373,5 +408,39 @@ export function InvestmentPanel() {
 
       <p className="mt-3 text-xs text-slate-500">{t('pla.nota')}</p>
     </div>
+  )
+}
+
+/** Acció fixa de la vida adulta (inversió en salut / formació): un toggle amb cost i efecte. */
+function Toggle({
+  on,
+  icon,
+  label,
+  nota,
+  onClick,
+}: {
+  on: boolean
+  icon: string
+  label: string
+  nota: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left text-xs transition ${
+        on
+          ? 'bg-emerald-700/40 text-emerald-100 ring-1 ring-emerald-600/50'
+          : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
+      }`}
+    >
+      <span className="min-w-0">
+        <span className="block font-medium">
+          {icon} {label}
+        </span>
+        <span className="block text-[11px] text-slate-400">{nota}</span>
+      </span>
+      <span className="shrink-0 text-base">{on ? '✓' : '+'}</span>
+    </button>
   )
 }
