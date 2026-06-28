@@ -1,6 +1,67 @@
 import { ajutParesPuntual, augmentSou, escalaPerClasse, herenciaParesMort } from '../stats'
+import { rng } from '../rng'
 import { edatAnys } from '../time'
-import type { FamilyClass, GameEvent } from '../types'
+import type { FamilyClass, GameEvent, GameState } from '../types'
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v))
+
+/**
+ * EMPRENEDORIA: muntar un negoci. Via de mobilitat d'ALTA variància (i alt sostre): pot fer-te
+ * créixer el patrimoni per damunt del que permet un sou (acumulació de capital), però la majoria
+ * de negocis fracassen i et deixen pitjor. La probabilitat d'èxit puja amb el capital humà, els
+ * contactes (vincles) i el capital inicial → els rics arrisquen amb més xarxa (menys ruïna). És
+ * el "capitalista" que faltava: jugar bé + capital obre un sostre que el sou sol no dóna.
+ */
+export const NEGOCI_EVENTS: GameEvent[] = [
+  {
+    id: 'muntar_negoci',
+    category: 'economia',
+    titleKey: 'event.muntar_negoci.title',
+    descKey: 'event.muntar_negoci.desc',
+    weight: () => 0.4,
+    choices: [
+      {
+        id: 'muntar',
+        labelKey: 'event.muntar_negoci.choice.muntar',
+        effect: {},
+        resolve: (s: GameState) => {
+          const p = s.person.patrimoni
+          const capital = p.efectiu + p.inversions
+          const habilitat = clamp01(
+            (s.nivellAcademic ?? 0) * 0.4 +
+              (s.vinclesSocials ?? 0) * 0.3 +
+              clamp01(capital / 120_000) * 0.3,
+          )
+          const roll = rng(s.rngState + 9001).value
+          const pFracas = Math.max(0.12, 0.55 - habilitat * 0.4)
+          if (roll < pFracas) {
+            // Fracàs: perds part del capital invertit i un cop de benestar (no et deixa a zero).
+            return {
+              inversions: -Math.round(p.inversions * 0.3),
+              benestar: -8,
+              salutDelta: -1,
+            }
+          }
+          if (roll > 0.82) {
+            // Èxit gran: injecció de capital per damunt del que permet un sou (acumulació).
+            return {
+              inversions: Math.round(capital * 1.1 + 60_000),
+              benestar: 8,
+              vinclesDelta: 0.05,
+            }
+          }
+          // Resultat modest: el negoci tira, creixement contingut.
+          return { inversions: Math.round(capital * 0.2 + 4_000), benestar: 2 }
+        },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.muntar_negoci.choice.no',
+        effect: { benestar: 1 },
+      },
+    ],
+  },
+]
 
 // Probabilitat que la família d'origen et demani ajuda econòmica, per classe: alta per a
 // les llars precàries (la teva renda hi és necessària), gairebé nul·la per a les acomodades
@@ -256,6 +317,15 @@ export const CARRERA_EVENTS: GameEvent[] = [
     descKey: 'event.rally_mercat.desc',
     weight: () => 1.1,
     effect: { mercatPct: 0.18, benestar: 3 },
+  },
+  {
+    // Mercat de suma positiva: una feina ben feta crea valor i es reconeix (no tot és extracció).
+    id: 'projecte_exitos',
+    category: 'economia',
+    titleKey: 'event.projecte_exitos.title',
+    descKey: 'event.projecte_exitos.desc',
+    weight: () => 1.2,
+    effect: { salariDelta: 120, benestar: 6 },
   },
   {
     id: 'consell_inversio',
