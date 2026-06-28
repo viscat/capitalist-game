@@ -125,19 +125,31 @@ export function declividSalutAnual(
   salutCronica = 0,
   factorEpoca = 1,
 ): number {
-  // Edat: gairebé pla fins als 45, després accelera fort (envelliment). El pendent està
-  // calibrat amb l'esperança de vida (vegeu harness): un sa mor de vellesa cap als ~84.
-  const edatComp = (edat <= 45 ? 0.15 : 0.15 + (edat - 45) * 0.15) * factorEpoca
-  // Benestar: per sota de 45 erosiona (estrès/precarietat); per sobre, recupera (sostre suau).
-  // El càstig per benestar baix s'acota: la precarietat escurça la vida de forma notable, però
-  // no de cop —deixa marge perquè jugar bé (remuntar el benestar) allargui la vida—.
+  // Edat: gairebé pla fins als 50, accelera, i es DISPARA a la vellesa (terme quadràtic a partir
+  // dels ~72). Així ningú no viu gaire més enllà de ~90, encara que es cuidi molt: l'envelliment
+  // acaba dominant qualsevol recuperació. Calibrat amb el harness (un sa mor de vellesa cap als ~84).
+  const edatComp =
+    (0.1 + Math.max(0, edat - 50) * 0.16 + Math.max(0, edat - 72) ** 2 * 0.04) *
+    factorEpoca
+  // La RECUPERACIÓ (benestar alt) s'esvaeix amb l'edat: als ~85 ja no pots "remuntar" la salut
+  // com als 40 (el cos no respon igual). Per sota de 45 de benestar, en canvi, la precarietat
+  // sempre erosiona (l'estrès fa mal a qualsevol edat).
+  const recuperacioFactor = clamp(1 - Math.max(0, edat - 55) / 30, 0, 1)
   const benestarComp =
     benestar < 45
       ? Math.min((45 - benestar) * 0.06, 2.5)
-      : -Math.min((benestar - 45) * 0.05, 1.8)
+      : -Math.min((benestar - 45) * 0.05, 1.8) * recuperacioFactor
   // Seqüela crònica: cada punt de seqüela accelera una mica el declivi.
   const cronicaComp = salutCronica * 0.08
   return edatComp + benestarComp + cronicaComp
+}
+
+/**
+ * Factor d'eficàcia de la cura de la salut (gimnàs, revisions...) segons l'edat: plena de jove,
+ * s'esvaeix cap als ~85 (cuidar-se ajuda, però no et fa immortal). Multiplica `SALUT_INVERSIO_DELTA`.
+ */
+export function eficaciaCuraSalut(edat: number): number {
+  return clamp(1 - Math.max(0, edat - 55) / 30, 0, 1)
 }
 
 // --- Indicadors derivats del context familiar (0..1) ---

@@ -132,8 +132,13 @@ Transicions (fites):
   un precari molt abans), amb el **benestar baix** (estrès/precarietat) i amb els
   **esdeveniments de salut** (`EventEffect.salutDelta`; les malalties no pagades —descobert
   d'una despesa `category:'salut'`— fan mal extra). Acoblament bidireccional: salut baixa
-  rebaixa el benestar (`benestarPerSalut`). El **progrés mèdic** (`factorEsperancaVida`) allarga
-  la vida en èpoques futures → les generacions posteriors viuen més.
+  rebaixa el benestar (`benestarPerSalut`). El declivi d'edat **es dispara a la vellesa** (terme
+  quadràtic a partir dels ~72) i la **recuperació** (benestar alt, cura de la salut amb
+  `eficaciaCuraSalut`) **s'esvaeix amb l'edat**, així que **ningú no passa de ~90-95** per molt que
+  es cuidi (no hi ha centenaris; validat al harness). El **progrés mèdic** (`factorEsperancaVida`)
+  es fixa per l'**any de NAIXEMENT** (la medicina de la teva generació, constant tota la vida; NO
+  l'any corrent, que faria immortal qui arriba a dècades futures) → les generacions posteriors,
+  nascudes més tard, viuen una mica més.
 - **Dinastia (herència + continuació).** En morir amb fills, el `GameOver` ofereix
   **continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del
   naixement en una llar la riquesa de la qual és l'**herència per fill** (`llegatPerFill` =
