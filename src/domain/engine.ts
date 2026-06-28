@@ -878,6 +878,20 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     anysExperiencia,
     ipc,
     indexHabitatge,
+    // El sou té un TERRA derivat del capital humà: formar-se (puja el nivell acadèmic) aixeca
+    // aquest terra, així que el sou puja de manera FIABLE amb la formació (escala de baix risc,
+    // a diferència dels augments aleatoris). El sostre salarial (× IPC) s'aplica després a resolveEvent.
+    salari:
+      (stage === 'carrera' || stage === 'laboral') && (state.salari ?? 0) > 0
+        ? Math.max(
+            state.salari ?? 0,
+            salariAdultInicial(
+              state.familia,
+              state.teDiploma ?? false,
+              Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic)),
+            ),
+          )
+        : state.salari,
     nivellAcademic:
       accAcademic !== 0
         ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic))
