@@ -107,6 +107,12 @@ export const FACTOR_SERVEIS_PUBLICS: Record<
 }
 /** Quant erosiona el residu de precarietat un estat social ple (fracció màxima reduïble). */
 export const PRECARIETAT_EROSIO_SERVEIS = 0.6
+/**
+ * Cobertura pública MÀXIMA (amb règim ple) de les despeses greus de SALUT: la sanitat universal
+ * paga part de la factura mèdica. Escala amb `factorServeisPublics`, així que un estat fort fa el
+ * cop de malaltia molt menys ruïnós (i més simètric entre classes); un de residual amb prou feines.
+ */
+export const SANITAT_COBERTURA_MAX = 0.7
 
 // --- Acció col·lectiva (poder sindical) ---
 /**

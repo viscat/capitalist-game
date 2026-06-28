@@ -13,6 +13,7 @@ import {
   MORALITAT_MAX,
   MORALITAT_MIN,
   PRECARIETAT_EROSIO_SERVEIS,
+  SANITAT_COBERTURA_MAX,
   SINDICAT_SOU_BONUS,
   SOU_EMPLEATS,
   NIVELL_VIDA_DEFAULT,
@@ -302,6 +303,15 @@ export function factorHabitatge(state: GameState): number {
 /** Força dels serveis públics del món (0..1) segons el règim del benestar (palanca política). */
 export function factorServeisPublics(state: GameState): number {
   return FACTOR_SERVEIS_PUBLICS[state.regimPolitic ?? 'mixt']
+}
+
+/**
+ * Cobertura pública de les despeses greus de SALUT (sanitat universal): fracció de la factura
+ * mèdica que paga l'estat, escalada pel règim del benestar. Fa el cop de malaltia molt menys
+ * ruïnós sota un estat fort i gairebé inexistent sota un de residual.
+ */
+export function coberturaSanitariaPublica(state: GameState): number {
+  return factorServeisPublics(state) * SANITAT_COBERTURA_MAX
 }
 
 /** Poder sindical actual (0..1): organització col·lectiva acumulada. */
@@ -859,9 +869,12 @@ export function resolveDespesaGreu(
   person: Person,
   familia: Familia,
   cost: number,
+  coberturaPublica = 0,
 ): DespesaGreuResult {
   const patrimoni = { ...person.patrimoni }
-  let restant = cost
+  // La sanitat pública (segons el règim) paga part de la factura abans del matalàs familiar:
+  // el que cobreix l'estat ningú no l'ha d'avançar (ni esgota estalvis ni genera descobert).
+  let restant = Math.round(cost * (1 - clamp(coberturaPublica, 0, 0.95)))
 
   const pagaDe = (font: 'efectiu' | 'inversions') => {
     const real = Math.min(restant, patrimoni[font])

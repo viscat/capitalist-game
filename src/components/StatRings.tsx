@@ -28,7 +28,7 @@ export function StatRings({
   moralitat = 50,
   academic = 0,
   vincles = 0,
-  size = 42,
+  size = 38,
 }: {
   benestar: number
   salut: number
@@ -47,7 +47,7 @@ export function StatRings({
   const alerta = salutAlerta(salut)
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2">
       <div ref={benestarRef}>
         <StatRing value={benestar} icon="🙂" size={size} label={t('stat.benestar')} />
       </div>
