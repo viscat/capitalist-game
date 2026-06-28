@@ -3,6 +3,7 @@ import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEurosCompact } from '../lib/format'
 import { SalutAvis, StatRings } from './StatRings'
+import { Tip } from './Tip'
 
 /**
  * HUD superior compacte de joc (fix a dalt del shell): els 4 stats vitals com a anells
@@ -91,8 +92,10 @@ export function GameHud({
           >
             {formatEurosCompact(net)}
           </div>
-          <div className="text-[9px] uppercase tracking-wider text-inkfaint">
-            {t('patrimoni.total')}
+          <div className="flex justify-end text-[9px] uppercase tracking-wider text-inkfaint">
+            <Tip text={t('patrimoni.total.tip')} align="right">
+              {t('patrimoni.total')}
+            </Tip>
           </div>
         </div>
       </div>

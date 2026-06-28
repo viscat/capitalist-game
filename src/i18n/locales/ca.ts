@@ -170,6 +170,8 @@ export const ca: Record<string, string> = {
   'patrimoni.cases': 'Cases',
   'patrimoni.deute': 'Deute',
   'patrimoni.total': 'Patrimoni net',
+  'patrimoni.total.tip':
+    'Tot el que tens (efectiu + inversions + cases) menys el que deus (deute i hipoteca). Pot ser negatiu si deus més del que tens. Obre «Detalls» per veure’n el desglossament.',
   'patrimoni.bretxa':
     'Bretxa de gènere/origen: cobres ~{pct}% menys que algú altre amb el mateix currículum.',
 
