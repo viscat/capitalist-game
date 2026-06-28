@@ -90,8 +90,12 @@ export function declividSalutAnual(
   // calibrat amb l'esperança de vida (vegeu harness): un sa mor de vellesa cap als ~84.
   const edatComp = (edat <= 45 ? 0.15 : 0.15 + (edat - 45) * 0.15) * factorEpoca
   // Benestar: per sota de 45 erosiona (estrès/precarietat); per sobre, recupera (sostre suau).
+  // El càstig per benestar baix s'acota: la precarietat escurça la vida de forma notable, però
+  // no de cop —deixa marge perquè jugar bé (remuntar el benestar) allargui la vida—.
   const benestarComp =
-    benestar < 45 ? (45 - benestar) * 0.09 : -Math.min((benestar - 45) * 0.05, 1.8)
+    benestar < 45
+      ? Math.min((45 - benestar) * 0.06, 2.5)
+      : -Math.min((benestar - 45) * 0.05, 1.8)
   // Seqüela crònica: cada punt de seqüela accelera una mica el declivi.
   const cronicaComp = salutCronica * 0.08
   return edatComp + benestarComp + cronicaComp
@@ -397,9 +401,28 @@ export function adultBaselineBenestar(state: GameState): number {
   base -= state.salutCronica ?? 0
   // Cost ecològic del consum: un nivell de vida alt i l'acumulació material pesen una mica.
   base -= petjadaEcologicaBenestar(state.nivellVida, state.person.patrimoni.cases.length)
-  // Residu de precarietat de classe (rebaixa el sostre adult de les classes baixes).
-  base -= PRECARIETAT_BENESTAR_ADULT[state.familia.classe]
+  // Precarietat de classe EMERGENT (no etiqueta plana): comença com el residu de l'origen, però
+  // s'esvaeix si te'n surts —sortir del deute i construir un coixí real—. Així jugar bé (estabilitzar
+  // les finances) AIXECA el sostre del benestar; la crítica es manté (l'origen humil parteix amb el
+  // residu sencer i li costa molt més arribar-hi), però deixa de ser una condemna fixa per etiqueta.
+  base -= precarietatAdulta(state)
   return clampBenestar(Math.round(base))
+}
+
+/**
+ * Penalització de precarietat adulta segons l'origen, MODULADA per l'estabilitat financera actual.
+ * En deute o amb patrimoni negatiu: residu sencer (precarietat plena). Sense deute i amb un coixí
+ * real creixent: el residu s'encongeix fins a ~30%. Recompensa explícitament jugar bé.
+ */
+export function precarietatAdulta(state: GameState): number {
+  const residu = PRECARIETAT_BENESTAR_ADULT[state.familia.classe]
+  if (residu === 0) return 0
+  if ((state.person.patrimoni.deute ?? 0) > 0) return residu
+  const netReal = patrimoniTotal(state.person) / factorIPC(state)
+  if (netReal <= 0) return residu
+  // Coixí real: 0 € → 1 (residu sencer); 80.000 € reals → 0,3 (residu reduït al mínim).
+  const estabilitat = clamp(1 - netReal / 80_000, 0.3, 1)
+  return Math.round(residu * estabilitat)
 }
 
 // Primeres feines més precàries per a les classes baixes (menys contactes, feines
@@ -763,7 +786,7 @@ export function resolveDespesaGreu(
  */
 export function augmentSou(salari: number, benestar: number, edat = 35): number {
   const pct = 0.02 + (clampBenestar(benestar) / 100) * 0.08
-  const factorEdat = clamp(1 - (edat - 50) / 15, 0.2, 1)
+  const factorEdat = clamp(1 - (edat - 50) / 20, 0.5, 1)
   return Math.round((salari * pct * factorEdat) / 5) * 5
 }
 
@@ -835,13 +858,32 @@ export function aportacioFamiliarCarrera(familia: Familia, netMensual: number): 
  * sol, en canvi, deixes de fer aquesta aportació però pagues el cost de vida i l'habitatge
  * sencers.
  */
-export function contribucioLlar(familia: Familia, netMensual: number): number {
+export function contribucioLlar(
+  familia: Familia,
+  netMensual: number,
+  factorAportacio = 1,
+): number {
   const manutencio = costVidaPropi(familia, { tipus: 'amb_pares' }, 'mig')
-  const total = manutencio + aportacioFamiliarCarrera(familia, netMensual)
+  // La manutenció (el teu propi cost de viure a casa) la pagues sempre; l'aportació EXTRA per
+  // sostenir la família d'origen es modula (`factorAportacio`): pesa molt de jove i solter, i
+  // s'esvaeix amb l'edat i quan tens la teva pròpia família (que passa a ser prioritat).
+  const total =
+    manutencio + aportacioFamiliarCarrera(familia, netMensual) * factorAportacio
   // MAI per sobre del 100% del sou net: vius a casa dels pares, no pots aportar més del que
   // ingresses (el que falti per cobrir el cost real ja ho absorbeix la família).
   const netAnual = Math.max(0, netMensual) * MESOS_PER_ANY
   return Math.round(Math.min(total, netAnual))
+}
+
+/**
+ * Factor (0..1) de l'aportació EXTRA a la família d'origen. Màxim de jove i solter; s'esvaeix
+ * amb l'edat (cap als 45) i baixa quan tens parella o fills (la teva família té prioritat).
+ */
+export function factorAportacioLlar(state: GameState): number {
+  const edat = state.person.edatMesos / MESOS_PER_ANY
+  const perEdat = clamp(1 - Math.max(0, edat - 30) / 15, 0.15, 1)
+  const teFamiliaPropia = Boolean(state.parella) || (state.fills ?? 0) > 0
+  return perEdat * (teFamiliaPropia ? 0.4 : 1)
 }
 
 /**

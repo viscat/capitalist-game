@@ -15,6 +15,7 @@ import {
   newGame,
 } from '../engine'
 import { FAMILY_PRESET_ORDER } from '../family/presets'
+import { edatAnys } from '../time'
 import {
   defaultPlaInversio,
   factorIPC,
@@ -172,10 +173,22 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
 export interface SimOutcome {
   benestar: number
   patrimoni: number
+  /** Patrimoni net REAL (desinflat per l'IPC) — comparable entre èpoques. */
+  patrimoniReal: number
   salari: number
   teDiploma: boolean
   /** Classe econòmica en què mor (segons el patrimoni net REAL, desinflat per l'IPC). */
   classeFinal: FamilyClass
+  /** Edat a la mort. */
+  edatMort: number
+  /** Va morir amb deute de consum pendent. */
+  ambDeute: boolean
+  /** Va morir amb patrimoni net negatiu. */
+  netNegatiu: boolean
+  /** Va arribar a ser propietari d'habitatge. */
+  propietari: boolean
+  /** Va tenir fills. */
+  ambFills: boolean
 }
 
 /** Llavor decorrelacionada a partir d'un índex (evita seqüències correlacionades). */
@@ -197,14 +210,21 @@ export function simulateClass(
       policy,
     )
     const deuteHipoteca = final.habitatge?.hipoteca?.deute ?? 0
-    const netReal = (patrimoniTotal(final.person) - deuteHipoteca) / factorIPC(final)
+    const net = patrimoniTotal(final.person) - deuteHipoteca
+    const netReal = net / factorIPC(final)
     out.push({
       benestar: final.person.stats.benestar,
       patrimoni: patrimoniTotal(final.person),
+      patrimoniReal: Math.round(netReal),
       salari: final.salari ?? 0,
       teDiploma: !!final.teDiploma,
       // La classe en què mor: ancorada a l'origen (només es pot caure; pujar és quasi impossible).
       classeFinal: classeHereu(cls, netReal),
+      edatMort: edatAnys(final.person.edatMesos),
+      ambDeute: (final.person.patrimoni.deute ?? 0) > 0,
+      netNegatiu: net < 0,
+      propietari: final.person.patrimoni.cases.length > 0,
+      ambFills: (final.fills ?? 0) > 0,
     })
   }
   return out
@@ -246,6 +266,35 @@ export interface ClassSummary {
   cuaBenestar60: number
   /** Distribució de la classe econòmica en què MOREN (recompte per classe). */
   classeFinal: Record<FamilyClass, number>
+  /** Edat mediana a la mort. */
+  edatMortMediana: number
+  /** Fracció que arriben a la jubilació (67 anys). */
+  arribaA67: number
+  /** Fracció que mor amb deute de consum. */
+  ambDeute: number
+  /** Fracció que mor amb patrimoni net negatiu. */
+  netNegatiu: number
+  /** Fracció que arriba a ser propietari. */
+  propietari: number
+  /** Fracció que té fills. */
+  ambFills: number
+  /** Gini del patrimoni net REAL final (0 = igualtat, 1 = màxima desigualtat). */
+  giniPatrimoni: number
+  /** Patrimoni net REAL mitjà (desinflat). */
+  patrimoniRealMediana: number
+}
+
+/** Índex de Gini d'una llista de valors (es desplacen perquè no n'hi hagi de negatius). */
+function gini(valors: number[]): number {
+  if (valors.length === 0) return 0
+  const min = Math.min(0, ...valors)
+  const xs = valors.map((v) => v - min).sort((a, b) => a - b)
+  const n = xs.length
+  const suma = xs.reduce((a, b) => a + b, 0)
+  if (suma === 0) return 0
+  let acum = 0
+  for (let i = 0; i < n; i++) acum += (i + 1) * xs[i]
+  return Math.max(0, Math.min(1, (2 * acum) / (n * suma) - (n + 1) / n))
 }
 
 export function summarize(outcomes: SimOutcome[]): ClassSummary {
@@ -262,6 +311,14 @@ export function summarize(outcomes: SimOutcome[]): ClassSummary {
     patrimoniMediana: Math.round(median(p)),
     cuaBenestar60: fraction(b, (x) => x >= 60),
     classeFinal,
+    edatMortMediana: median(outcomes.map((o) => o.edatMort)),
+    arribaA67: fraction(outcomes.map((o) => o.edatMort), (x) => x >= 67),
+    ambDeute: fraction(outcomes.map((o) => (o.ambDeute ? 1 : 0)), (x) => x === 1),
+    netNegatiu: fraction(outcomes.map((o) => (o.netNegatiu ? 1 : 0)), (x) => x === 1),
+    propietari: fraction(outcomes.map((o) => (o.propietari ? 1 : 0)), (x) => x === 1),
+    ambFills: fraction(outcomes.map((o) => (o.ambFills ? 1 : 0)), (x) => x === 1),
+    giniPatrimoni: gini(outcomes.map((o) => o.patrimoniReal)),
+    patrimoniRealMediana: Math.round(median(outcomes.map((o) => o.patrimoniReal))),
   }
 }
 
