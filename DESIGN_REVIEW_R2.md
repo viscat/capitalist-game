@@ -149,3 +149,45 @@ fet d'esforçar-se en solitari.
 - **`PRECARIETAT_BENESTAR_ADULT`**: mantenir-la com a *límit superior sota un règim residual*, però
   que `factorServeisPublics` la pugui erosionar — si no, cap política no pot importar mai (el defecte
   fatal actual).
+
+---
+
+## 5. Ronda d'anàlisi — DESPRÉS de la Fase 1
+
+Panel de control (balance tester + els tres lents polítics) sobre el harness post-Fase 1.
+
+### Veredicte: la Fase 1 encerta la directiva
+"Crítica dura PERÒ jugar bé recompensa" ja es compleix i el gradient de classe es manté:
+- Millor joc (estudiar a fons): benestar medià **pobra 16** (abans ~2), p90 **49**, **19% arriben a 67**
+  (abans ~0%), **~50% pugen un graó** a treballadora. Treballadora 45 (puja a mitjana 69%). Mitjana
+  66, alta 78, rica 81, super-rica 82. Gradient monòton i pronunciat → la crítica es manté.
+- Joc passiu: el pobre segueix dur (benestar ~6-7, mort ~51-55, ~26-33% pugen) → l'origen pesa.
+- Es va arreglar la des-indexació (la causa que feia morir pobres fins i tot mitjana/alta).
+
+### Què queda coix (entra a Fase 2/3)
+1. **La MEDIANA del pobre amb bon joc encara és 16** (variància alta: medià 16 vs p90 49 → depèn
+   massa de la sort). Cal apujar el TERRA, no només la cua → Fase 2 (capital humà multiplicatiu).
+2. **El pobre passiu encara mor ~51-55** (acceptable com a crítica, vigilar que no sigui el modal).
+3. **Propietat d'habitatge 0% a totes les classes = forat del SIMULADOR** (el jugador simulat mai
+   compra/lloga). Cal afegir decisió d'habitatge al harness ABANS de tocar el balanç d'habitatge.
+4. **Mètriques que falten:** atribució de causa de mort (deute/salut/IPC), trajectòria d'ingrés real,
+   anys en deute, p10/p25 del millor joc, delta passiu-vs-actiu per classe.
+
+### Avís de SEQÜÈNCIA (consens fort del panel polític)
+Si les vies INDIVIDUALS (Fase 2: capital humà, emprenedoria) s'envien SOLES, l'única via d'ascens a
+pantalla és l'esforç individual → reintrodueix el missatge meritocràtic "esforça't més" que el joc
+critica. Guardes acordades:
+- La capa de **règim/serveis públics** (Fase 3) ha d'arribar després i ser una via d'ascens **igual o
+  més forta**; cal que `factorServeisPublics` pugui **erosionar** el residu de `precarietatAdulta`
+  (el "defecte fatal" ja marcat: cap política pot moure el sostre actualment).
+- **Tota ampliació de mobilitat es valida amb el harness** contra l'innegociable (l'origen és la
+  norma; l'escapada individual, rara/cara). No deixar que el bon joc aplani el gradient.
+- **Llegibilitat del PER QUÈ has PUJAT** (atribuir el guany a la font: esforç/herència/—més
+  endavant— acció col·lectiva/règim), no només del per què has caigut.
+
+### Refinament del pla per a la Fase 2
+- Capital humà MULTIPLICATIU per damunt del salari mínim + formació contínua amb retorn real
+  (`augmentSou`/`sostreSalari`/`ocupabilitat`), per apujar la MEDIANA del pobre (no només la cua).
+- Emprenedoria/risc que apuja sobretot la p90 (variància de ruïna ponderada per classe).
+- Afegir decisió d'habitatge (comprar/llogar) al jugador simulat + senyal de mercat de suma positiva.
+- Mantenir l'escapada individual acotada i harness-validada; preparar el ganxo `factorServeisPublics`.
