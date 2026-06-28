@@ -682,12 +682,12 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     const draw = rng(rngState)
     rngState = draw.state
     const f = factorIPC(state)
-    // Ingrés de l'any. El SOU NO va lligat a l'IPC (no s'indexa amb la inflació): es queda
-    // nominal i, per tant, perd poder adquisitiu amb els anys (estancament salarial). La
-    // PENSIÓ pública SÍ que s'indexa a l'IPC (revaloració), com a la realitat.
+    // Ingrés de l'any. Ni el SOU ni la PENSIÓ van lligats a l'IPC (no s'indexen amb la inflació):
+    // es queden nominals i, per tant, perden poder adquisitiu amb els anys (estancament salarial
+    // i pensions que no es revaloren). La pensió es deriva del sou de jubilar-se, també nominal.
     const income =
       stage === 'jubilacio'
-        ? Math.round(pensioPublicaAnual(state) * f)
+        ? pensioPublicaAnual(state)
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
           : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)

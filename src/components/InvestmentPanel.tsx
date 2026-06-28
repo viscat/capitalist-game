@@ -62,11 +62,11 @@ export function InvestmentPanel() {
   const deuteRef = useCoachmark<HTMLDivElement>('deute')
   if (!state) return null
 
-  // El model treballa en anual; el panell ho presenta tot en mensual. El SOU no s'indexa a
-  // l'IPC (es queda nominal); la PENSIÓ sí (×IPC), coherent amb el motor (`advanceTurn`).
+  // El model treballa en anual; el panell ho presenta tot en mensual. Ni el SOU ni la PENSIÓ
+  // s'indexen a l'IPC (es queden nominals), coherent amb el motor (`advanceTurn`).
   const f = factorIPC(state)
   const income = state.jubilat
-    ? Math.round(pensioPublicaAnual(state) * f)
+    ? pensioPublicaAnual(state)
     : ingressosAnualsCarrera(state)
   // Cost nominal de les accions fixes de salut i formació (s'encareixen amb l'IPC, com el motor).
   const costSalutNominal = Math.round(COST_SALUT_ANUAL * f)

@@ -48,11 +48,11 @@ export function GameOver() {
   const fills = state.fills ?? 0
   const llegat = llegatPerFill(state)
 
-  // Balanç de jubilació (final als 67): renda vs. necessitats, tot en euros NOMINALS d'aquell
-  // any (com es veu durant el joc). La pensió s'indexa a l'IPC i el cost de vida també; el
-  // patrimoni i l'habitatge ja són nominals. Així el que es mostra quadra amb el que cobraves.
+  // Balanç de jubilació: renda vs. necessitats, en euros d'aquell any (com es veu al joc). Ni el
+  // sou ni la pensió s'indexen a l'IPC (queden nominals); el cost de vida SÍ que s'encareix amb
+  // l'IPC (× f), igual que durant la carrera. Per això una pensió no indexada perd terreny.
   const f = factorIPC(state)
-  const pensioAnual = Math.round(pensioPublicaAnual(state) * f)
+  const pensioAnual = pensioPublicaAnual(state)
   const rendaPatrimoni = rendaPatrimoniAnual(state.person)
   const rendaAnual = pensioAnual + rendaPatrimoni
   const necessitatsAnual =
