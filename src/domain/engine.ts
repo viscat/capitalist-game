@@ -19,6 +19,8 @@ import {
   IPC_INICIAL,
   MAX_FILLS,
   INTERES_DEUTE,
+  MORALITAT_INICIAL,
+  MORALITAT_LLINDAR_BO,
   SALUT_INVERSIO_DELTA,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
@@ -40,13 +42,16 @@ import {
   AJUT_PARES_EVENTS,
   ATUR_ADULT_EVENTS,
   CARRERA_EVENTS,
+  DEPREDADOR_EVENTS,
   DESCENDENCIA_EVENTS,
   FILLS_EVENTS,
   HERENCIA_DINASTIA_EVENTS,
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
   LLOGUER_EVENTS,
+  MORAL_EVENTS,
   NEGOCI_EVENTS,
+  NEGOCI_GESTIO_EVENTS,
   PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
@@ -81,6 +86,8 @@ import {
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
+  dividendNegociAnual,
+  moralitatActual,
   factorAportacioLlar,
   factorServeisPublics,
   fillsDependents,
@@ -146,7 +153,11 @@ export function newGame(
   const familia = { ...preset.familia }
   const person: Person = {
     edatMesos: 0,
-    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
+    stats: {
+      benestar: familyBaselineBenestar(familia),
+      salut: SALUT_INICIAL,
+      moralitat: MORALITAT_INICIAL,
+    },
     patrimoni: emptyPatrimoni(),
   }
   return {
@@ -175,7 +186,11 @@ export function newGameAt16(
   const familia = { ...preset.familia }
   const person: Person = {
     edatMesos: EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY,
-    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
+    stats: {
+      benestar: familyBaselineBenestar(familia),
+      salut: SALUT_INICIAL,
+      moralitat: MORALITAT_INICIAL,
+    },
     patrimoni: { ...emptyPatrimoni(), efectiu: 250 },
   }
   return {
@@ -207,7 +222,7 @@ export function newGameAtCarrera(
   const salari = salariAdultInicial(familia, teDiploma)
   const person: Person = {
     edatMesos: EDAT_FI_UNIVERSITAT * MESOS_PER_ANY,
-    stats: { benestar: 55, salut: SALUT_INICIAL },
+    stats: { benestar: 55, salut: SALUT_INICIAL, moralitat: MORALITAT_INICIAL },
     patrimoni: { ...emptyPatrimoni(), efectiu: 3000, inversions: 2000 },
   }
   return {
@@ -337,7 +352,11 @@ export function continuaGeneracio(state: GameState): GameState {
 
   const person: Person = {
     edatMesos: 0,
-    stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
+    stats: {
+      benestar: familyBaselineBenestar(familia),
+      salut: SALUT_INICIAL,
+      moralitat: MORALITAT_INICIAL,
+    },
     patrimoni: { ...emptyPatrimoni(), inversions: inVidaPerFill },
   }
   const teHerenciaDiferida = liquidPerFill > 0 || casesHeretades.length > 0
@@ -457,10 +476,25 @@ function eventPool(state: GameState): GameEvent[] {
       // Amb un capital prou sòlid, pot sorgir l'oportunitat de muntar un negoci (alta variància,
       // alt sostre). Només per a qui ja té múscul financer: és la via d'acumulació de capital.
       if (
+        !state.negociActiu &&
         (state.salari ?? 0) > 0 &&
         state.person.patrimoni.efectiu + state.person.patrimoni.inversions >= 120_000
       ) {
         pool.push(...NEGOCI_EVENTS)
+      }
+      // Amb negoci propi: la decisió recurrent de quant pagues els empleats (explotació visible).
+      if (state.negociActiu) pool.push(...NEGOCI_GESTIO_EVENTS)
+      // Cruïlles morals (frau/solidaritat): sempre presents a la vida adulta.
+      pool.push(...MORAL_EVENTS)
+      // OPORTUNITATS DEPREDADORES: enriquir-se a costa dels altres. El sistema només les obre a
+      // qui ja NO és "bo" (moralitat per sota del llindar): la via depredadora es retroalimenta.
+      if (moralitatActual(state) < MORALITAT_LLINDAR_BO) {
+        // Desnonar/apujar el lloguer abusivament: només si tens més d'una casa (en llogues).
+        if (state.person.patrimoni.cases.length >= 2) {
+          pool.push(DEPREDADOR_EVENTS[0])
+        }
+        // Suborn a la feina: només amb feina.
+        if ((state.salari ?? 0) > 0) pool.push(DEPREDADOR_EVENTS[1])
       }
       // Sense parella encara: pot aparèixer l'oportunitat d'establir-ne una (requisit per als fills).
       if (!state.parella) pool.push(...PARELLA_EVENTS)
@@ -700,12 +734,16 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // Ingrés de l'any. Ni el SOU ni la PENSIÓ van lligats a l'IPC (no s'indexen amb la inflació):
     // es queden nominals i, per tant, perden poder adquisitiu amb els anys (estancament salarial
     // i pensions que no es revaloren). La pensió es deriva del sou de jubilar-se, també nominal.
-    const income =
+    const incomeFeina =
       stage === 'jubilacio'
         ? pensioPublicaAnual(state)
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
           : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
+    // Dividend del negoci propi (real → nominal amb l'IPC): el que t'enduus de més pagant menys
+    // els treballadors NO és creació de valor, és plusvàlua extreta. Suma a l'ingrés de l'any.
+    const dividend = dividendNegociAnual(state) * f
+    const income = incomeFeina + dividend
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
@@ -1168,6 +1206,16 @@ function resolveEvent(
     llegatEnVida = (state.llegatEnVida ?? 0) + donat
   }
 
+  // Negoci propi amb empleats (mecànica d'EXPLOTACIÓ visible): muntar-lo l'activa amb la
+  // política de sou neutral (mercat); la gestió posterior la canvia (i amb ella la moralitat i
+  // el dividend anual). Pagar menys els treballadors et deixa més dividend i menys moralitat.
+  const negociActiu = effect.marcaNegoci ? true : state.negociActiu
+  const souEmpleats = effect.souEmpleats
+    ? effect.souEmpleats
+    : effect.marcaNegoci
+      ? 'mercat'
+      : state.souEmpleats
+
   // Història de vida: una instantània per any (benestar, salut, patrimoni net) per dibuixar
   // l'evolució al resum final.
   const vidaHist = [
@@ -1200,6 +1248,8 @@ function resolveEvent(
     fillsNaixement,
     fillsNoms,
     llegatEnVida,
+    negociActiu,
+    souEmpleats,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],

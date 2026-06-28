@@ -32,6 +32,19 @@ export type NivellVida = 'minim' | 'mig' | 'alt'
 /** Règim del benestar del món (força de l'estat social). */
 export type RegimPolitic = 'residual' | 'mixt' | 'socialdemocrata'
 
+/**
+ * Política de sou que pagues als empleats del teu negoci. Com més baix els pagues, més
+ * dividend t'enduus tu (extreus més plusvàlua) però més baixa la moralitat; pagar bé costa
+ * benefici però apuja la moralitat. És la mecànica d'EXPLOTACIÓ feta visible.
+ */
+export type NivellSouEmpleats =
+  | 'precari'
+  | 'molt_baix'
+  | 'baix'
+  | 'mercat'
+  | 'alt'
+  | 'molt_alt'
+
 /** Qualitat d'una oferta de feina (determina sou i to). */
 export type QualitatOferta = 'precaria' | 'estandard' | 'bona'
 
@@ -130,7 +143,19 @@ export interface Stats {
    * persona mor (substitueix la mort per benestar 0). Comença a 100 (sa de naixement).
    */
   salut: number
+  /**
+   * Moralitat 0..100: l'eix ÈTIC de la vida (com tractes els altres, no quant tens). 0-33
+   * Malvat, 34-66 Neutral, 67-100 Bo. Comença a 50 (neutral). Les decisions la mouen: explotar
+   * (pagar precari als empleats, defraudar, especular, desnonar) la baixa; la solidaritat
+   * (pagar bé, donar, ajudar, cooperar) la puja. Sovint la via ràpida als diners costa
+   * moralitat: és la crítica al capitalisme feta mecànica. La moralitat OBRE i TANCA
+   * esdeveniments (les oportunitats depredadores només arriben a qui ja hi ha entrat).
+   */
+  moralitat: number
 }
+
+/** Banda moral derivada de la stat `moralitat`. */
+export type NivellMoralitat = 'malvat' | 'neutral' | 'bo'
 
 export interface Patrimoni {
   /** Diners líquids disponibles (caixa). */
@@ -228,6 +253,15 @@ export interface EventEffect {
    * Negatiu = empitjora la salut (acosta a la mort). Es clampa a 0..100 com el benestar.
    */
   salutDelta?: number
+  /**
+   * Variació de la moralitat (`Stats.moralitat`, 0..100): negatiu = acció egoista/explotadora;
+   * positiu = acció solidària/justa. Es clampa a 0..100.
+   */
+  moralitatDelta?: number
+  /** Fixa la política de sou dels empleats del teu negoci (canvia la moralitat i el dividend). */
+  souEmpleats?: NivellSouEmpleats
+  /** Marca que muntes un negoci amb empleats a càrrec (activa la gestió i el dividend anual). */
+  marcaNegoci?: boolean
   /**
    * Penalització CRÒNICA i duradora de benestar (incapacitat, seqüela permanent):
    * s'acumula a `GameState.salutCronica` i rebaixa la referència de benestar adult de
@@ -447,6 +481,17 @@ export interface GameState {
    * el propietari. A diferència de l'estalvi, és una via d'ascens COMPARTIDA. Absent = 0.
    */
   poderSindical?: number
+  /**
+   * Tens un NEGOCI propi amb empleats a càrrec (després d'un `muntar_negoci` reeixit). Activa
+   * la gestió del negoci: un dividend anual (`dividendNegociAnual`) que depèn de quant pagues
+   * els empleats (`souEmpleats`) i la decisió recurrent de fixar aquesta política. Absent = false.
+   */
+  negociActiu?: boolean
+  /**
+   * Política de sou que pagues als empleats del teu negoci. Com més baix, més dividend per a tu
+   * (més explotació) i menys moralitat. Absent = 'mercat' (neutral) mentre tinguis negoci.
+   */
+  souEmpleats?: NivellSouEmpleats
   /** Generació de la dinastia (1 = protagonista inicial; 2+ = descendents continuats). */
   generacio?: number
   /**

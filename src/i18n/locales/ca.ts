@@ -76,6 +76,9 @@ export const ca: Record<string, string> = {
   'tutorial.salut.title': 'La salut',
   'tutorial.salut.body':
     'La teva reserva de vida (0–100). Baixa amb l’edat, l’estrès i les malalties. Si arriba a 0, la partida acaba.',
+  'tutorial.moralitat.title': 'La moralitat',
+  'tutorial.moralitat.body':
+    'El teu eix ètic (0–100): Malvat, Neutral o Bo. Les teves decisions la mouen —explotar baixa, ajudar puja— i sovint guanyar diners ràpid en costa. Segons la teva banda, s’obren o es tanquen oportunitats.',
   'tutorial.diners.title': 'El patrimoni net',
   'tutorial.diners.body':
     'Tot el que tens menys el que deus. Obre «Detalls» per veure’n el desglossament: efectiu, estalvis, inversions i deute.',
@@ -134,6 +137,12 @@ export const ca: Record<string, string> = {
   'stat.salut': 'Salut',
   'stat.salut.tip':
     'La salut baixa amb l’edat, amb el benestar baix (estrès, ansietat) i amb les malalties (sobretot si no pots pagar els tractaments). Si arriba a 0, la persona mor.',
+  'stat.moralitat': 'Moralitat',
+  'stat.moralitat.tip':
+    'El teu eix ètic: com tractes els altres, no quant tens. Baixa quan explotes (pagar precari, defraudar, especular, desnonar) i puja amb la solidaritat (pagar bé, donar, ajudar, cooperar). Sovint la via ràpida als diners costa moralitat. Segons la teva banda, s’obren o es tanquen oportunitats.',
+  'moralitat.banda.malvat': 'Malvat',
+  'moralitat.banda.neutral': 'Neutral',
+  'moralitat.banda.bo': 'Bo',
   'stat.vincles': 'Vincles',
   'stat.vincles.tip':
     'Amistats, parella i comunitat. Una font de benestar que no es compra; pot sostenir una vida plena amb poc patrimoni. Es construeix amb decisions socials (i costa molt si vas endeutat).',
@@ -1042,6 +1051,46 @@ export const ca: Record<string, string> = {
     'Tens l’oportunitat d’emprendre. Pot multiplicar el teu patrimoni molt per damunt d’un sou… o fer-te fer figa. Com més formació, contactes i capital, més probabilitats d’èxit.',
   'event.muntar_negoci.choice.muntar': 'Arrisco i munto el negoci',
   'event.muntar_negoci.choice.no': 'Millor no arrisco',
+
+  // Gestió del negoci: la política de sou dels empleats (explotació visible).
+  'event.sou_empleats.title': 'Quant pagues els empleats?',
+  'event.sou_empleats.desc':
+    'El teu negoci tira gràcies a la gent que hi treballa. Decideixes què cobren: com menys els pagues, més dividend t’endús tu… però cada euro que t’estalvies surt de la seva butxaca. Què fas?',
+  'event.sou_empleats.choice.precari': 'Sous precaris — màxim benefici per a mi',
+  'event.sou_empleats.choice.molt_baix': 'Molt baixos',
+  'event.sou_empleats.choice.baix': 'Baixos',
+  'event.sou_empleats.choice.mercat': 'El que marca el mercat',
+  'event.sou_empleats.choice.alt': 'Bons sous — comparteixo el benefici',
+  'event.sou_empleats.choice.molt_alt': 'Sous molt alts i repartiment de beneficis',
+
+  // Cruïlles morals universals.
+  'event.frau_fiscal.title': 'Defraudar a Hisenda',
+  'event.frau_fiscal.desc':
+    'El teu gestor t’insinua una manera d’amagar ingressos i pagar molts menys impostos. És il·legal i deixa sense recursos els serveis públics, però ningú no se n’adonaria.',
+  'event.frau_fiscal.choice.defraudar': 'Defraudo: m’estalvio els diners',
+  'event.frau_fiscal.choice.pagar': 'Pago el que toca',
+  'event.donatiu_solidari.title': 'Una causa que importa',
+  'event.donatiu_solidari.desc':
+    'Una entitat que coneixes lluita per una bona causa i necessita finançament. Podries fer-hi una donació generosa.',
+  'event.donatiu_solidari.choice.donar': 'Hi dono {amount} €',
+  'event.donatiu_solidari.choice.passar': 'Ara no puc',
+  'event.voluntariat.title': 'Fer-te voluntari',
+  'event.voluntariat.desc':
+    'Et proposen dedicar unes hores a la setmana a ajudar els qui ho necessiten. No cobraràs res, però fa molt de bé (i te’n fa).',
+  'event.voluntariat.choice.apuntar': 'M’hi apunto',
+  'event.voluntariat.choice.no': 'No tinc temps',
+
+  // Oportunitats depredadores (només si la moralitat ja no és alta).
+  'event.desnonar_llogater.title': 'Pujar el lloguer o desnonar',
+  'event.desnonar_llogater.desc':
+    'Un dels teus pisos està llogat per sota del preu de mercat. Pots forçar-ne la sortida i tornar a llogar molt més car: és legal i molt rendible, però deixes una família al carrer.',
+  'event.desnonar_llogater.choice.desnonar': 'Els faig fora i apujo el lloguer',
+  'event.desnonar_llogater.choice.mantenir': 'Mantinc el lloguer assequible',
+  'event.suborn_feina.title': 'Un sobre per sota la taula',
+  'event.suborn_feina.desc':
+    'Un proveïdor t’ofereix una bona comissió si l’afavoreixes en una adjudicació. Diners fàcils a canvi de mirar cap a una altra banda.',
+  'event.suborn_feina.choice.acceptar': 'Accepto el suborn',
+  'event.suborn_feina.choice.denunciar': 'El denuncio',
 
   'event.consell_inversio.title': 'Un consell financer',
   'event.consell_inversio.desc':

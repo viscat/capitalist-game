@@ -10,8 +10,11 @@ import {
   benestarEstilDeVida,
   benestarNivellVida,
   clampBenestar,
+  clampMoralitat,
   cobreixVidaFamiliar,
   contribucioLlar,
+  dividendNegociAnual,
+  nivellMoralitat,
   costVidaAnual,
   costVidaPropi,
   creixementInversions,
@@ -45,7 +48,7 @@ import type { GameState, Patrimoni, Person } from './types'
 
 const person: Person = {
   edatMesos: 0,
-  stats: { benestar: 50, salut: 100 },
+  stats: { benestar: 50, salut: 100, moralitat: 50 },
   patrimoni: {
     efectiu: 0,
     inversions: 0,
@@ -70,7 +73,7 @@ describe('applyEffect', () => {
   })
 
   it('acota el benestar al màxim', () => {
-    const next = applyEffect({ ...person, stats: { benestar: 98, salut: 100 } }, { benestar: 10 })
+    const next = applyEffect({ ...person, stats: { benestar: 98, salut: 100, moralitat: 50 } }, { benestar: 10 })
     expect(next.stats.benestar).toBe(100)
   })
 
@@ -295,7 +298,7 @@ describe('augmentSou', () => {
 describe('applyBudgetYear — benestar segons la despesa', () => {
   const base = {
     ...person,
-    stats: { benestar: 50, salut: 100 },
+    stats: { benestar: 50, salut: 100, moralitat: 50 },
     patrimoni: {
       efectiu: 0,
       inversions: 0,
@@ -354,7 +357,7 @@ describe('aportacioMinima', () => {
 describe('resolveDespesaGreu (matalàs familiar)', () => {
   const ambEstalvi = (estalvi: number): Person => ({
     ...person,
-    stats: { benestar: 70, salut: 100 },
+    stats: { benestar: 70, salut: 100, moralitat: 50 },
     patrimoni: {
       efectiu: 0,
       inversions: estalvi,
@@ -438,7 +441,7 @@ describe('creixementInversions', () => {
 describe('applyCareerYear', () => {
   const adult: Person = {
     edatMesos: 22 * 12,
-    stats: { benestar: 50, salut: 100 },
+    stats: { benestar: 50, salut: 100, moralitat: 50 },
     patrimoni: patrimoniAmb({ efectiu: 20000 }),
   }
 
@@ -452,7 +455,7 @@ describe('applyCareerYear', () => {
   it('no genera deute encara que el pla superi el disponible', () => {
     const pobre: Person = {
       edatMesos: 22 * 12,
-      stats: { benestar: 50, salut: 100 },
+      stats: { benestar: 50, salut: 100, moralitat: 50 },
       patrimoni: patrimoniAmb({ efectiu: 0 }),
     }
     const pla = { oci: 0, inversions: 99999 }
@@ -474,7 +477,7 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
   const cap = 0
   const adult = (efectiu: number, estalvi: number, benestar = 60): Person => ({
     edatMesos: 22 * 12,
-    stats: { benestar, salut: 100 },
+    stats: { benestar, salut: 100, moralitat: 50 },
     patrimoni: patrimoniAmb({ efectiu, inversions: estalvi }),
   })
   const plaZero = { oci: cap, inversions: cap }
@@ -500,7 +503,7 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
   it('applyBudgetYear: gastar per sobre del sou tira de l’estalvi (no deute)', () => {
     const person: Person = {
       edatMesos: 16 * 12,
-      stats: { benestar: 50, salut: 100 },
+      stats: { benestar: 50, salut: 100, moralitat: 50 },
       patrimoni: patrimoniAmb({ efectiu: 0, inversions: 3000 }),
     }
     // Sou 100/mes però 300/mes d’oci → dèficit anual cobert venent inversions.
@@ -592,5 +595,40 @@ describe('nòmina: del brut al net', () => {
     expect(mes.net).toBeGreaterThan(0)
     // El net mensual és aproximadament el net anual entre 12.
     expect(Math.abs(mes.net - netAnual(24_000) / 12)).toBeLessThan(2)
+  })
+})
+
+describe('moralitat', () => {
+  it('clampMoralitat acota a 0..100', () => {
+    expect(clampMoralitat(-20)).toBe(0)
+    expect(clampMoralitat(140)).toBe(100)
+    expect(clampMoralitat(50)).toBe(50)
+  })
+
+  it('nivellMoralitat assigna les bandes Malvat/Neutral/Bo', () => {
+    expect(nivellMoralitat(0)).toBe('malvat')
+    expect(nivellMoralitat(33)).toBe('malvat')
+    expect(nivellMoralitat(34)).toBe('neutral')
+    expect(nivellMoralitat(66)).toBe('neutral')
+    expect(nivellMoralitat(67)).toBe('bo')
+    expect(nivellMoralitat(100)).toBe('bo')
+  })
+
+  it('applyEffect mou la moralitat i la clampa', () => {
+    const dolent = applyEffect(person, { moralitatDelta: -80 })
+    expect(dolent.stats.moralitat).toBe(0)
+    const bo = applyEffect(person, { moralitatDelta: 30 })
+    expect(bo.stats.moralitat).toBe(80)
+  })
+
+  it('el dividend del negoci puja com més baix pagues els empleats', () => {
+    const base: GameState = { negociActiu: true } as GameState
+    const precari = dividendNegociAnual({ ...base, souEmpleats: 'precari' })
+    const mercat = dividendNegociAnual({ ...base, souEmpleats: 'mercat' })
+    const moltAlt = dividendNegociAnual({ ...base, souEmpleats: 'molt_alt' })
+    expect(precari).toBeGreaterThan(mercat)
+    expect(mercat).toBeGreaterThan(moltAlt)
+    // Sense negoci, no hi ha dividend.
+    expect(dividendNegociAnual({} as GameState)).toBe(0)
   })
 })

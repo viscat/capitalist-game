@@ -55,6 +55,14 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       positive: v > 0,
     })
   }
+  if (effect.moralitatDelta) {
+    const v = effect.moralitatDelta
+    badges.push({
+      label: `⚖️ ${t('stat.moralitat')}`,
+      text: `${v > 0 ? '+' : ''}${v}`,
+      positive: v > 0,
+    })
+  }
   if (effect.mercatPct) {
     const pct = Math.round(effect.mercatPct * 100)
     badges.push({

@@ -23,6 +23,7 @@ const TUTORIAL_KEY = 'capitalist-game/tutorial/v1'
 export const TUTORIAL_ORDER = [
   'benestar',
   'salut',
+  'moralitat',
   'diners',
   'event_result',
   'event_choice',

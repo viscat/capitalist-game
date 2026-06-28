@@ -1,8 +1,39 @@
 // Constants de joc.
-import type { NivellVida } from './types'
+import type { NivellSouEmpleats, NivellVida } from './types'
 
 export const BENESTAR_MIN = 0
 export const BENESTAR_MAX = 100
+
+// --- Moralitat (0..100): eix ètic. 0-33 Malvat, 34-66 Neutral, 67-100 Bo. ---
+export const MORALITAT_MIN = 0
+export const MORALITAT_MAX = 100
+/** Moralitat inicial (neutral) al naixement. */
+export const MORALITAT_INICIAL = 50
+/** Llindar superior de la banda "malvat" (≤) i inferior de la banda "bo" (≥). */
+export const MORALITAT_LLINDAR_MALVAT = 33
+export const MORALITAT_LLINDAR_BO = 67
+
+// --- Negoci propi amb empleats (mecànica d'explotació visible) ---
+/**
+ * Dividend ANUAL base d'un negoci amb empleats (en euros reals, s'escala amb l'IPC). El que
+ * t'enduus de més pagant menys els treballadors NO és creació de valor: és plusvàlua extreta.
+ */
+export const DIVIDEND_NEGOCI_BASE = 12_000
+/**
+ * Per cada nivell de sou dels empleats: `dividend` = multiplicador sobre el dividend base (pagar
+ * menys → t'enduus més) i `moralitatDelta` = cop a la moralitat en triar/mantenir la política.
+ */
+export const SOU_EMPLEATS: Record<
+  NivellSouEmpleats,
+  { dividend: number; moralitatDelta: number }
+> = {
+  precari: { dividend: 2.2, moralitatDelta: -16 },
+  molt_baix: { dividend: 1.8, moralitatDelta: -10 },
+  baix: { dividend: 1.4, moralitatDelta: -5 },
+  mercat: { dividend: 1.0, moralitatDelta: 0 },
+  alt: { dividend: 0.55, moralitatDelta: +8 },
+  molt_alt: { dividend: 0.2, moralitatDelta: +14 },
+}
 
 // --- Salut (0..100): pool de mortalitat. Quan arriba a 0, la persona mor. ---
 export const SALUT_MIN = 0

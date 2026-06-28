@@ -14,6 +14,7 @@ export function GameHud({
   subtitol,
   benestar,
   salut,
+  moralitat = 50,
   academic = 0,
   vincles = 0,
   net,
@@ -28,6 +29,7 @@ export function GameHud({
   subtitol: string
   benestar: number
   salut: number
+  moralitat?: number
   academic?: number
   vincles?: number
   net: number
@@ -76,7 +78,13 @@ export function GameHud({
       </div>
 
       <div className="mx-auto mt-2 flex max-w-md items-center gap-3">
-        <StatRings benestar={benestar} salut={salut} academic={academic} vincles={vincles} />
+        <StatRings
+          benestar={benestar}
+          salut={salut}
+          moralitat={moralitat}
+          academic={academic}
+          vincles={vincles}
+        />
         <div ref={dinersRef} className="ml-auto text-right">
           <div
             className={`text-lg font-black tabular-nums ${net < 0 ? 'text-danger' : 'text-money'}`}

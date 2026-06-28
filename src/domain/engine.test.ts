@@ -184,7 +184,7 @@ describe('sou dinàmic i atur', () => {
 
   it('una despesa greu que no pots pagar baixa el benestar (família pobra)', () => {
     let s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
-    s = { ...s, person: { ...s.person, stats: { benestar: 70, salut: 100 } } }
+    s = { ...s, person: { ...s.person, stats: { benestar: 70, salut: 100, moralitat: 50 } } }
     const after = resolWith(s, [
       { id: 'a', labelKey: 'x', effect: { despesaGreu: 3000 } },
     ])
@@ -288,7 +288,7 @@ describe('dinastia i herència', () => {
       person: {
         ...s.person,
         edatMesos: 60 * MESOS_PER_ANY,
-        stats: { benestar: 60, salut: 0 },
+        stats: { benestar: 60, salut: 0, moralitat: 50 },
         patrimoni: { efectiu: 0, inversions: 0, cases: [200_000] },
       },
     }
@@ -342,7 +342,7 @@ describe('dinastia i herència', () => {
       person: {
         ...s.person,
         edatMesos: 60 * MESOS_PER_ANY,
-        stats: { benestar: 60, salut: 0 },
+        stats: { benestar: 60, salut: 0, moralitat: 50 },
         patrimoni: { ...s.person.patrimoni, inversions: 300_000 },
       },
     }
@@ -356,7 +356,7 @@ describe('dinastia i herència', () => {
       ...gen2,
       lifeStage: 'carrera' as const,
       salari: 0,
-      person: { ...gen2.person, edatMesos: 29 * MESOS_PER_ANY, stats: { benestar: 60, salut: 90 } },
+      person: { ...gen2.person, edatMesos: 29 * MESOS_PER_ANY, stats: { benestar: 60, salut: 90, moralitat: 50 } },
     }
     const after = advanceTurn(previ)
     expect(after.historial.at(-1)!.eventId).toBe('herencia_dinastia')
@@ -484,7 +484,7 @@ describe('mort (salut 0 = fi)', () => {
   it('quan la salut arriba a 0, la partida acaba marcada com a mort', () => {
     let s = laboralTreball()
     // Deixem la salut molt baixa i apliquem un cop que la porta a 0.
-    s = { ...s, person: { ...s.person, stats: { benestar: 50, salut: 6 } } }
+    s = { ...s, person: { ...s.person, stats: { benestar: 50, salut: 6, moralitat: 50 } } }
     const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { salutDelta: -10 } }])
     expect(after.person.stats.salut).toBe(0)
     expect(after.acabat).toBe(true)
@@ -493,7 +493,7 @@ describe('mort (salut 0 = fi)', () => {
 
   it('el benestar a 0 NO mata (només erosiona la salut)', () => {
     let s = laboralTreball()
-    s = { ...s, person: { ...s.person, stats: { benestar: 5, salut: 80 } } }
+    s = { ...s, person: { ...s.person, stats: { benestar: 5, salut: 80, moralitat: 50 } } }
     const after = resolWith(s, [{ id: 'a', labelKey: 'x', effect: { benestar: -20 } }])
     expect(after.person.stats.benestar).toBe(0)
     expect(after.acabat).toBe(false)
@@ -502,7 +502,7 @@ describe('mort (salut 0 = fi)', () => {
 
   it('avançar un any amb benestar baix degrada la salut', () => {
     let s = newGameAtCarrera('pobra', 4)
-    s = { ...s, person: { ...s.person, stats: { benestar: 10, salut: 80 } } }
+    s = { ...s, person: { ...s.person, stats: { benestar: 10, salut: 80, moralitat: 50 } } }
     const after = advanceTurn(s)
     expect(after.person.stats.salut).toBeLessThan(80)
   })
@@ -513,7 +513,7 @@ describe('mort (salut 0 = fi)', () => {
       ...s,
       person: {
         ...s.person,
-        stats: { benestar: 60, salut: 90 },
+        stats: { benestar: 60, salut: 90, moralitat: 50 },
         patrimoni: { ...s.person.patrimoni, efectiu: 0, inversions: 0 },
       },
     }
@@ -548,10 +548,13 @@ describe('vida fins a la mort (jubilació als 67)', () => {
       person: {
         ...s.person,
         edatMesos: 66 * MESOS_PER_ANY,
-        stats: { benestar: 70, salut: 90 },
+        stats: { benestar: 70, salut: 90, moralitat: 50 },
       },
     }
-    const after = advanceTurn(s)
+    let after = advanceTurn(s)
+    // Si el torn que creua els 67 porta un esdeveniment amb decisió, la fita es comprova en
+    // resoldre'l (mai se salta): resolem la decisió pendent abans d'esperar la fita.
+    if (after.pendingEvent) after = applyChoice(after, after.pendingEvent.choices![0].id)
     expect(after.acabat).toBe(false)
     expect(after.pendingMilestone).toBe('jubilacio')
     const jubilat = applyMilestoneChoice(after, 'jubilar')
@@ -715,5 +718,52 @@ describe('decisions', () => {
     const after = applyChoice(s, s.pendingEvent!.choices![0].id)
     expect(after.pendingEvent).toBeUndefined()
     expect(after.historial.at(-1)!.choiceLabelKey).toBeDefined()
+  })
+})
+
+describe('moralitat i negoci (explotació)', () => {
+  const carrera = (over: Partial<GameState> = {}): GameState => ({
+    ...newGameAtCarrera('mitjana', 11),
+    ...over,
+  })
+
+  it('muntar un negoci l’activa amb política de sou neutral (mercat)', () => {
+    const s = carrera()
+    const after = resolWith(s, [
+      { id: 'muntar', labelKey: 'l', effect: { marcaNegoci: true } },
+    ])
+    expect(after.negociActiu).toBe(true)
+    expect(after.souEmpleats).toBe('mercat')
+  })
+
+  it('pagar precari als empleats baixa la moralitat; pagar molt alt la puja', () => {
+    const base = carrera({ negociActiu: true, souEmpleats: 'mercat' })
+    const moralInicial = base.person.stats.moralitat
+    const precari = resolWith(base, [
+      { id: 'precari', labelKey: 'l', effect: { souEmpleats: 'precari', moralitatDelta: -16 } },
+    ])
+    expect(precari.souEmpleats).toBe('precari')
+    expect(precari.person.stats.moralitat).toBeLessThan(moralInicial)
+
+    const generos = resolWith(base, [
+      { id: 'molt_alt', labelKey: 'l', effect: { souEmpleats: 'molt_alt', moralitatDelta: 14 } },
+    ])
+    expect(generos.souEmpleats).toBe('molt_alt')
+    expect(generos.person.stats.moralitat).toBeGreaterThan(moralInicial)
+  })
+
+  it('pagar precari deixa MÉS diners a final d’any que pagar molt alt (plusvàlua extreta)', () => {
+    const base = carrera({
+      negociActiu: true,
+      salari: 2500,
+      habitatge: { tipus: 'amb_pares' },
+    })
+    const avancaAmb = (sou: GameState['souEmpleats']) => {
+      const s = { ...base, souEmpleats: sou }
+      let r = advanceTurn(s)
+      if (r.pendingEvent) r = applyChoice(r, r.pendingEvent.choices![0].id)
+      return r.person.patrimoni.efectiu + r.person.patrimoni.inversions
+    }
+    expect(avancaAmb('precari')).toBeGreaterThan(avancaAmb('molt_alt'))
   })
 })
