@@ -46,6 +46,7 @@ import {
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
   LLOGUER_EVENTS,
+  NEGOCI_EVENTS,
   PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
   UNIVERSITAT_EVENTS,
@@ -445,6 +446,14 @@ function eventPool(state: GameState): GameEvent[] {
       if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
       // De lloguer: inseguretat habitacional (fi de contracte, desnonament → perds el pis).
       if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
+      // Amb un capital prou sòlid, pot sorgir l'oportunitat de muntar un negoci (alta variància,
+      // alt sostre). Només per a qui ja té múscul financer: és la via d'acumulació de capital.
+      if (
+        (state.salari ?? 0) > 0 &&
+        state.person.patrimoni.efectiu + state.person.patrimoni.inversions >= 120_000
+      ) {
+        pool.push(...NEGOCI_EVENTS)
+      }
       // Sense parella encara: pot aparèixer l'oportunitat d'establir-ne una (requisit per als fills).
       if (!state.parella) pool.push(...PARELLA_EVENTS)
       // Dins de la finestra fèrtil, AMB PARELLA i sense haver arribat al màxim de fills, pot

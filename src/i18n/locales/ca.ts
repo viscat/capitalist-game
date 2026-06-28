@@ -1023,6 +1023,14 @@ export const ca: Record<string, string> = {
   'event.rally_mercat.title': 'La borsa s’enfila',
   'event.rally_mercat.desc':
     'Un bon any als mercats i el teu fons indexat puja amb força.',
+  'event.projecte_exitos.title': 'Un projecte que surt bé',
+  'event.projecte_exitos.desc':
+    'Una feina ben feta crea valor i es reconeix: et puja el sou i la moral.',
+  'event.muntar_negoci.title': 'Muntar un negoci',
+  'event.muntar_negoci.desc':
+    'Tens l’oportunitat d’emprendre. Pot multiplicar el teu patrimoni molt per damunt d’un sou… o fer-te fer figa. Com més formació, contactes i capital, més probabilitats d’èxit.',
+  'event.muntar_negoci.choice.muntar': 'Arrisco i munto el negoci',
+  'event.muntar_negoci.choice.no': 'Millor no arrisco',
 
   'event.consell_inversio.title': 'Un consell financer',
   'event.consell_inversio.desc':

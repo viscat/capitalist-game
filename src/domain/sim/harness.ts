@@ -110,6 +110,19 @@ function eventChoice(state: GameState): string {
       p.efectiu + p.inversions < 5000
     return precari ? 'no' : 'si'
   }
+  // Emprenedoria: un jugador raonable munta un negoci si té coixí (capital i sense deute) i és
+  // prou jove per recuperar-se d'un fracàs. És una aposta de mobilitat (alta variància).
+  if (state.pendingEvent?.id === 'muntar_negoci') {
+    const p = state.person.patrimoni
+    // Només qui ja va prou bé (coixí gran, sense deute, benestar alt, jove) fa l'aposta: la
+    // emprenedoria és per enfilar la cua, no una jugada desesperada que arruïna el qui va just.
+    const teCoixi =
+      (p.deute ?? 0) === 0 &&
+      p.efectiu + p.inversions >= 50_000 &&
+      state.person.stats.benestar > 55 &&
+      edatAnys(state.person.edatMesos) < 50
+    return teCoixi ? 'muntar' : 'no'
+  }
   let best = choices[0]
   let bestScore = -Infinity
   for (const c of choices) {
