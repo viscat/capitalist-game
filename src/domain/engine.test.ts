@@ -594,6 +594,26 @@ describe('universitat i carrera', () => {
     const after = advanceTurn(s)
     expect(after.anysExperiencia).toBe(1)
   })
+
+  it('invertir en salut recupera salut; invertir en formació puja el nivell acadèmic', () => {
+    const base = {
+      ...newGameAtCarrera('alta', 5),
+      plaInversio: { oci: 0, inversions: 0 },
+    }
+    base.person = {
+      ...base.person,
+      stats: { ...base.person.stats, salut: 60 },
+      patrimoni: { ...base.person.patrimoni, efectiu: 80_000 },
+    }
+    const sense = advanceTurn(base)
+    const amb = advanceTurn({ ...base, inversioSalut: true, inversioFormacio: true })
+    // La salut acaba més amunt invertint-hi (compensa part del declivi de l'any).
+    expect(amb.person.stats.salut).toBeGreaterThan(sense.person.stats.salut)
+    // El nivell acadèmic puja amb la formació contínua.
+    expect(amb.nivellAcademic ?? 0).toBeGreaterThan(base.nivellAcademic ?? 0)
+    // Té un cost: queda menys efectiu que sense invertir-hi.
+    expect(amb.person.patrimoni.efectiu).toBeLessThan(sense.person.patrimoni.efectiu)
+  })
 })
 
 describe('cerca de feina', () => {

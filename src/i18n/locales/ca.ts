@@ -430,6 +430,10 @@ export const ca: Record<string, string> = {
   'pla.inversions': 'Inversió',
   'pla.inversions.desc':
     'Inverteix per fer créixer el patrimoni. Puja i baixa, però a llarg termini compon.',
+  'pla.inversioSalut': 'Cuidar la salut',
+  'pla.inversioSalut.nota': 'Gimnàs, revisions, bon menjar · {cost}/mes → recuperes salut',
+  'pla.inversioFormacio': 'Seguir formant-me',
+  'pla.inversioFormacio.nota': 'Cursos i estudi · {cost}/mes → puja el nivell acadèmic',
   'pla.benestar': 'Benestar (oci)',
   'pla.benestar.min': 'Dedica almenys {min} a oci per no perdre benestar.',
   'pla.notaIndex': 'La inversió rendeix de mitjana ~{pct}% l’any, però amb sotracs.',

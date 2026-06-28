@@ -65,6 +65,10 @@ interface GameContextValue {
   setNivellVida: (nivell: NivellVida) => void
   /** Activa/desactiva la «vida senzilla» (frugalitat per elecció: el mínim no penalitza). */
   setVidaSenzilla: (vidaSenzilla: boolean) => void
+  /** Activa/desactiva la inversió anual en salut (acció fixa de la vida adulta). */
+  setInversioSalut: (v: boolean) => void
+  /** Activa/desactiva la inversió anual en formació (acció fixa de la vida adulta). */
+  setInversioFormacio: (v: boolean) => void
   /** Lloga una oferta concreta del mercat d'aquest any (per id). */
   llogar: (ofertaId: string) => void
   /** Compra un habitatge amb hipoteca (a `anys` anys). */
@@ -126,6 +130,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
       setVidaSenzilla: (vidaSenzilla) =>
         setState((s) => (s ? { ...s, vidaSenzilla } : s)),
+      setInversioSalut: (v) =>
+        setState((s) => (s ? { ...s, inversioSalut: v } : s)),
+      setInversioFormacio: (v) =>
+        setState((s) => (s ? { ...s, inversioFormacio: v } : s)),
       llogar: (ofertaId) => setState((s) => (s ? llogar(s, ofertaId) : s)),
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
