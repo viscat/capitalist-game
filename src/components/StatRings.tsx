@@ -1,3 +1,4 @@
+import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { StatRing } from './StatRing'
@@ -10,6 +11,12 @@ export function salutAlerta(salut: number): 'none' | 'baixa' | 'critica' | 'extr
   return 'none'
 }
 
+/** Icona moral segons la banda (Malvat 😈 / Neutral 😐 / Bo 😇). */
+export function moralitatIcon(moralitat: number): string {
+  const n = nivellMoralitat(moralitat)
+  return n === 'bo' ? '😇' : n === 'malvat' ? '😈' : '😐'
+}
+
 /**
  * Els 4 stats vitals com a anells (icona + indicador circular), sempre visibles: benestar,
  * salut, nivell acadèmic i vincles. La salut pulsa en vermell quan el risc de mort és alt.
@@ -18,12 +25,14 @@ export function salutAlerta(salut: number): 'none' | 'baixa' | 'critica' | 'extr
 export function StatRings({
   benestar,
   salut,
+  moralitat = 50,
   academic = 0,
   vincles = 0,
   size = 42,
 }: {
   benestar: number
   salut: number
+  moralitat?: number
   academic?: number
   vincles?: number
   size?: number
@@ -31,6 +40,7 @@ export function StatRings({
   const { t } = useT()
   const benestarRef = useCoachmark<HTMLDivElement>('benestar')
   const salutRef = useCoachmark<HTMLDivElement>('salut')
+  const moralitatRef = useCoachmark<HTMLDivElement>('moralitat')
   // Acadèmic i vincles són sempre visibles, però el tutorial només surt quan ja són rellevants.
   const academicRef = useCoachmark<HTMLDivElement>('academic', academic > 0)
   const vinclesRef = useCoachmark<HTMLDivElement>('vincles', vincles > 0)
@@ -46,6 +56,14 @@ export function StatRings({
         className={alerta !== 'none' ? `salut-alerta-${alerta}` : undefined}
       >
         <StatRing value={salut} icon="❤️" size={size} label={t('stat.salut')} />
+      </div>
+      <div ref={moralitatRef}>
+        <StatRing
+          value={moralitat}
+          icon={moralitatIcon(moralitat)}
+          size={size}
+          label={t('stat.moralitat')}
+        />
       </div>
       <div ref={academicRef}>
         <StatRing value={academic * 100} icon="🎓" size={size} label={t('stat.academic')} />

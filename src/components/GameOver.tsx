@@ -3,11 +3,13 @@ import {
   desglosBenestarAdult,
   factorIPC,
   llegatPerFill,
+  nivellMoralitat,
   patrimoniTotal,
   pensioPublicaAnual,
   rendaPatrimoniAnual,
   veredicteJubilacio,
 } from '../domain/stats'
+import { moralitatIcon } from './StatRings'
 import { costHabitatgeAnualNet } from '../domain/housing'
 import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
@@ -66,6 +68,7 @@ export function GameOver() {
   const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
 
   const salut = Math.round(state.person.stats.salut)
+  const moralitat = Math.round(state.person.stats.moralitat ?? 50)
 
   // Tipus de final. La MORT (salut 0) preval: una vida truncada. Si t'has jubilat (67), el
   // veredicte és el balanç econòmic de la jubilació, EXCEPTE si has fet una "vida plena"
@@ -140,6 +143,10 @@ export function GameOver() {
           </div>
           <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-3">
             <Line label={`❤️ ${t('stat.salut')}`} value={`${salut}/100`} />
+            <Line
+              label={`${moralitatIcon(moralitat)} ${t('stat.moralitat')}`}
+              value={`${t(`moralitat.banda.${nivellMoralitat(moralitat)}`)} · ${moralitat}/100`}
+            />
             <Line
               label={`🤝 ${t('stat.vincles')}`}
               value={`${Math.round(vincles * 100)}%`}

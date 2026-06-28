@@ -29,7 +29,7 @@ import type {
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
 // v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
-const STORAGE_KEY = 'capitalist-game/save/v13'
+const STORAGE_KEY = 'capitalist-game/save/v14'
 
 function loadSave(): GameState | null {
   try {

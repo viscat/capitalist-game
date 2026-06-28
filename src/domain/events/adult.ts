@@ -43,21 +43,201 @@ export const NEGOCI_EVENTS: GameEvent[] = [
             }
           }
           if (roll > 0.82) {
-            // Èxit gran: injecció de capital per damunt del que permet un sou (acumulació).
+            // Èxit gran: injecció de capital per damunt del que permet un sou (acumulació). El
+            // negoci queda actiu AMB EMPLEATS a càrrec: ara decidiràs quant els pagues.
             return {
               inversions: Math.round(capital * 1.1 + 60_000),
               benestar: 8,
               vinclesDelta: 0.05,
+              marcaNegoci: true,
             }
           }
-          // Resultat modest: el negoci tira, creixement contingut.
-          return { inversions: Math.round(capital * 0.2 + 4_000), benestar: 2 }
+          // Resultat modest: el negoci tira, creixement contingut, amb empleats a càrrec.
+          return {
+            inversions: Math.round(capital * 0.2 + 4_000),
+            benestar: 2,
+            marcaNegoci: true,
+          }
         },
       },
       {
         id: 'no',
         labelKey: 'event.muntar_negoci.choice.no',
         effect: { benestar: 1 },
+      },
+    ],
+  },
+]
+
+/**
+ * GESTIÓ DEL NEGOCI: la decisió central de l'empresari, quant paga els seus treballadors. És la
+ * mecànica d'EXPLOTACIÓ feta visible: pagar precari t'omple la butxaca (dividend alt via
+ * `dividendNegociAnual`) però t'enfonsa la moralitat; pagar bé costa benefici però et fa "bo".
+ * Apareix de manera recurrent mentre tinguis negoci (gating per `negociActiu` a `eventPool`).
+ */
+export const NEGOCI_GESTIO_EVENTS: GameEvent[] = [
+  {
+    id: 'sou_empleats',
+    category: 'economia',
+    titleKey: 'event.sou_empleats.title',
+    descKey: 'event.sou_empleats.desc',
+    weight: () => 2,
+    choices: [
+      {
+        id: 'precari',
+        labelKey: 'event.sou_empleats.choice.precari',
+        effect: { souEmpleats: 'precari', moralitatDelta: -16, benestar: 1 },
+      },
+      {
+        id: 'molt_baix',
+        labelKey: 'event.sou_empleats.choice.molt_baix',
+        effect: { souEmpleats: 'molt_baix', moralitatDelta: -10 },
+      },
+      {
+        id: 'baix',
+        labelKey: 'event.sou_empleats.choice.baix',
+        effect: { souEmpleats: 'baix', moralitatDelta: -5 },
+      },
+      {
+        id: 'mercat',
+        labelKey: 'event.sou_empleats.choice.mercat',
+        effect: { souEmpleats: 'mercat', moralitatDelta: 0 },
+      },
+      {
+        id: 'alt',
+        labelKey: 'event.sou_empleats.choice.alt',
+        effect: { souEmpleats: 'alt', moralitatDelta: 8, benestar: 2, vinclesDelta: 0.04 },
+      },
+      {
+        id: 'molt_alt',
+        labelKey: 'event.sou_empleats.choice.molt_alt',
+        effect: {
+          souEmpleats: 'molt_alt',
+          moralitatDelta: 14,
+          benestar: 3,
+          vinclesDelta: 0.06,
+        },
+      },
+    ],
+  },
+]
+
+/**
+ * DECISIONS MORALS de la vida adulta: cruïlles on la via ràpida als diners costa moralitat i la
+ * via justa costa diners. Disponibles a tothom (gating fi per banda moral a `eventPool`: les
+ * oportunitats clarament depredadores només arriben a qui ja s'hi ha endinsat). És la crítica
+ * feta mecànica: el sistema premia qui no té escrúpols, però guanyar-ho tot té un preu humà.
+ */
+export const MORAL_EVENTS: GameEvent[] = [
+  {
+    id: 'frau_fiscal',
+    category: 'economia',
+    titleKey: 'event.frau_fiscal.title',
+    descKey: 'event.frau_fiscal.desc',
+    weight: () => 1,
+    choices: [
+      {
+        id: 'defraudar',
+        labelKey: 'event.frau_fiscal.choice.defraudar',
+        // Estalvies impostos (diners ara) a canvi de moralitat i una mica d'angoixa.
+        effect: { efectiu: 6000, moralitatDelta: -12, benestar: -1 },
+      },
+      {
+        id: 'pagar',
+        labelKey: 'event.frau_fiscal.choice.pagar',
+        effect: { moralitatDelta: 3, benestar: 1 },
+      },
+    ],
+  },
+  {
+    id: 'donatiu_solidari',
+    category: 'familia',
+    titleKey: 'event.donatiu_solidari.title',
+    descKey: 'event.donatiu_solidari.desc',
+    params: { amount: 2000 },
+    weight: () => 1,
+    choices: [
+      {
+        id: 'donar',
+        labelKey: 'event.donatiu_solidari.choice.donar',
+        // Dones diners a una causa: et costa efectiu però puja moralitat, vincles i benestar.
+        effect: {
+          efectiu: -2000,
+          moralitatDelta: 9,
+          vinclesDelta: 0.06,
+          benestar: 3,
+        },
+      },
+      {
+        id: 'passar',
+        labelKey: 'event.donatiu_solidari.choice.passar',
+        effect: {},
+      },
+    ],
+  },
+  {
+    id: 'voluntariat',
+    category: 'familia',
+    titleKey: 'event.voluntariat.title',
+    descKey: 'event.voluntariat.desc',
+    weight: () => 1,
+    choices: [
+      {
+        id: 'apuntar',
+        labelKey: 'event.voluntariat.choice.apuntar',
+        effect: { moralitatDelta: 7, vinclesDelta: 0.08, benestar: 4 },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.voluntariat.choice.no',
+        effect: {},
+      },
+    ],
+  },
+]
+
+/**
+ * OPORTUNITATS DEPREDADORES: enriquir-se a costa dels altres. Només arriben a qui JA és
+ * Neutral-tirant-a-Malvat (gating per banda moral a `eventPool`): el sistema obre portes a qui
+ * no té escrúpols. Donen diners de debò, però enfonsen la moralitat.
+ */
+export const DEPREDADOR_EVENTS: GameEvent[] = [
+  {
+    id: 'desnonar_llogater',
+    category: 'economia',
+    titleKey: 'event.desnonar_llogater.title',
+    descKey: 'event.desnonar_llogater.desc',
+    // Només si ets propietari de més d'una casa (la lloguers): pujar el lloguer o desnonar.
+    weight: () => 1,
+    choices: [
+      {
+        id: 'desnonar',
+        labelKey: 'event.desnonar_llogater.choice.desnonar',
+        effect: { efectiu: 9000, moralitatDelta: -14, benestar: -1 },
+      },
+      {
+        id: 'mantenir',
+        labelKey: 'event.desnonar_llogater.choice.mantenir',
+        effect: { moralitatDelta: 4, benestar: 1 },
+      },
+    ],
+  },
+  {
+    id: 'suborn_feina',
+    category: 'economia',
+    titleKey: 'event.suborn_feina.title',
+    descKey: 'event.suborn_feina.desc',
+    weight: () => 1,
+    choices: [
+      {
+        id: 'acceptar',
+        labelKey: 'event.suborn_feina.choice.acceptar',
+        effect: { efectiu: 12000, moralitatDelta: -15, benestar: -2 },
+      },
+      {
+        id: 'denunciar',
+        labelKey: 'event.suborn_feina.choice.denunciar',
+        effect: { moralitatDelta: 8, benestar: -1, vinclesDelta: 0.03 },
       },
     ],
   },
@@ -468,7 +648,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
     titleKey: 'event.arrelar_comunitat.title',
     descKey: 'event.arrelar_comunitat.desc',
     weight: () => 1.1,
-    effect: { benestar: 3, vinclesDelta: 0.12 },
+    effect: { benestar: 3, vinclesDelta: 0.12, moralitatDelta: 2 },
   },
   {
     id: 'aillament',
@@ -489,7 +669,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
       {
         id: 'ajudar',
         labelKey: 'event.ajudar_familia_adult.choice.ajudar',
-        effect: { despesaGreu: 3000, benestar: 4 },
+        effect: { despesaGreu: 3000, benestar: 4, moralitatDelta: 4 },
       },
       {
         id: 'no_puc',
@@ -729,6 +909,7 @@ export const HERENCIA_VIDA_EVENTS: GameEvent[] = [
             llegatEnVidaDelta: Math.round((liquid * 0.3) / 100) * 100,
             benestar: 4,
             vinclesDelta: 0.05,
+            moralitatDelta: 3,
           }
         },
       },

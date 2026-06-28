@@ -34,6 +34,7 @@ export function MilestoneScreen() {
         <StatRings
           benestar={state.person.stats.benestar}
           salut={state.person.stats.salut}
+          moralitat={state.person.stats.moralitat}
           academic={state.nivellAcademic}
           vincles={state.vinclesSocials}
         />

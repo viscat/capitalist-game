@@ -1,9 +1,12 @@
+import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { benestarColor, benestarLevelKey } from '../lib/format'
+import { moralitatIcon } from './StatRings'
 
 export function StatBar({
   benestar,
   salut = 100,
+  moralitat = 50,
   vincles = 0,
   sequela = 0,
   academic = 0,
@@ -12,6 +15,8 @@ export function StatBar({
   benestar: number
   /** Salut 0..100 (pool de mortalitat: si arriba a 0, la persona mor). */
   salut?: number
+  /** Moralitat 0..100 (eix ètic: Malvat / Neutral / Bo). */
+  moralitat?: number
   /** Vincles socials 0..1 (font de benestar no monetària). */
   vincles?: number
   /** Penalització crònica de benestar acumulada (seqüeles). */
@@ -24,6 +29,8 @@ export function StatBar({
   const { t } = useT()
   const value = Math.round(benestar)
   const salutVal = Math.round(salut)
+  const moralVal = Math.round(moralitat)
+  const moralBanda = nivellMoralitat(moralVal)
   const vinclesPct = Math.round(vincles * 100)
   const academicPct = Math.round(academic * 100)
   return (
@@ -57,6 +64,24 @@ export function StatBar({
         <div
           className={`h-full rounded-full transition-all duration-500 ${benestarColor(salutVal)}`}
           style={{ width: `${salutVal}%` }}
+        />
+      </div>
+
+      <div className="mt-3 mb-2 flex items-baseline justify-between">
+        <span className="text-sm font-medium text-slate-300">
+          {moralitatIcon(moralVal)} {t('stat.moralitat')}
+        </span>
+        <span className="text-sm text-slate-400">
+          {t(`moralitat.banda.${moralBanda}`)} · {moralVal}/100
+        </span>
+      </div>
+      <div
+        className="h-3 w-full overflow-hidden rounded-full bg-slate-700"
+        title={t('stat.moralitat.tip')}
+      >
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${benestarColor(moralVal)}`}
+          style={{ width: `${moralVal}%` }}
         />
       </div>
 

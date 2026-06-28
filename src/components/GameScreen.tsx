@@ -54,6 +54,7 @@ export function GameScreen() {
       subtitol={subtitol}
       benestar={person.stats.benestar}
       salut={person.stats.salut}
+      moralitat={person.stats.moralitat}
       academic={state.nivellAcademic}
       vincles={state.vinclesSocials}
       net={net}
@@ -117,6 +118,7 @@ export function GameScreen() {
           <StatBar
             benestar={person.stats.benestar}
             salut={person.stats.salut}
+            moralitat={person.stats.moralitat}
             vincles={state.vinclesSocials}
             sequela={state.salutCronica}
             academic={state.nivellAcademic}

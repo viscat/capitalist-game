@@ -150,6 +150,21 @@ Transicions (fites):
   harness (`simulateClass(..., regimPolitic)`): el pobre PASSIU puja de benestar ~8→16 i la
   supervivència als 67 quasi es triplica només canviant de règim. Missatge: les regles són
   contingents (política), no naturals.
+- **Moralitat (eix ÈTIC, `Stats.moralitat` 0..100).** Tercera stat al costat de benestar i salut:
+  **0-33 Malvat, 34-66 Neutral, 67-100 Bo** (`nivellMoralitat`); comença a 50. Es mou amb
+  `EventEffect.moralitatDelta` (clampada a `applyEffect`). **Explotar** la baixa (pagar precari als
+  empleats, `frau_fiscal`, `desnonar_llogater`, `suborn_feina`); la **solidaritat** la puja
+  (`donatiu_solidari`, `voluntariat`, ajudar la família, herència en vida). El **keystone** és el
+  **negoci propi amb empleats**: un `muntar_negoci` reeixit posa `negociActiu=true`; després, l'event
+  recurrent `sou_empleats` (pool `NEGOCI_GESTIO_EVENTS`, gating per `negociActiu`) fixa
+  `state.souEmpleats` (precari→molt_alt). Com més baix pagues, més **dividend anual**
+  (`dividendNegociAnual`, sumat a l'ingrés a `advanceTurn`) i menys moralitat: la **plusvàlua
+  extreta** feta mecànica. La moralitat **OBRE/TANCA esdeveniments**: les `DEPREDADOR_EVENTS`
+  (desnonar, suborn) només entren al pool si `moralitat < MORALITAT_LLINDAR_BO` (el sistema premia
+  qui ja no té escrúpols). UI: anell ⚖️ al HUD (`StatRings`/`StatRing`), barra a `StatBar`, badge a
+  `EffectList` i resum a `GameOver`. La moralitat NO és una palanca de supervivència econòmica (la
+  corba de classe no en depèn): és l'eix d'**expressió de valors** i la crítica «el sistema premia
+  la crueltat». No es transmet a la dinastia (cada generació comença neutral).
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.
@@ -212,6 +227,8 @@ Punts clau perquè res no es bloquegi:
   ràpidament la salut.
 - **La salut sempre 0..100** (`clampSalut`). **Arribar a 0 = mort** (fi de partida a qualsevol
   edat). És el pool de mortalitat: edat + benestar baix + malalties.
+- **La moralitat sempre 0..100** (`clampMoralitat`). No té cap efecte letal ni de supervivència
+  econòmica: és l'eix de valors (Malvat/Neutral/Bo) i de gating d'esdeveniments.
 
 ## Model econòmic i de benestar (la “física” del joc)
 

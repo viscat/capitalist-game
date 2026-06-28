@@ -5,8 +5,15 @@ import {
   COST_FILL_ANUAL,
   COST_VIDA_NIVELLS,
   DEPENDENCIA_FILLS_ANYS,
+  DIVIDEND_NEGOCI_BASE,
   FACTOR_SERVEIS_PUBLICS,
+  MORALITAT_INICIAL,
+  MORALITAT_LLINDAR_BO,
+  MORALITAT_LLINDAR_MALVAT,
+  MORALITAT_MAX,
+  MORALITAT_MIN,
   PRECARIETAT_EROSIO_SERVEIS,
+  SOU_EMPLEATS,
   NIVELL_VIDA_DEFAULT,
   FRUGALITAT_LLINDAR,
   HABITATGE_VAR_MAX,
@@ -42,6 +49,7 @@ import type {
   Habitatge,
   Identitat,
   Itinerari,
+  NivellMoralitat,
   NivellVida,
   Origen,
   Patrimoni,
@@ -59,6 +67,33 @@ export function clampBenestar(value: number): number {
 
 export function clampSalut(value: number): number {
   return clamp(value, SALUT_MIN, SALUT_MAX)
+}
+
+export function clampMoralitat(value: number): number {
+  return clamp(value, MORALITAT_MIN, MORALITAT_MAX)
+}
+
+/** Banda moral (Malvat/Neutral/Bo) a partir de la stat de moralitat. */
+export function nivellMoralitat(moralitat: number): NivellMoralitat {
+  if (moralitat <= MORALITAT_LLINDAR_MALVAT) return 'malvat'
+  if (moralitat >= MORALITAT_LLINDAR_BO) return 'bo'
+  return 'neutral'
+}
+
+/** Moralitat actual de l'estat (per defecte neutral si una partida vella no en té). */
+export function moralitatActual(state: GameState): number {
+  return state.person.stats.moralitat ?? MORALITAT_INICIAL
+}
+
+/**
+ * Dividend ANUAL (real) del negoci propi segons la política de sou dels empleats: pagar menys
+ * els treballadors et deixa MÉS dividend (plusvàlua extreta). En euros nominals si es multiplica
+ * pel factor IPC a `applyCareerYear`.
+ */
+export function dividendNegociAnual(state: GameState): number {
+  if (!state.negociActiu) return 0
+  const nivell = state.souEmpleats ?? 'mercat'
+  return Math.round(DIVIDEND_NEGOCI_BASE * SOU_EMPLEATS[nivell].dividend)
 }
 
 /**
@@ -222,6 +257,10 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
   const stats = { ...person.stats }
   if (effect.benestar) stats.benestar = clampBenestar(stats.benestar + effect.benestar)
   if (effect.salutDelta) stats.salut = clampSalut(stats.salut + effect.salutDelta)
+  if (effect.moralitatDelta)
+    stats.moralitat = clampMoralitat(
+      (stats.moralitat ?? MORALITAT_INICIAL) + effect.moralitatDelta,
+    )
 
   return { ...person, stats, patrimoni }
 }
