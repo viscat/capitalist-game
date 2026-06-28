@@ -120,6 +120,7 @@ export function GameScreen() {
             salut={person.stats.salut}
             moralitat={person.stats.moralitat}
             vincles={state.vinclesSocials}
+            sindicat={state.poderSindical}
             sequela={state.salutCronica}
             academic={state.nivellAcademic}
             fills={state.fills}

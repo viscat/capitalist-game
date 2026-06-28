@@ -150,6 +150,15 @@ Transicions (fites):
   harness (`simulateClass(..., regimPolitic)`): el pobre PASSIU puja de benestar ~8→16 i la
   supervivència als 67 quasi es triplica només canviant de règim. Missatge: les regles són
   contingents (política), no naturals.
+- **Acció col·lectiva (`GameState.poderSindical` 0..1, Fase 3).** Via d'ascens **COMPARTIDA**
+  (no individual, a diferència de l'estalvi o el negoci propi). Es construeix amb els
+  `SINDICAT_EVENTS` (`afiliar_sindicat`, `vaga` → `EventEffect.poderSindicalDelta`) i **decau**
+  `SINDICAT_DECAIMENT_ANUAL` cada any si no es manté. Efectes: (1) `factorSindical(state)`
+  (`1 + poder × SINDICAT_SOU_BONUS`) apuja el **terra** (`salariAdultInicial` a `base.salari`) i el
+  **sostre** salarial (a `resolveEvent`); (2) per sobre de `SINDICAT_PROTECCIO_LLINDAR`, el motor
+  **treu `acomiadament`** del pool (`removeById`): la força organitzada protegeix la feina. Gating
+  per tenir feina (`salari>0`). NO es transmet a la dinastia (és organització personal). És el
+  contrapès al poder del propietari (l'altra cara de la mecànica d'explotació del negoci).
 - **Moralitat (eix ÈTIC, `Stats.moralitat` 0..100).** Tercera stat al costat de benestar i salut:
   **0-33 Malvat, 34-66 Neutral, 67-100 Bo** (`nivellMoralitat`); comença a 50. Es mou amb
   `EventEffect.moralitatDelta` (clampada a `applyEffect`). **Explotar** la baixa (pagar precari als

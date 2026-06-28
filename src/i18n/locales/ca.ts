@@ -140,6 +140,9 @@ export const ca: Record<string, string> = {
   'stat.moralitat': 'Moralitat',
   'stat.moralitat.tip':
     'El teu eix ètic: com tractes els altres, no quant tens. Baixa quan explotes (pagar precari, defraudar, especular, desnonar) i puja amb la solidaritat (pagar bé, donar, ajudar, cooperar). Sovint la via ràpida als diners costa moralitat. Segons la teva banda, s’obren o es tanquen oportunitats.',
+  'stat.sindicat': 'Poder sindical',
+  'stat.sindicat.tip':
+    'Organització col·lectiva. A diferència de l’estalvi o el negoci (vies individuals), és una via COMPARTIDA: protegeix la feina dels acomiadaments i apuja els salaris de tothom qui s’hi organitza. Es construeix sindicant-se i secundant vagues, i decau si no es manté.',
   'moralitat.banda.malvat': 'Malvat',
   'moralitat.banda.neutral': 'Neutral',
   'moralitat.banda.bo': 'Bo',
@@ -1091,6 +1094,18 @@ export const ca: Record<string, string> = {
     'Un proveïdor t’ofereix una bona comissió si l’afavoreixes en una adjudicació. Diners fàcils a canvi de mirar cap a una altra banda.',
   'event.suborn_feina.choice.acceptar': 'Accepto el suborn',
   'event.suborn_feina.choice.denunciar': 'El denuncio',
+
+  // Acció col·lectiva (sindicat, vagues).
+  'event.afiliar_sindicat.title': 'Sindicar-te',
+  'event.afiliar_sindicat.desc':
+    'Els companys de feina t’animen a afiliar-te al sindicat. Sol no pots gaire, però junts podeu negociar millors condicions i protegir-vos els uns als altres. Què fas?',
+  'event.afiliar_sindicat.choice.afiliar': 'M’hi afilio',
+  'event.afiliar_sindicat.choice.no': 'No m’hi vull complicar',
+  'event.vaga.title': 'Convocatòria de vaga',
+  'event.vaga.desc':
+    'El sindicat convoca una vaga per millorar els sous i les condicions. Si la secundes, perds el jornal del dia… però la força és en el nombre.',
+  'event.vaga.choice.secundar': 'Secundo la vaga',
+  'event.vaga.choice.esquirol': 'Vaig a treballar igualment',
 
   'event.consell_inversio.title': 'Un consell financer',
   'event.consell_inversio.desc':

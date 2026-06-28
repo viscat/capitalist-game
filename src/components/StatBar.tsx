@@ -8,6 +8,7 @@ export function StatBar({
   salut = 100,
   moralitat = 50,
   vincles = 0,
+  sindicat = 0,
   sequela = 0,
   academic = 0,
   fills = 0,
@@ -17,6 +18,8 @@ export function StatBar({
   salut?: number
   /** Moralitat 0..100 (eix ètic: Malvat / Neutral / Bo). */
   moralitat?: number
+  /** Poder sindical 0..1 (acció col·lectiva: protegeix la feina i apuja salaris). */
+  sindicat?: number
   /** Vincles socials 0..1 (font de benestar no monetària). */
   vincles?: number
   /** Penalització crònica de benestar acumulada (seqüeles). */
@@ -33,6 +36,7 @@ export function StatBar({
   const moralBanda = nivellMoralitat(moralVal)
   const vinclesPct = Math.round(vincles * 100)
   const academicPct = Math.round(academic * 100)
+  const sindicatPct = Math.round(sindicat * 100)
   return (
     <div className="rounded-xl bg-slate-800/60 p-4">
       <div className="mb-2 flex items-baseline justify-between">
@@ -85,7 +89,11 @@ export function StatBar({
         />
       </div>
 
-      {(vinclesPct > 0 || sequela > 0 || academicPct > 0 || fills > 0) && (
+      {(vinclesPct > 0 ||
+        sequela > 0 ||
+        academicPct > 0 ||
+        sindicatPct > 0 ||
+        fills > 0) && (
         <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-2.5">
           {fills > 0 && (
             <div className="flex items-baseline justify-between text-xs">
@@ -123,6 +131,22 @@ export function StatBar({
                 <div
                   className="h-full rounded-full bg-sky-400/80 transition-all duration-500"
                   style={{ width: `${academicPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+          {sindicatPct > 0 && (
+            <div>
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="text-slate-400" title={t('stat.sindicat.tip')}>
+                  ✊ {t('stat.sindicat')}
+                </span>
+                <span className="text-slate-400">{sindicatPct}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-amber-400/80 transition-all duration-500"
+                  style={{ width: `${sindicatPct}%` }}
                 />
               </div>
             </div>

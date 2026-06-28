@@ -767,3 +767,37 @@ describe('moralitat i negoci (explotació)', () => {
     expect(avancaAmb('precari')).toBeGreaterThan(avancaAmb('molt_alt'))
   })
 })
+
+describe('acció col·lectiva (poder sindical)', () => {
+  const carrera = (over: Partial<GameState> = {}): GameState => ({
+    ...newGameAtCarrera('treballadora', 7),
+    ...over,
+  })
+
+  it('afiliar-se al sindicat apuja el poder sindical', () => {
+    const s = carrera({ poderSindical: 0 })
+    const after = resolWith(s, [
+      { id: 'afiliar', labelKey: 'l', effect: { poderSindicalDelta: 0.16 } },
+    ])
+    expect((after.poderSindical ?? 0)).toBeGreaterThan(0)
+  })
+
+  it('el poder sindical decau una mica cada any si no es reforça', () => {
+    const s = carrera({ poderSindical: 0.5 })
+    const after = resolWith(s, [{ id: 'x', labelKey: 'l', effect: {} }])
+    expect(after.poderSindical!).toBeLessThan(0.5)
+    expect(after.poderSindical!).toBeGreaterThan(0.4)
+  })
+
+  it('el poder sindical aixeca el sostre salarial (negociació col·lectiva)', () => {
+    // Sou molt per damunt del sostre: el cap el retalla. Amb sindicat, el sostre és més alt.
+    const alt = 99_999
+    const sense = resolWith(carrera({ salari: alt, poderSindical: 0 }), [
+      { id: 'x', labelKey: 'l', effect: {} },
+    ])
+    const amb = resolWith(carrera({ salari: alt, poderSindical: 0.9 }), [
+      { id: 'x', labelKey: 'l', effect: {} },
+    ])
+    expect(amb.salari!).toBeGreaterThan(sense.salari!)
+  })
+})

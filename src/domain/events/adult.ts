@@ -123,6 +123,67 @@ export const NEGOCI_GESTIO_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * ACCIÓ COL·LECTIVA: sindicar-se i secundar vagues. És la via d'ascens COMPARTIDA (no individual):
+ * construeix `poderSindical`, que protegeix la feina i apuja el sou de TOTHOM qui s'hi organitza
+ * (via `factorSindical`). Gating per tenir feina a `eventPool`. Costa a curt termini (quotes, dies
+ * de vaga no pagats), però el guany és col·lectiu i durador. El contrapès al poder del propietari.
+ */
+export const SINDICAT_EVENTS: GameEvent[] = [
+  {
+    id: 'afiliar_sindicat',
+    category: 'economia',
+    titleKey: 'event.afiliar_sindicat.title',
+    descKey: 'event.afiliar_sindicat.desc',
+    weight: () => 1.2,
+    choices: [
+      {
+        id: 'afiliar',
+        labelKey: 'event.afiliar_sindicat.choice.afiliar',
+        effect: {
+          poderSindicalDelta: 0.16,
+          vinclesDelta: 0.05,
+          benestar: 1,
+          moralitatDelta: 2,
+        },
+      },
+      {
+        id: 'no',
+        labelKey: 'event.afiliar_sindicat.choice.no',
+        effect: {},
+      },
+    ],
+  },
+  {
+    id: 'vaga',
+    category: 'economia',
+    titleKey: 'event.vaga.title',
+    descKey: 'event.vaga.desc',
+    weight: () => 1,
+    choices: [
+      {
+        id: 'secundar',
+        labelKey: 'event.vaga.choice.secundar',
+        // Perds el jornal del dia de vaga, però reforces el poder col·lectiu i n'arrenques una
+        // millora salarial compartida. Solidaritat → una mica de moralitat.
+        effect: {
+          efectiu: -300,
+          poderSindicalDelta: 0.16,
+          salariDelta: 50,
+          benestar: -1,
+          moralitatDelta: 2,
+        },
+      },
+      {
+        id: 'esquirol',
+        labelKey: 'event.vaga.choice.esquirol',
+        // Vas a treballar mentre els companys fan vaga: ni guany col·lectiu ni solidaritat.
+        effect: { benestar: 1, moralitatDelta: -3 },
+      },
+    ],
+  },
+]
+
+/**
  * DECISIONS MORALS de la vida adulta: cruïlles on la via ràpida als diners costa moralitat i la
  * via justa costa diners. Disponibles a tothom (gating fi per banda moral a `eventPool`: les
  * oportunitats clarament depredadores només arriben a qui ja s'hi ha endinsat). És la crítica

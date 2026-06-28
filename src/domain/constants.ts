@@ -107,6 +107,21 @@ export const FACTOR_SERVEIS_PUBLICS: Record<
 }
 /** Quant erosiona el residu de precarietat un estat social ple (fracció màxima reduïble). */
 export const PRECARIETAT_EROSIO_SERVEIS = 0.6
+
+// --- Acció col·lectiva (poder sindical) ---
+/**
+ * Poder sindical: organització col·lectiva (0..1). A diferència de l'estalvi privat o del negoci
+ * propi (vies INDIVIDUALS), és una via d'ascens COMPARTIDA: negociació col·lectiva, protecció de
+ * la feina i contrapès al propietari. Es construeix afiliant-se i secundant vagues.
+ */
+/** Increment de poder sindical per afiliar-se o secundar una vaga. */
+export const SINDICAT_AFILIACIO_DELTA = 0.16
+/** Decaïment anual del poder sindical (si no es manté l'organització, s'erosiona). */
+export const SINDICAT_DECAIMENT_ANUAL = 0.02
+/** Bonus màxim al sou (terra i sostre) amb poder sindical ple: la negociació col·lectiva apuja salaris. */
+export const SINDICAT_SOU_BONUS = 0.35
+/** Per sobre d'aquest poder sindical, la protecció col·lectiva atura els acomiadaments. */
+export const SINDICAT_PROTECCIO_LLINDAR = 0.5
 /**
  * Nivell de frugalitat (0..100) mínim per poder viure de manera frugal sense penalització de
  * benestar. Es guanya amb la formació (nivell acadèmic) i amb l'edat (saviesa/experiència).

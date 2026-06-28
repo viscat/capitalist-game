@@ -13,6 +13,7 @@ import {
   MORALITAT_MAX,
   MORALITAT_MIN,
   PRECARIETAT_EROSIO_SERVEIS,
+  SINDICAT_SOU_BONUS,
   SOU_EMPLEATS,
   NIVELL_VIDA_DEFAULT,
   FRUGALITAT_LLINDAR,
@@ -301,6 +302,20 @@ export function factorHabitatge(state: GameState): number {
 /** Força dels serveis públics del món (0..1) segons el règim del benestar (palanca política). */
 export function factorServeisPublics(state: GameState): number {
   return FACTOR_SERVEIS_PUBLICS[state.regimPolitic ?? 'mixt']
+}
+
+/** Poder sindical actual (0..1): organització col·lectiva acumulada. */
+export function poderSindicalActual(state: GameState): number {
+  return clamp(state.poderSindical ?? 0, 0, 1)
+}
+
+/**
+ * Factor multiplicador del sou (terra i sostre) per l'acció col·lectiva: la negociació sindical
+ * apuja els salaris per a tothom qui s'hi organitza. 1 sense sindicat; fins a 1+SINDICAT_SOU_BONUS
+ * amb poder ple. És la via d'ascens COMPARTIDA (a diferència de l'estalvi o el negoci individuals).
+ */
+export function factorSindical(state: GameState): number {
+  return 1 + poderSindicalActual(state) * SINDICAT_SOU_BONUS
 }
 
 // --- Frugalitat ---
