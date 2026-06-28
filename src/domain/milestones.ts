@@ -1,4 +1,10 @@
-import type { EventEffect, Itinerari, LifeStage, MilestoneId } from './types'
+import type {
+  EventEffect,
+  Itinerari,
+  LifeStage,
+  MilestoneId,
+  TipusUniversitat,
+} from './types'
 
 export interface MilestoneOption {
   id: string
@@ -8,6 +14,8 @@ export interface MilestoneOption {
   itinerari?: Itinerari
   /** En entrar a la carrera: marca si la persona té títol universitari (premi de sou). */
   teDiploma?: boolean
+  /** En entrar a la universitat: tria de centre públic (barat) o privat (car, amb prestigi). */
+  tipusUniversitat?: TipusUniversitat
   /**
    * Efecte que aplica l'opció (fites de mitja carrera 40/50/60: no canvien de fase, sinó que
    * apliquen un *trade-off* sobre sou/benestar/vincles/salut). El motor el resol a
@@ -98,10 +106,18 @@ export const MILESTONES: Record<MilestoneId, MilestoneDef> = {
     loreKeys: ['milestone.majoria.lore1', 'milestone.majoria.lore2'],
     options: [
       {
-        id: 'universitat',
-        labelKey: 'cami.universitat.label',
-        descKey: 'cami.universitat.desc',
+        id: 'universitat_publica',
+        labelKey: 'cami.universitat_publica.label',
+        descKey: 'cami.universitat_publica.desc',
         lifeStage: 'universitat',
+        tipusUniversitat: 'publica',
+      },
+      {
+        id: 'universitat_privada',
+        labelKey: 'cami.universitat_privada.label',
+        descKey: 'cami.universitat_privada.desc',
+        lifeStage: 'universitat',
+        tipusUniversitat: 'privada',
       },
       {
         id: 'carrera',

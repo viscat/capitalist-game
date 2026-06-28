@@ -30,7 +30,9 @@ import {
   IPC_INFLACIO_MAX,
   IPC_INFLACIO_MIN,
   PRESTACIO_ATUR_FRACCIO,
-  MATRICULA_ANUAL,
+  MATRICULA_PUBLICA_ANUAL,
+  MATRICULA_PRIVADA_ANUAL,
+  PRESTIGI_PRIVADA_SALARI,
   MESOS_PER_ANY,
   PAS_PLA,
   PREMI_DIPLOMA,
@@ -54,6 +56,7 @@ import type {
   NivellMoralitat,
   NivellVida,
   Origen,
+  TipusUniversitat,
   Patrimoni,
   Person,
   PlaInversio,
@@ -937,8 +940,9 @@ export function sostreSalari(
   familia: Familia,
   teDiploma = false,
   nivellAcademic = 0,
+  prestigiPrivada = false,
 ): number {
-  const base = salariAdultInicial(familia, teDiploma, nivellAcademic)
+  const base = salariAdultInicial(familia, teDiploma, nivellAcademic, prestigiPrivada)
   return Math.max(SALARI_MINIM_MENSUAL, Math.round((base * 2.5) / 25) * 25)
 }
 
@@ -1162,14 +1166,31 @@ const FACTOR_BECA: Record<FamilyClass, number> = {
   super_rica: 0,
 }
 
-/** Beca universitària anual segons la renda (cobreix part o tota la matrícula). */
-export function becaUniversitat(familia: Familia): number {
-  return Math.round(MATRICULA_ANUAL * FACTOR_BECA[familia.classe])
+/** Matrícula anual segons el tipus d'universitat triat (pública per defecte). */
+export function matriculaAnual(tipus: TipusUniversitat = 'publica'): number {
+  return tipus === 'privada' ? MATRICULA_PRIVADA_ANUAL : MATRICULA_PUBLICA_ANUAL
 }
 
-/** Balanç econòmic d'un any d'universitat: suport familiar + beca − matrícula. */
-export function balancUniversitatAnual(familia: Familia): number {
-  return suportUniversitatAnual(familia) + becaUniversitat(familia) - MATRICULA_ANUAL
+/**
+ * Beca universitària anual segons la renda. NOMÉS s'aplica a la universitat PÚBLICA (la privada no
+ * té beca pública: la paga la família o s'endeuta). Cobreix part o tota la matrícula pública.
+ */
+export function becaUniversitat(
+  familia: Familia,
+  tipus: TipusUniversitat = 'publica',
+): number {
+  if (tipus === 'privada') return 0
+  return Math.round(MATRICULA_PUBLICA_ANUAL * FACTOR_BECA[familia.classe])
+}
+
+/** Balanç econòmic d'un any d'universitat: suport familiar + beca − matrícula (segons el centre). */
+export function balancUniversitatAnual(
+  familia: Familia,
+  tipus: TipusUniversitat = 'publica',
+): number {
+  return (
+    suportUniversitatAnual(familia) + becaUniversitat(familia, tipus) - matriculaAnual(tipus)
+  )
 }
 
 // --- Carrera adulta (inversions, 18/22 → 35) ---
@@ -1183,19 +1204,24 @@ export function salariAdultInicial(
   familia: Familia,
   teDiploma: boolean,
   nivellAcademic = 0,
+  prestigiPrivada = false,
 ): number {
   const premi = teDiploma ? PREMI_DIPLOMA : 0
-  // Bonus per haver estudiat a fons: el capital humà es paga amb un sou de partida MOLT millor
-  // (recompensa fiable de l'esforç, no subjecta a la sort). És la palanca principal del pobre.
-  const bonusAcademic = Math.round(nivellAcademic * 1100)
+  // Bonus per haver estudiat a fons: el capital humà es paga amb un sou de partida millor
+  // (recompensa fiable de l'esforç, no subjecta a la sort). És la palanca principal del pobre —
+  // però moderada: estudiar et treu de la pobresa, no et fa multimilionari pel sol fet d'estudiar.
+  const bonusAcademic = Math.round(nivellAcademic * 900)
+  // Prestigi de la universitat privada (contactes/marca): plus de sou només si t'has graduat.
+  const prestigi = prestigiPrivada && teDiploma ? PRESTIGI_PRIVADA_SALARI : 0
   if (familia.classe === 'pobra' || familia.classe === 'treballadora') {
-    return SALARI_MINIM_MENSUAL + premi + bonusAcademic
+    return SALARI_MINIM_MENSUAL + premi + bonusAcademic + prestigi
   }
   const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
   const sou =
     SALARI_ADULT_BASE +
     premi +
     bonusAcademic +
+    prestigi +
     plusContactes -
     PRECARIETAT_SALARI[familia.classe]
   return Math.max(SALARI_MINIM_MENSUAL, Math.round(sou / 25) * 25)
@@ -1327,9 +1353,13 @@ export function benestarOciAnual(oci: number, annualIncome: number): number {
 export function defaultPlaInversio(annualIncome: number): PlaInversio {
   const round = (n: number) => Math.max(0, Math.round(n / PAS_PLA) * PAS_PLA)
   const rest = Math.max(0, annualIncome - costVidaAnual())
+  // Taxa d'estalvi MODERADA (≈30% del marge, no la meitat): una taxa del 50% mantinguda 45 anys
+  // convertia qualsevol carrera decent en una fortuna de set xifres (poc realista). La resta es
+  // viu (oci). Qui vulgui acumular més pot pujar la inversió al panell, però el "per defecte"
+  // raonable no fa milionari ningú pel sol fet de treballar tota una vida.
   return {
-    oci: round(rest * 0.35),
-    inversions: round(rest * 0.5),
+    oci: round(rest * 0.4),
+    inversions: round(rest * 0.3),
   }
 }
 

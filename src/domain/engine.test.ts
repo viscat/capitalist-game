@@ -65,7 +65,7 @@ function step(s: GameState, itinerari = 'batxillerat'): GameState {
     return applyMilestoneChoice(s, itinerari)
   }
   if (s.pendingMilestone === 'majoria') {
-    return applyMilestoneChoice(s, itinerari === 'batxillerat' ? 'universitat' : 'carrera')
+    return applyMilestoneChoice(s, itinerari === 'batxillerat' ? 'universitat_publica' : 'carrera')
   }
   if (s.pendingMilestone === 'fi_uni') {
     return applyMilestoneChoice(s, 'comencar_carrera')
@@ -600,7 +600,7 @@ describe('universitat i carrera', () => {
       applyMilestoneChoice(newGameAt16('mitjana', 7), 'batxillerat'),
       (s) => s.pendingMilestone === 'majoria',
     )
-    const uni = applyMilestoneChoice(fork, 'universitat')
+    const uni = applyMilestoneChoice(fork, 'universitat_publica')
     expect(uni.lifeStage).toBe('universitat')
     expect(uni.teDiploma).toBeFalsy()
     // Als 22 arriba la fita de fi d'universitat i, en triar-la, comença la carrera amb títol.

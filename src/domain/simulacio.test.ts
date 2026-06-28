@@ -44,7 +44,7 @@ type Estrategia = Partial<Record<MilestoneId, string>>
 
 // Itineraris representatius que cobreixen totes les branques de la màquina d'estats.
 const ESTRATEGIES: Record<string, Estrategia> = {
-  universitat: { postobligatori: 'batxillerat', majoria: 'universitat' },
+  universitat: { postobligatori: 'batxillerat', majoria: 'universitat_publica' },
   treball: { postobligatori: 'treball', majoria: 'carrera' },
   nini: { postobligatori: 'nini', majoria: 'carrera' },
   grau_mig: { postobligatori: 'grau_mig', majoria: 'carrera' },

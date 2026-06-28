@@ -742,7 +742,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
     const costHab = ambPares ? 0 : costHabitatgeAnualNet(habitatge, state.familia)
     const costVidaUni = ambPares ? 0 : costVidaAnual('minim')
-    const fluxNet = balancUniversitatAnual(state.familia) - costHab - costVidaUni
+    const fluxNet =
+      balancUniversitatAnual(state.familia, state.tipusUniversitat) - costHab - costVidaUni
     let efectiu = person.patrimoni.efectiu
     let inversions = person.patrimoni.inversions
     let deute = Math.round((person.patrimoni.deute ?? 0) * (1 + INTERES_DEUTE))
@@ -1017,6 +1018,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
                 state.familia,
                 state.teDiploma ?? false,
                 Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic)),
+                state.tipusUniversitat === 'privada',
               ) *
                 factorIpcActual *
                 factorSindical(state),
@@ -1129,7 +1131,12 @@ function resolveEvent(
     salari = Math.min(
       salari,
       Math.round(
-        sostreSalari(state.familia, state.teDiploma ?? false, state.nivellAcademic) *
+        sostreSalari(
+          state.familia,
+          state.teDiploma ?? false,
+          state.nivellAcademic,
+          state.tipusUniversitat === 'privada',
+        ) *
           factorIPC(state) *
           factorSindical(state),
       ),
@@ -1358,6 +1365,8 @@ export function applyMilestoneChoice(
     ...state,
     lifeStage: option.lifeStage,
     itinerari: option.itinerari ?? state.itinerari,
+    // Tria d'universitat (pública/privada): fixa la matrícula i el prestigi de tota la carrera.
+    tipusUniversitat: option.tipusUniversitat ?? state.tipusUniversitat,
     pendingMilestone: undefined,
   }
   // Jubilació: deixes de treballar. La pensió (derivada de `salariBase`) és l'ingrés.

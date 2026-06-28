@@ -241,8 +241,23 @@ export const COST_VIDA_NIVELLS: Record<NivellVida, number> = {
 /** Nivell de vida per defecte en entrar a la vida adulta. */
 export const NIVELL_VIDA_DEFAULT: NivellVida = 'mig'
 
-/** Cost anual de matrícula i material universitari. */
-export const MATRICULA_ANUAL = 2000
+/**
+ * Cost anual de matrícula universitària, segons el tipus de centre. Xifres basades en dades reals
+ * d'Espanya (curs 2024-25): la pública ronda els 700–2.300 €/any (a Catalunya, ~1.000–2.340 segons
+ * els crèdits); la privada va dels ~6.000 als 18.000 €/any (mitjana ~12.000). La pública NO és
+ * gratuïta, però amb beca per renda les rendes baixes en queden quasi exemptes; la privada no té
+ * beca pública (la paga la família o s'endeuta). Material i taxes incloses de forma aproximada.
+ */
+export const MATRICULA_PUBLICA_ANUAL = 1_800
+export const MATRICULA_PRIVADA_ANUAL = 12_000
+/** Compatibilitat: matrícula de referència (pública) per a la beca i altres càlculs base. */
+export const MATRICULA_ANUAL = MATRICULA_PUBLICA_ANUAL
+/**
+ * Prestigi/xarxa de la universitat privada: un plus de sou BRUT mensual de partida (contactes,
+ * marca, borses de treball). És la cara material del "comprar un millor punt de sortida": val molt
+ * per a qui s'ho pot pagar sense arruïnar-se, i és una aposta cara (sovint ruïnosa) per a qui no.
+ */
+export const PRESTIGI_PRIVADA_SALARI = 350
 
 // --- Habitatge (a partir dels 18) ---
 
@@ -291,7 +306,7 @@ export const IPC_INFLACIO_MAX = 0.04
  * generacions (insostenible). El sou d'ENTRADA i el TERRA, en canvi, s'indexen del tot a l'IPC
  * (una nova generació no comença cobrant euros-base en un món on els preus s'han multiplicat).
  */
-export const SALARI_INDEXACIO = 0.4
+export const SALARI_INDEXACIO = 0.6
 
 // --- Índex del preu de l'habitatge (lloguer i compra) ---
 // L'habitatge NO segueix l'IPC: té el seu propi índex, que a llarg termini creix MÉS de pressa

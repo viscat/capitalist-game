@@ -275,6 +275,12 @@ export const ca: Record<string, string> = {
   'cami.universitat.label': 'Anar a la universitat',
   'cami.universitat.desc':
     'Quatre anys d’estudis. Costa diners i temps, però un títol obre portes i apuja el sou.',
+  'cami.universitat_publica.label': 'Universitat pública',
+  'cami.universitat_publica.desc':
+    'Matrícula assequible (~1.800 €/any) i beca segons la renda: les rendes baixes en queden quasi exemptes. La via realista per estudiar sense una fortuna al darrere.',
+  'cami.universitat_privada.label': 'Universitat privada',
+  'cami.universitat_privada.desc':
+    'Matrícula cara (~12.000 €/any) i sense beca pública. A canvi, contactes i prestigi que apugen el sou de partida. Una bona inversió per a qui s’ho pot pagar; un deute arriscat per a qui no.',
   'cami.carrera.label': 'Entrar al món laboral',
   'cami.carrera.desc':
     'Surts a buscar feina. No te’n regalen cap: el que trobis dependrà dels teus estudis, els contactes i l’experiència. Quan en tinguis, decidiràs què fas amb els teus diners.',

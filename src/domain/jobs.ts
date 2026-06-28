@@ -78,6 +78,7 @@ export function salariBaseOferta(state: GameState): number {
     state.familia,
     state.teDiploma ?? false,
     state.nivellAcademic,
+    state.tipusUniversitat === 'privada',
   )
   const ambExperiencia = base * (1 + clamp(anysExperiencia(state) / 10, 0, 1) * 0.4)
   // El sou d'entrada s'INDEXA a l'IPC: una nova generació (o qui entra al mercat en un món on
