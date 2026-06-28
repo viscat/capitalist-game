@@ -642,6 +642,15 @@ export const ca: Record<string, string> = {
   'gameover.benestarFinal': 'Benestar final',
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',
+  'gameover.desglosBenestar': 'Per què el teu benestar (què t’apuja i què t’esfondra)',
+  'desglos.base': 'Base vital',
+  'desglos.ingres': 'Poder adquisitiu del sou',
+  'desglos.patrimoni': 'Patrimoni acumulat',
+  'desglos.vincles': 'Vincles i comunitat',
+  'desglos.deute': 'Viure endeutat',
+  'desglos.sequela': 'Seqüeles de salut',
+  'desglos.petjada': 'Cost del consum',
+  'desglos.precarietat': 'Precarietat d’origen',
   'gameover.notaInversio':
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
   'gameover.notaLlegat':

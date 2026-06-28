@@ -1,5 +1,6 @@
 import {
   costVidaPropi,
+  desglosBenestarAdult,
   factorIPC,
   llegatPerFill,
   patrimoniTotal,
@@ -33,6 +34,10 @@ export function GameOver() {
   if (!state) return null
 
   const generacio = state.generacio ?? 1
+  const esAdult =
+    state.lifeStage === 'universitat' ||
+    state.lifeStage === 'carrera' ||
+    state.lifeStage === 'jubilacio'
 
   const benestar = Math.round(state.person.stats.benestar)
   const { efectiu, inversions, cases } = state.person.patrimoni
@@ -185,6 +190,34 @@ export function GameOver() {
             <p className="mt-3 text-xs leading-relaxed text-amber-300/90">
               {t(`gameover.jubilacio.${veredicte}`)}
             </p>
+          </div>
+        )}
+
+        {/* Per què el teu benestar: desglossament llegible (què t'apuja i què t'esfondra). */}
+        {esAdult && (
+          <div className="mt-4 rounded-2xl bg-slate-800/40 p-4 text-left">
+            <h2 className="mb-2 text-sm font-semibold text-slate-300">
+              {t('gameover.desglosBenestar')}
+            </h2>
+            <div className="space-y-1">
+              {desglosBenestarAdult(state).map((c) => (
+                <div key={c.clau} className="flex justify-between text-sm">
+                  <span className="text-slate-400">{t(c.clau)}</span>
+                  <span
+                    className={
+                      c.valor > 0
+                        ? 'font-medium text-emerald-300'
+                        : c.valor < 0
+                          ? 'font-medium text-red-300'
+                          : 'text-slate-400'
+                    }
+                  >
+                    {c.valor > 0 ? '+' : ''}
+                    {c.valor}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
