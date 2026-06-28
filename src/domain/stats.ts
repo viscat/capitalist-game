@@ -1085,8 +1085,9 @@ export function salariAdultInicial(
   nivellAcademic = 0,
 ): number {
   const premi = teDiploma ? PREMI_DIPLOMA : 0
-  // Bonus per haver estudiat a fons: l'esforç acadèmic es paga amb un sou de partida millor.
-  const bonusAcademic = Math.round(nivellAcademic * 600)
+  // Bonus per haver estudiat a fons: el capital humà es paga amb un sou de partida MOLT millor
+  // (recompensa fiable de l'esforç, no subjecta a la sort). És la palanca principal del pobre.
+  const bonusAcademic = Math.round(nivellAcademic * 1100)
   if (familia.classe === 'pobra' || familia.classe === 'treballadora') {
     return SALARI_MINIM_MENSUAL + premi + bonusAcademic
   }
