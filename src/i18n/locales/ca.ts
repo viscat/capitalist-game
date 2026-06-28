@@ -458,6 +458,8 @@ export const ca: Record<string, string> = {
   'pla.vidaSenzilla': 'Vida senzilla per elecció',
   'pla.vidaSenzilla.nota':
     'Has triat viure amb poc: la frugalitat ja no et resta benestar (és tria, no privació).',
+  'pla.frugalitat.bloquejat':
+    '🔒 Cal frugalitat {llindar} per viure de mínim sense patir-ho (ara: {nivell}). Es guanya amb formació i edat.',
   'pla.petjada': 'Petjada ecològica',
   'pla.petjada.baixa': 'baixa',
   'pla.petjada.mitjana': 'mitjana',

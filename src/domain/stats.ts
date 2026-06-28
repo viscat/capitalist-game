@@ -7,6 +7,7 @@ import {
   DEPENDENCIA_FILLS_ANYS,
   NIVELL_VIDA_DEFAULT,
   DESGRAVACIO_PENSIONS,
+  FRUGALITAT_LLINDAR,
   IMV_ANUAL,
   IMV_COBERTURA,
   INDEX_RENDIMENT_MIN,
@@ -249,6 +250,25 @@ export function inflacioAnual(seed: number): number {
 /** Factor de preus actual (IPC/100): 1 al naixement, creix amb la inflació acumulada. */
 export function factorIPC(state: GameState): number {
   return (state.ipc ?? IPC_INICIAL) / IPC_INICIAL
+}
+
+// --- Frugalitat ---
+
+/**
+ * Nivell de frugalitat (0..100): la capacitat de viure bé amb poc. Es guanya amb la FORMACIÓ
+ * (nivell acadèmic) i amb l'EDAT (saviesa/experiència vital). Saber viure amb austeritat sense
+ * patir-ho no és innat: s'aprèn.
+ */
+export function frugalitat(state: GameState): number {
+  const edat = state.person.edatMesos / MESOS_PER_ANY
+  const perFormacio = (state.nivellAcademic ?? 0) * 55
+  const perEdat = Math.max(0, edat - 18) * 0.9
+  return Math.round(clamp(perFormacio + perEdat, 0, 100))
+}
+
+/** Pot viure de manera frugal sense penalització (frugalitat ≥ llindar). */
+export function potViureFrugal(state: GameState): boolean {
+  return frugalitat(state) >= FRUGALITAT_LLINDAR
 }
 
 /** Patrimoni net total de la persona (actius menys el deute de consum pendent). */

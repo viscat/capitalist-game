@@ -91,6 +91,7 @@ import {
   pagaPerAjudaCasa,
   patrimoniTotal,
   pensioPublicaAnual,
+  potViureFrugal,
   prestacioAturAnual,
   rendimentIndexAnual,
   repartDeficit,
@@ -657,7 +658,12 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       costHab,
       state.familia,
       0, // l'ajuda a la família ja va inclosa a la contribució a la llar (amb_pares); 0 si vius sol
-      ambPares ? 0 : benestarNivellVida(state.nivellVida, state.vidaSenzilla),
+      ambPares
+        ? 0
+        : benestarNivellVida(
+            state.nivellVida,
+            Boolean(state.vidaSenzilla) && potViureFrugal(state),
+          ),
       costFillsAnual(state), // criança dels fills dependents (ja en euros nominals amb IPC)
       f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
     )
