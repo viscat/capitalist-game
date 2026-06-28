@@ -95,6 +95,7 @@ import {
   costVidaAnual,
   costVidaPropi,
   dividendNegociAnual,
+  eficaciaCuraSalut,
   moralitatActual,
   poderSindicalActual,
   factorAportacioLlar,
@@ -657,11 +658,15 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // el progrés mèdic de l'època (esperança de vida actual i futura). El benestar que es fa
   // servir és el ja derivat d'aquest any. Pot recuperar-se (delta negatiu) si la persona és
   // jove i benestant. Els esdeveniments de salut hi sumaran cops a sobre.
-  const anyCalendari = state.dataNaixement
-    ? dataActual(state.dataNaixement, edatMesos).any
+  // L'època es fixa pel teu ANY DE NAIXEMENT (la medicina de la teva generació), no per l'any
+  // corrent: si no, una sola vida que arriba a dècades futures "envelliria cada cop més a poc a
+  // poc" i es faria centenària. Així el ritme d'envelliment és constant tota la vida; les
+  // generacions futures (nascudes més tard) viuen una mica més (progrés mèdic entre generacions).
+  const anyNaixement = state.dataNaixement
+    ? dataActual(state.dataNaixement, 0).any
     : undefined
   const factorEpoca =
-    anyCalendari !== undefined ? factorEsperancaVida(anyCalendari) : 1
+    anyNaixement !== undefined ? factorEsperancaVida(anyNaixement) : 1
   const salut = clampSalut(
     Math.round(
       state.person.stats.salut -
@@ -856,13 +861,17 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         aportat: aportatAcum,
       },
     ]
-    // Efecte de l'acció fixa de SALUT: recupera salut (ja n'has pagat el cost amb costVida).
+    // Efecte de l'acció fixa de SALUT: recupera salut (ja n'has pagat el cost amb costVida). La
+    // seva eficàcia s'esvaeix amb l'edat (cuidar-se ajuda, però no et fa immortal: als 85+ amb
+    // prou feines compensa l'envelliment).
     if (state.inversioSalut) {
       person = {
         ...person,
         stats: {
           ...person.stats,
-          salut: clampSalut(person.stats.salut + SALUT_INVERSIO_DELTA),
+          salut: clampSalut(
+            person.stats.salut + SALUT_INVERSIO_DELTA * eficaciaCuraSalut(anys),
+          ),
         },
       }
     }

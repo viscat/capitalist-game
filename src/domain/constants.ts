@@ -218,9 +218,14 @@ export const FORMACIO_INVERSIO_DELTA = 0.05
 
 // --- Rendiment anual de la inversió (fase de carrera) ---
 
-/** Rendiment anual de la cartera d'inversió = MIN + aleatori·RANG (mitjana ≈ +6%, volàtil). */
-export const INDEX_RENDIMENT_MIN = -0.1
-export const INDEX_RENDIMENT_RANG = 0.32
+/**
+ * Rendiment anual de la cartera d'inversió = MIN + aleatori·RANG (mitjana ≈ +5%, volàtil). La
+ * variància s'ha estret una mica respecte d'un model més agressiu: a 45 anys de carrera, una cua
+ * massa grossa convertia algun origen humil afortunat en multimilionari (cua poc creïble). Segueix
+ * havent-hi anys negatius (cal aguantar els sotracs), però el compost no dispara a milions.
+ */
+export const INDEX_RENDIMENT_MIN = -0.09
+export const INDEX_RENDIMENT_RANG = 0.28
 
 // --- Universitat i cost de vida adult ---
 
@@ -286,7 +291,7 @@ export const IPC_INFLACIO_MAX = 0.04
  * generacions (insostenible). El sou d'ENTRADA i el TERRA, en canvi, s'indexen del tot a l'IPC
  * (una nova generació no comença cobrant euros-base en un món on els preus s'han multiplicat).
  */
-export const SALARI_INDEXACIO = 0.6
+export const SALARI_INDEXACIO = 0.4
 
 // --- Índex del preu de l'habitatge (lloguer i compra) ---
 // L'habitatge NO segueix l'IPC: té el seu propi índex, que a llarg termini creix MÉS de pressa

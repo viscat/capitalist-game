@@ -130,6 +130,22 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
     expect(ascensPobreActiu).toBeGreaterThan(0.1)
   })
 
+  // Realisme de l'esperança de vida i de la riquesa de l'origen humil: ningú no es fa centenari
+  // (l'envelliment domina), i el pobre PASSIU segueix sent pobre de mediana (no acumula fortunes
+  // pel sol fet de viure). Evita regressions com "morir als 102 amb 2M€ començant de pobre".
+  it('ningú viu absurdament i el pobre passiu no es fa ric pel cap baix', { timeout: 60_000 }, () => {
+    const passiva: SimPolicy = { postobligatori: 'treball', majoria: 'carrera' }
+    for (const cls of FAMILY_PRESET_ORDER) {
+      const out = simulateClass(cls, N, passiva)
+      const maxEdat = Math.max(...out.map((o) => o.edatMort))
+      // Sostre d'edat realista: ni amb la millor salut/cura ningú no passa de ~95.
+      expect(maxEdat).toBeLessThanOrEqual(95)
+    }
+    // El pobre PASSIU, de mediana, segueix sent pobre (no acumula una fortuna per inèrcia).
+    const pobra = summarize(simulateClass('pobra', N, passiva))
+    expect(pobra.patrimoniRealMediana).toBeLessThan(120_000)
+  })
+
   // Capa de RÈGIM del benestar (Fase 3, clau de volta): la política mou el terra. El mateix
   // pobre PASSIU viu millor sota un estat social fort que sota un de residual, SENSE haver
   // d'estalviar res. És la via NO-individual d'ascens (vegeu DESIGN.md §6 / DESIGN_REVIEW_R2.md).
