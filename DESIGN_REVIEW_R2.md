@@ -191,3 +191,43 @@ critica. Guardes acordades:
 - Emprenedoria/risc que apuja sobretot la p90 (variància de ruïna ponderada per classe).
 - Afegir decisió d'habitatge (comprar/llogar) al jugador simulat + senyal de mercat de suma positiva.
 - Mantenir l'escapada individual acotada i harness-validada; preparar el ganxo `factorServeisPublics`.
+
+---
+
+## 6. Ronda d'anàlisi — DESPRÉS de la Fase 2
+
+### Veredicte
+- La Fase 2a (capital humà com a escala fiable) ENCERTA "jugar bé → sortir-se'n": el pobre amb
+  millor joc passa de benestar 16→**42** (51% arriben a 67, puja un graó). El pobre PASSIU segueix
+  a ~8 → la crítica es manté (la majoria que no juga òptim es queda a baix). Gradient pronunciat.
+- La Fase 2b (emprenedoria gated a ≥120k + esdeveniment de suma positiva) amplia la cua de riquesa
+  de qui ja va bé, sense tocar les classes baixes.
+
+### Risc detectat (consens del panel polític)
+Tal com avisava l'anàlisi de la Fase 1: ARA l'única via d'ascens a pantalla és **l'esforç
+individual** → llegit en solitari, és el missatge meritocràtic "estudia i te'n sortiràs" que el joc
+critica. És honest sobre els RESULTATS (gradient brutal) però NO sobre la CAUSA (atribueix la bretxa
+a l'esforç, no a l'estructura). **La Fase 3 ja és obligatòria, no opcional.**
+
+### Pla de construcció de la Fase 3 (ordenat, validable amb harness)
+- **Pas 0 (prereq):** decisió d'habitatge (comprar/llogar) al jugador simulat + mètriques que
+  falten (causa de mort, anys en deute, p10/p25 del millor joc, delta actiu-vs-passiu per classe).
+- **Pas 1 (clau de volta):** capa de règim `regimPolitic`/`factorServeisPublics` que **erosiona el
+  residu de `precarietatAdulta`** i apuja la xarxa pública (`ajutPublicMax`), finançada per l'impost
+  progressiu ja modelat. Objectiu: amb règim fort, el pobre PASSIU puja 8→~20 SENSE estalvi privat
+  (palanca pública que mou el terra).
+- **Pas 2:** serveis universals com a coixí — topall de despesa sanitària de butxaca, habitatge
+  social (lloguer topat), escola bressol pública (baixa el cost dels fills). Objectiu: el canal de
+  mort per malaltia catastròfica es fa més simètric entre classes.
+- **Pas 3:** acció col·lectiva `poderSindical` (sindicat/vaga/unió de llogateres/ajuda mútua) que
+  **escala amb la participació** (en solitari fracassa; en cohort guanya): limita acomiadaments,
+  apuja el sostre salarial, contesta el propietari, i esbiaixa la deriva de règim cap a pro-treball.
+  Objectiu: una cohort molt participativa apuja la MEDIANA del pobre ≥10 i és una via comparable a
+  estudiar → l'esforç individual deixa de ser l'única sortida.
+- **Pas 4:** visibilitat de l'EXPLOTACIÓ (valor produït vs sou; propietari/empresari com a part;
+  registre de redistribució impostos→serveis). Llegibilitat pura: anomenar la relació perquè el
+  gradient es llegeixi com a ESTRUCTURA, no com a mèrit.
+
+**Invariant de reconciliació (validar a cada pas):** l'origen segueix sent la norma estadística;
+l'escapada individual, rara/cara; el guany s'atribueix a la seva FONT (esforç/herència/col·lectiu/
+règim); cap canal aplana el gradient (harness-gated).
