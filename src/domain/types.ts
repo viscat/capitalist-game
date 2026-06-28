@@ -557,6 +557,8 @@ export interface VidaSnapshot {
   edat: number
   benestar: number
   salut: number
+  /** Moralitat (0..100) en aquell any. Absent en instantànies antigues (fallback neutral). */
+  moralitat?: number
   /** Patrimoni net (pot ser negatiu si hi ha deute). */
   net: number
   /** Índex de preus (IPC) en aquell any (base 100 al naixement). */

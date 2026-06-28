@@ -119,6 +119,7 @@ export function LifeCharts({ hist }: { hist: VidaSnapshot[] }) {
         series={[
           { color: '#22d39a', label: t('stat.benestar'), valor: (s) => s.benestar },
           { color: '#f6504f', label: t('stat.salut'), valor: (s) => s.salut },
+          { color: '#a78bfa', label: t('stat.moralitat'), valor: (s) => s.moralitat ?? 50 },
         ]}
       />
       <LineChart
