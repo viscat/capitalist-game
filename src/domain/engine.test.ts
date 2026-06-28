@@ -6,6 +6,7 @@ import {
   applyChoice,
   applyMilestoneChoice,
   classePerPatrimoni,
+  classeHereu,
   continuaGeneracio,
   familiaHereva,
   newGame,
@@ -274,6 +275,18 @@ describe('dinastia i herència', () => {
     expect(ric.classe).toBe('rica')
     // El patrimoni de la llar és el típic de la classe; l'herència concreta arriba després.
     expect(ric.patrimoni).toBeGreaterThan(0)
+  })
+
+  it('classeHereu: inèrcia de classe forta (cau lliure, puja gairebé mai)', () => {
+    // Qui neix pobre, mor pobre encara que acumuli força (no n'hi ha prou per pujar).
+    expect(classeHereu('pobra', 0)).toBe('pobra')
+    expect(classeHereu('pobra', 200_000)).toBe('pobra')
+    expect(classeHereu('pobra', 1_000_000)).toBe('pobra')
+    // Només una fortuna real extraordinària permet pujar UN sol graó.
+    expect(classeHereu('pobra', 5_000_000)).toBe('treballadora')
+    // Caure és lliure: un ric que ho perd tot baixa de classe.
+    expect(classeHereu('rica', 0)).toBe('pobra')
+    expect(classeHereu('mitjana', 60_000)).toBe('mitjana')
   })
 
   it('herència en vida: transfereix patrimoni al pot de llegat i el treu del teu', () => {

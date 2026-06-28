@@ -56,7 +56,7 @@ import {
   TREBALL_EVENTS,
 } from './events/laboral'
 import { CHILDHOOD_EVENTS } from './events/pool'
-import { FAMILY_PRESETS } from './family/presets'
+import { FAMILY_PRESETS, FAMILY_PRESET_ORDER } from './family/presets'
 import { MILESTONES } from './milestones'
 import { rng, seedFromTime } from './rng'
 import {
@@ -247,6 +247,37 @@ export function classePerPatrimoni(patrimoni: number): FamilyClass {
 }
 
 /**
+ * Riquesa real (en euros d'avui) per damunt de la qual una vida EXCEPCIONAL permet pujar UN
+ * sol graó de classe respecte de l'origen. És deliberadament altíssim (la de la classe més
+ * rica): a la pràctica, pujar de classe és gairebé impossible —la reproducció social mana—.
+ */
+const LLINDAR_ASCENS_CLASSE = PATRIMONI_CLASSE[0][0] // super_rica (5.000.000 €)
+
+/**
+ * Classe en què s'acaba (per a l'hereu o per a un mateix), amb inèrcia de classe MOLT forta
+ * (reproducció social): l'origen condiciona el destí. Pots CAURE lliurement (si la riquesa real
+ * queda per sota de la classe d'origen, mana la riquesa), però PUJAR és gairebé impossible: com a
+ * molt UN graó, i només amb una riquesa real EXTRAORDINÀRIA (`LLINDAR_ASCENS_CLASSE`). Així, qui
+ * neix pobre mor pobre quasi sempre; qui neix treballador, treballador o pobre; i així amunt. La
+ * via d'escapada de §8.4 deixa de ser una sortida realista: és una excepció raríssima.
+ *
+ * `llegatReal` ha de venir ja DESINFLAT per l'IPC (en termes reals), perquè la inflació d'una vida
+ * no "pugi de classe" pel sol fet que els números nominals creixen.
+ */
+export function classeHereu(origen: FamilyClass, llegatReal: number): FamilyClass {
+  const rangOrigen = FAMILY_PRESET_ORDER.indexOf(origen)
+  const perRiquesa = classePerPatrimoni(llegatReal)
+  const rangRiquesa = FAMILY_PRESET_ORDER.indexOf(perRiquesa)
+  // Caure: sense fre (la riquesa per sota de l'origen mana).
+  if (rangRiquesa <= rangOrigen) return perRiquesa
+  // Pujar: només amb una fortuna real extraordinària, i com a molt UN graó.
+  if (llegatReal >= LLINDAR_ASCENS_CLASSE) {
+    return FAMILY_PRESET_ORDER[Math.min(rangOrigen + 1, FAMILY_PRESET_ORDER.length - 1)]
+  }
+  return origen
+}
+
+/**
  * Família d'origen de la nova generació: la llar TÍPICA de la classe que correspon a
  * l'herència rebuda (el fill d'un ric neix en una llar rica; el d'algú que mor sense res, en
  * una de pobra). El patrimoni concret heretat NO es posa aquí: arriba més tard, a l'edat que
@@ -267,7 +298,10 @@ export function familiaHereva(patrimoniHeretat: number): Familia {
 export function continuaGeneracio(state: GameState): GameState {
   if ((state.fills ?? 0) <= 0) return state
   const llegat = llegatPerFill(state)
-  const familia = familiaHereva(llegat)
+  // Classe de l'hereu: inèrcia de classe forta a partir de l'herència REAL (desinflada per l'IPC)
+  // i la classe d'origen. L'import nominal heretat segueix arribant via `herenciaPendent`.
+  const llegatReal = llegat / factorIPC(state)
+  const familia = FAMILY_PRESETS[classeHereu(state.familia.classe, llegatReal)].familia
   const edatMortProgenitor = edatAnys(state.person.edatMesos)
   // Mesos de vida del progenitor quan va néixer el fill (el primer): la data de naixement real.
   const naixementMesosProgenitor = state.fillsNaixement?.[0] ?? 0

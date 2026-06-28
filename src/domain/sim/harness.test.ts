@@ -3,6 +3,7 @@ import { FAMILY_PRESET_ORDER } from '../family/presets'
 import {
   type ClassSummary,
   type SimPolicy,
+  fraccioSenseAscens,
   simulateClass,
   summarize,
 } from './harness'
@@ -73,6 +74,20 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
       expect(p.benestarMediana).toBeGreaterThanOrEqual(d.benestarMediana)
     }
 
+    // --- Corba de la pobresa: mobilitat de classe (en quina classe MOREN) ---
+    // L'objectiu de disseny: l'origen condiciona el destí. Quasi ningú puja de classe; caure sí.
+    for (const name of Object.keys(POLICIES)) {
+      const lines: string[] = []
+      for (const cls of FAMILY_PRESET_ORDER) {
+        const s = summaries[name][cls]
+        const dist = FAMILY_PRESET_ORDER.map(
+          (c) => `${c.slice(0, 4)} ${pct(s.classeFinal[c] / N).padStart(6)}`,
+        ).join(' · ')
+        lines.push(`${cls.padEnd(14)} sense ascens ${pct(fraccioSenseAscens(s, cls)).padStart(6)} | ${dist}`)
+      }
+      console.log(`\n=== Mobilitat de classe «${name}» (mor en classe…) ===\n${lines.join('\n')}`)
+    }
+
     // Invariants (robustos, no de balanceig fi):
     for (const name of Object.keys(POLICIES)) {
       for (const cls of FAMILY_PRESET_ORDER) {
@@ -84,6 +99,12 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
       expect(summaries[name]['rica'].benestarMediana).toBeGreaterThan(
         summaries[name]['pobra'].benestarMediana,
       )
+      // Corba de la pobresa (la tesi del joc): qui neix pobre, mor pobre quasi sempre; qui neix
+      // treballador, mor treballador o pobre quasi sempre. La mobilitat ASCENDENT és mínima.
+      expect(fraccioSenseAscens(summaries[name]['pobra'], 'pobra')).toBeGreaterThanOrEqual(0.98)
+      expect(
+        fraccioSenseAscens(summaries[name]['treballadora'], 'treballadora'),
+      ).toBeGreaterThanOrEqual(0.95)
     }
   })
 })

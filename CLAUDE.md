@@ -124,8 +124,12 @@ Transicions (fites):
 - **Dinastia (herència + continuació).** En morir amb fills, el `GameOver` ofereix
   **continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del
   naixement en una llar la riquesa de la qual és l'**herència per fill** (`llegatPerFill` =
-  estate net amb successions + herència en vida, repartit). La classe de la nova llar surt del
-  patrimoni heretat (`classePerPatrimoni`/`familiaHereva`): reproducció de classe explícita.
+  estate net amb successions + herència en vida, repartit). La classe de la nova llar surt de
+  `classeHereu(origen, llegatReal)`: **inèrcia de classe MOLT forta** (reproducció social). Pots
+  CAURE lliurement, però PUJAR és gairebé impossible —com a molt un graó i només amb una fortuna
+  real extraordinària (`LLINDAR_ASCENS_CLASSE`)—. El `llegat` es **desinfla per l'IPC** abans de
+  mapar-lo (la inflació no puja de classe). Objectiu de disseny (DESIGN §8.4, verificat al harness
+  amb `fraccioSenseAscens`): qui neix pobre mor pobre ~100%; treballador → treballador o pobre; etc.
   L'**herència en vida** (event `herencia_en_vida` → `EventEffect.llegatEnVidaDelta`) transfereix
   patrimoni als fills mentre vius (lliure de successions; acumulat a `GameState.llegatEnVida`).
 
