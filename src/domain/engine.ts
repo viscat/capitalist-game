@@ -82,6 +82,7 @@ import {
   costVidaAnual,
   costVidaPropi,
   factorAportacioLlar,
+  factorServeisPublics,
   fillsDependents,
   inflacioAnual,
   variacioHabitatgeAnual,
@@ -122,6 +123,7 @@ import type {
   LifeStage,
   LogEntry,
   Person,
+  RegimPolitic,
 } from './types'
 
 /** Petit ajut MENSUAL de pràctiques per a qui fa un grau mitjà (es prorrateja × 12). */
@@ -131,6 +133,7 @@ const ESTIPENDI_GRAU_MIG_MENSUAL = 50
 export interface NewGameSetup {
   dataNaixement?: string
   identitat?: Identitat
+  regimPolitic?: RegimPolitic
 }
 
 /** Crea una partida nova a partir d'un preset de família. */
@@ -156,6 +159,7 @@ export function newGame(
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
     indexHabitatge: INDEX_HABITATGE_INICIAL,
+    regimPolitic: setup.regimPolitic ?? 'mixt',
     historial: [],
     acabat: false,
   }
@@ -184,6 +188,7 @@ export function newGameAt16(
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
     indexHabitatge: INDEX_HABITATGE_INICIAL,
+    regimPolitic: setup.regimPolitic ?? 'mixt',
     pendingMilestone: 'postobligatori',
     historial: [],
     acabat: false,
@@ -215,6 +220,7 @@ export function newGameAtCarrera(
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
     indexHabitatge: INDEX_HABITATGE_INICIAL,
+    regimPolitic: setup.regimPolitic ?? 'mixt',
     teDiploma,
     salari,
     salariBase: salari,
@@ -346,6 +352,8 @@ export function continuaGeneracio(state: GameState): GameState {
     // L'IPC continua la línia temporal del món (els preus no es reinicien amb cada generació).
     ipc: state.ipc ?? IPC_INICIAL,
     indexHabitatge: state.indexHabitatge ?? INDEX_HABITATGE_INICIAL,
+    // El règim del benestar és del MÓN: la dinastia l'hereta (no es reinicia amb cada generació).
+    regimPolitic: state.regimPolitic ?? 'mixt',
     generacio: (state.generacio ?? 1) + 1,
     herenciaPendent: teHerenciaDiferida
       ? { import: liquidPerFill, cases: casesHeretades, edat: edatHerencia }
@@ -633,7 +641,14 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     const budget = state.pressupost ?? defaultBudget(income)
     const minCasa =
       state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
-    person = applyBudgetYear(person, budget, income, minCasa, state.familia)
+    person = applyBudgetYear(
+      person,
+      budget,
+      income,
+      minCasa,
+      state.familia,
+      factorServeisPublics(state),
+    )
   } else if (stage === 'universitat') {
     // Any d'universitat: suport familiar + beca − matrícula, menys habitatge i (si vius
     // sol) un cost de vida frugal d'estudiant. El dèficit que ni els estalvis ni la xarxa
@@ -660,7 +675,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         deficit - fromEfectiu,
         inversions,
         state.familia,
-        ajutPublicMax(patrimoniTotal(person), 0),
+        ajutPublicMax(patrimoniTotal(person), 0, factorServeisPublics(state)),
       )
       inversions -= r.propi
       deute += r.descobert
@@ -734,6 +749,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
           ),
       costFillsAnual(state), // criança dels fills dependents (ja en euros nominals amb IPC)
       f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
+      factorServeisPublics(state), // règim del benestar: eixampla la xarxa pública
     )
     // Aportació REAL d'enguany a la cartera = valor nou − valor crescut (el que ha pujat pel
     // rendiment no és aportació). Acumulada, és el «que has posat» que es compara al gràfic.

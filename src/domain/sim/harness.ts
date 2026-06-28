@@ -14,6 +14,7 @@ import {
   classeHereu,
   newGame,
 } from '../engine'
+import type { NewGameSetup } from '../engine'
 import { FAMILY_PRESET_ORDER } from '../family/presets'
 import { edatAnys } from '../time'
 import {
@@ -28,6 +29,7 @@ import type {
   GameState,
   Identitat,
   Itinerari,
+  RegimPolitic,
 } from '../types'
 
 /** Camí de vida que segueix el jugador simulat a les fites. */
@@ -215,13 +217,14 @@ export function simulateClass(
   nSeeds: number,
   policy: SimPolicy,
   identitat?: Identitat,
+  regimPolitic?: RegimPolitic,
 ): SimOutcome[] {
   const out: SimOutcome[] = []
   for (let i = 0; i < nSeeds; i++) {
-    const final = playout(
-      newGame(cls, seedFor(i), identitat ? { identitat } : {}),
-      policy,
-    )
+    const setup: NewGameSetup = {}
+    if (identitat) setup.identitat = identitat
+    if (regimPolitic) setup.regimPolitic = regimPolitic
+    const final = playout(newGame(cls, seedFor(i), setup), policy)
     const deuteHipoteca = final.habitatge?.hipoteca?.deute ?? 0
     const net = patrimoniTotal(final.person) - deuteHipoteca
     const netReal = net / factorIPC(final)

@@ -59,6 +59,23 @@ export const EDAT_FERTIL_MIN = 26
 export const EDAT_FERTIL_MAX = 42
 /** Nombre màxim de fills. */
 export const MAX_FILLS = 3
+
+// --- Règim del benestar (estat social del món) ---
+/**
+ * Força dels serveis públics segons el règim del món. Escala (0..1) que erosiona la precarietat
+ * estructural i apuja la xarxa pública. És la palanca POLÍTICA: un estat social fort mou el terra
+ * per a tothom, sense dependre de l'estalvi privat. Finançat per l'impost progressiu ja modelat.
+ */
+export const FACTOR_SERVEIS_PUBLICS: Record<
+  'residual' | 'mixt' | 'socialdemocrata',
+  number
+> = {
+  residual: 0.15,
+  mixt: 0.5,
+  socialdemocrata: 0.9,
+}
+/** Quant erosiona el residu de precarietat un estat social ple (fracció màxima reduïble). */
+export const PRECARIETAT_EROSIO_SERVEIS = 0.6
 /**
  * Nivell de frugalitat (0..100) mínim per poder viure de manera frugal sense penalització de
  * benestar. Es guanya amb la formació (nivell acadèmic) i amb l'edat (saviesa/experiència).

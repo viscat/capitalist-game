@@ -140,6 +140,16 @@ Transicions (fites):
   ets propietari): les hipoteques es **combinen** en una de sola (deute i quota sumats) i el banc
   mira el límit d'endeutament sobre el **total** de quotes. El preu de compra i el lloguer segueixen
   l'**índex d'habitatge** (`factorHabitatge`/`indexHabitatge`), NO l'IPC.
+- **Règim del benestar (capa POLÍTICA, Fase 3).** `GameState.regimPolitic` (`residual` | `mixt` |
+  `socialdemocrata`, es tria a la creació del personatge i és propietat del MÓN —la dinastia
+  l'hereta—) escala `factorServeisPublics(state)` (`FACTOR_SERVEIS_PUBLICS`). Aquest factor és la
+  via d'ascens **NO individual**: (1) **erosiona el residu** de `precarietatAdulta` fins a
+  `PRECARIETAT_EROSIO_SERVEIS` (un estat fort abaixa la precarietat estructural per a tothom, sense
+  estalvi privat) i (2) **eixampla la xarxa pública** `ajutPublicMax` (llindars i cobertura més
+  alts). Es propaga a `applyCareerYear`/`applyBudgetYear` via paràmetre `factorServeis`. Validat al
+  harness (`simulateClass(..., regimPolitic)`): el pobre PASSIU puja de benestar ~8→16 i la
+  supervivència als 67 quasi es triplica només canviant de règim. Missatge: les regles són
+  contingents (política), no naturals.
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.

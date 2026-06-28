@@ -21,6 +21,7 @@ import type {
   Identitat,
   NivellVida,
   PlaInversio,
+  RegimPolitic,
 } from '../domain/types'
 
 // Versió de l'esquema desat. Pugem la versió quan canvia de manera incompatible:
@@ -28,7 +29,7 @@ import type {
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
 // v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
-const STORAGE_KEY = 'capitalist-game/save/v12'
+const STORAGE_KEY = 'capitalist-game/save/v13'
 
 function loadSave(): GameState | null {
   try {
@@ -42,11 +43,23 @@ function loadSave(): GameState | null {
 interface GameContextValue {
   state: GameState | null
   hasSave: boolean
-  startGame: (preset: FamilyClass, identitat?: Identitat) => void
+  startGame: (
+    preset: FamilyClass,
+    identitat?: Identitat,
+    regimPolitic?: RegimPolitic,
+  ) => void
   /** Inici ràpid al fork dels 16 (proves manuals). */
-  startGameAt16: (preset: FamilyClass, identitat?: Identitat) => void
+  startGameAt16: (
+    preset: FamilyClass,
+    identitat?: Identitat,
+    regimPolitic?: RegimPolitic,
+  ) => void
   /** Inici ràpid a la fase de carrera als 22 (proves d'inversió). */
-  startGameAtCarrera: (preset: FamilyClass, identitat?: Identitat) => void
+  startGameAtCarrera: (
+    preset: FamilyClass,
+    identitat?: Identitat,
+    regimPolitic?: RegimPolitic,
+  ) => void
   continueGame: () => void
   /** Avança un torn. A les fases d'acció, passa-hi els `actionIds` triats (multiselecció). */
   nextTurn: (actionIds?: string[]) => void
@@ -103,15 +116,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       state,
       hasSave,
-      startGame: (preset, identitat) =>
-        setState(newGame(preset, undefined, { dataNaixement: avuiISO(), identitat })),
-      startGameAt16: (preset, identitat) =>
+      startGame: (preset, identitat, regimPolitic) =>
         setState(
-          newGameAt16(preset, undefined, { dataNaixement: avuiISO(), identitat }),
+          newGame(preset, undefined, {
+            dataNaixement: avuiISO(),
+            identitat,
+            regimPolitic,
+          }),
         ),
-      startGameAtCarrera: (preset, identitat) =>
+      startGameAt16: (preset, identitat, regimPolitic) =>
         setState(
-          newGameAtCarrera(preset, undefined, { dataNaixement: avuiISO(), identitat }),
+          newGameAt16(preset, undefined, {
+            dataNaixement: avuiISO(),
+            identitat,
+            regimPolitic,
+          }),
+        ),
+      startGameAtCarrera: (preset, identitat, regimPolitic) =>
+        setState(
+          newGameAtCarrera(preset, undefined, {
+            dataNaixement: avuiISO(),
+            identitat,
+            regimPolitic,
+          }),
         ),
       continueGame: () => setState(loadSave()),
       nextTurn: (actionIds) =>

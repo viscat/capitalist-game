@@ -5,6 +5,8 @@ import {
   COST_FILL_ANUAL,
   COST_VIDA_NIVELLS,
   DEPENDENCIA_FILLS_ANYS,
+  FACTOR_SERVEIS_PUBLICS,
+  PRECARIETAT_EROSIO_SERVEIS,
   NIVELL_VIDA_DEFAULT,
   FRUGALITAT_LLINDAR,
   HABITATGE_VAR_MAX,
@@ -257,6 +259,11 @@ export function factorHabitatge(state: GameState): number {
   return (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL) / INDEX_HABITATGE_INICIAL
 }
 
+/** Força dels serveis públics del món (0..1) segons el règim del benestar (palanca política). */
+export function factorServeisPublics(state: GameState): number {
+  return FACTOR_SERVEIS_PUBLICS[state.regimPolitic ?? 'mixt']
+}
+
 // --- Frugalitat ---
 
 /**
@@ -417,12 +424,16 @@ export function adultBaselineBenestar(state: GameState): number {
 export function precarietatAdulta(state: GameState): number {
   const residu = PRECARIETAT_BENESTAR_ADULT[state.familia.classe]
   if (residu === 0) return 0
-  if ((state.person.patrimoni.deute ?? 0) > 0) return residu
-  const netReal = patrimoniTotal(state.person) / factorIPC(state)
-  if (netReal <= 0) return residu
-  // Coixí real: 0 € → 1 (residu sencer); 80.000 € reals → 0,3 (residu reduït al mínim).
-  const estabilitat = clamp(1 - netReal / 80_000, 0.3, 1)
-  return Math.round(residu * estabilitat)
+  // PALANCA PÚBLICA: un estat social fort erosiona la precarietat estructural per a TOTHOM, sense
+  // dependre de l'estalvi privat (els serveis universals mouen el terra). És la via no-individual.
+  const erosioPublica = 1 - factorServeisPublics(state) * PRECARIETAT_EROSIO_SERVEIS
+  // PALANCA PRIVADA: sortir del deute i acumular un coixí real també redueix el residu.
+  let estabilitatPrivada = 1
+  if ((state.person.patrimoni.deute ?? 0) <= 0) {
+    const netReal = patrimoniTotal(state.person) / factorIPC(state)
+    if (netReal > 0) estabilitatPrivada = clamp(1 - netReal / 80_000, 0.3, 1)
+  }
+  return Math.round(residu * estabilitatPrivada * erosioPublica)
 }
 
 /** Un component del benestar de referència, amb etiqueta i12n i valor (signat). */
@@ -611,10 +622,19 @@ export function repartDeficit(
  * realitat, i aquí tampoc no el rescata: segueix atrapat). I és PARCIAL (no-take-up:
  * burocràcia, estigma). No aixeca el sostre; només evita la destitució absoluta.
  */
-export function ajutPublicMax(patrimoniNet: number, annualIncome: number): number {
-  if (patrimoniNet >= 20_000) return 0
-  if (annualIncome >= 12_000) return 0
-  return Math.round(IMV_ANUAL * IMV_COBERTURA)
+export function ajutPublicMax(
+  patrimoniNet: number,
+  annualIncome: number,
+  factorServeis = FACTOR_SERVEIS_PUBLICS.mixt,
+): number {
+  // Un estat social fort eixampla l'accés (llindars més alts, menys no-take-up) i la cobertura;
+  // un de residual amb prou feines arriba. La política mou la xarxa, no només l'estalvi privat.
+  const llindarPatrimoni = 20_000 * (0.5 + factorServeis)
+  const llindarIngres = 12_000 * (0.5 + factorServeis)
+  if (patrimoniNet >= llindarPatrimoni) return 0
+  if (annualIncome >= llindarIngres) return 0
+  // Cobertura base × (0,5..1,4) segons el règim: el socialdemòcrata cobreix molt més.
+  return Math.round(IMV_ANUAL * IMV_COBERTURA * (0.5 + factorServeis))
 }
 
 /**
@@ -989,6 +1009,7 @@ export function applyBudgetYear(
   income: number,
   minCasa = 0,
   familia?: Familia,
+  factorServeis = FACTOR_SERVEIS_PUBLICS.mixt,
 ): Person {
   const patrimoni = { ...person.patrimoni }
   // Necessitats anuals (consum obligatori + discrecional) i caixa de l'any.
@@ -1007,7 +1028,7 @@ export function applyBudgetYear(
       necessitats - caixa,
       inversions,
       familia,
-      ajutPublicMax(patrimoniTotal(person), income * MESOS_PER_ANY),
+      ajutPublicMax(patrimoniTotal(person), income * MESOS_PER_ANY, factorServeis),
     )
     inversions -= r.propi
     descobert = r.descobert
@@ -1252,6 +1273,7 @@ export function applyCareerYear(
   benestarNivell = 0,
   costFills = 0,
   factorIPCActual = 1,
+  factorServeis = FACTOR_SERVEIS_PUBLICS.mixt,
 ): Person {
   const f = factorIPCActual
   const patrimoni = creixementInversions(person.patrimoni, indexReturn)
@@ -1298,7 +1320,7 @@ export function applyCareerYear(
       necessitats - caixa,
       inversions,
       familia,
-      ajutPublicMax(patrimoniTotal(person) / f, annualIncome / f) * f,
+      ajutPublicMax(patrimoniTotal(person) / f, annualIncome / f, factorServeis) * f,
       f,
     )
     inversions -= r.propi
