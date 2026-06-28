@@ -1265,6 +1265,7 @@ function resolveEvent(
       edat: anys,
       benestar: Math.round(person.stats.benestar),
       salut: Math.round(person.stats.salut),
+      moralitat: Math.round(person.stats.moralitat ?? MORALITAT_INICIAL),
       net: Math.round(patrimoniTotal(person)),
       ipc: Math.round(state.ipc ?? IPC_INICIAL),
     },
