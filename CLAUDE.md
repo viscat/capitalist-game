@@ -145,8 +145,11 @@ Transicions (fites):
   l'hereta—) escala `factorServeisPublics(state)` (`FACTOR_SERVEIS_PUBLICS`). Aquest factor és la
   via d'ascens **NO individual**: (1) **erosiona el residu** de `precarietatAdulta` fins a
   `PRECARIETAT_EROSIO_SERVEIS` (un estat fort abaixa la precarietat estructural per a tothom, sense
-  estalvi privat) i (2) **eixampla la xarxa pública** `ajutPublicMax` (llindars i cobertura més
-  alts). Es propaga a `applyCareerYear`/`applyBudgetYear` via paràmetre `factorServeis`. Validat al
+  estalvi privat), (2) **eixampla la xarxa pública** `ajutPublicMax` (llindars i cobertura més
+  alts) i (3) **cobreix part de les despeses greus de SALUT** (`coberturaSanitariaPublica` =
+  `factorServeisPublics × SANITAT_COBERTURA_MAX`, aplicada a `resolveDespesaGreu` per a la categoria
+  `salut`): un estat fort fa el cop de malaltia molt menys ruïnós i més simètric entre classes. Es
+  propaga a `applyCareerYear`/`applyBudgetYear` via paràmetre `factorServeis`. Validat al
   harness (`simulateClass(..., regimPolitic)`): el pobre PASSIU puja de benestar ~8→16 i la
   supervivència als 67 quasi es triplica només canviant de règim. Missatge: les regles són
   contingents (política), no naturals.

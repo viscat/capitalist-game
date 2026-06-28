@@ -698,6 +698,12 @@ export const ca: Record<string, string> = {
     'Vas tractar bé els altres: no t’ho va pagar el mercat, però vas viure amb la consciència tranquil·la.',
   'gameover.factor.moral_malvat':
     'Vas trepitjar qui calia per pujar: el sistema premia qui no té escrúpols… fins que es passa comptes.',
+  'gameover.contrafactic.residual':
+    'Vas jugar amb les regles d’un estat mínim: sense xarxa, qui queia es quedava a terra. Amb un estat del benestar fort, el mateix esforç hauria rendit molt més — i molta més gent hauria arribat al final. La diferència no eres tu: era la regla.',
+  'gameover.contrafactic.mixt':
+    'Vas jugar amb les regles d’un estat del benestar a mitges: protegia una mica, però amb forats. Amb un estat més fort, el terra de tothom seria més alt; amb un de residual, molt més baix. Les regles es trien; no són naturals.',
+  'gameover.contrafactic.socialdemocrata':
+    'Vas jugar amb les regles d’un estat del benestar fort: el terra estava més amunt per a tothom, no només per a qui estalviava. Amb un estat residual, el mateix esforç t’hauria deixat molt més exposat. El context no el vas triar tu, però ho va canviar tot.',
   // Dinastia: herència i continuació amb un descendent
   'gameover.dinastia.titol': 'El llinatge continua',
   'gameover.dinastia.herencia':

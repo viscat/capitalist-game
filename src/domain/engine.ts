@@ -88,6 +88,7 @@ import {
   factorHabitatge,
   factorIPC,
   costFillsAnual,
+  coberturaSanitariaPublica,
   costVidaAnual,
   costVidaPropi,
   dividendNegociAnual,
@@ -1033,7 +1034,11 @@ function resolveEvent(
   let donacio: number | undefined
   let descobert: number | undefined
   if (effect.despesaGreu && effect.despesaGreu > 0) {
-    const res = resolveDespesaGreu(person, state.familia, effect.despesaGreu)
+    // Les despeses greus de SALUT les cobreix parcialment la sanitat pública (segons el règim):
+    // un estat fort fa el cop de malaltia molt menys ruïnós i més simètric entre classes.
+    const cobertura =
+      event.category === 'salut' ? coberturaSanitariaPublica(state) : 0
+    const res = resolveDespesaGreu(person, state.familia, effect.despesaGreu, cobertura)
     person = res.person
     donacio = res.donacio || undefined
     descobert = res.descobert || undefined

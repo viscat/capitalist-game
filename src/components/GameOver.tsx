@@ -202,6 +202,10 @@ export function GameOver() {
               </li>
             ))}
           </ul>
+          {/* Contrafàctic de règim: el terra el va moure la REGLA (la política), no tu. */}
+          <p className="mt-3 border-t border-slate-700/60 pt-3 text-xs leading-relaxed text-amber-300/90">
+            🏛️ {t(`gameover.contrafactic.${state.regimPolitic ?? 'mixt'}`)}
+          </p>
         </div>
 
         {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}
