@@ -70,7 +70,7 @@ la UI ho fa explícit amb una nota a cada panell.
 | `adolescencia` | 12–16 | una **acció** de targeta cada any |
 | `estudis_post` | 16–18 (batxillerat / grau mitjà) | una **acció** de targeta cada any |
 | `laboral` | 16–18 (treball / nini) | ajusta el **pressupost** mensual (s'aplica × 12) |
-| `universitat` | 18–22 | només «Següent any» (suport familiar − matrícula) |
+| `universitat` | 18–22 | només «Següent any» (suport familiar + beca − matrícula pública/privada) |
 | `carrera` | 18/22–**67** | ajusta el **pla d'inversió** (mensual; s'aplica × 12) |
 | `jubilacio` | **67–mort** | pla d'inversió/estalvi vivint de la **pensió** (sense sou) |
 
@@ -78,8 +78,14 @@ Transicions (fites):
 - Als **12** → fita `institut` (una sola opció: continuar) → passa a `adolescencia`.
 - Als **16** → fita `postobligatori` (4 opcions) → `estudis_post` (batxillerat/grau_mig)
   o `laboral` (treball/nini), segons l'`Itinerari` triat.
-- Als **18** → fita `majoria` (2 opcions) → `universitat` o `carrera` (vida laboral
-  adulta amb inversions). Qui entra directament a `carrera` ho fa **sense títol**.
+- Als **18** → fita `majoria` (3 opcions) → `universitat` (**pública** o **privada**) o `carrera`
+  (vida laboral adulta amb inversions). Qui entra directament a `carrera` ho fa **sense títol**. La
+  tria de centre fixa `GameState.tipusUniversitat`: la **pública** té matrícula assequible
+  (`MATRICULA_PUBLICA_ANUAL` ~1.800 €/any) i **beca per renda** (les rendes baixes en queden quasi
+  exemptes); la **privada** és cara (`MATRICULA_PRIVADA_ANUAL` ~12.000 €/any, **sense beca**) però
+  dóna un **plus de sou de partida** per prestigi/contactes (`PRESTIGI_PRIVADA_SALARI`). Xifres
+  basades en dades reals d'Espanya. És una palanca de classe: el ric compra un millor punt de
+  sortida; el pobre que tria privada s'endeuta.
 - Als **22** → fita `fi_uni` (una sola opció) → `carrera` **amb títol** (`teDiploma`),
   que dóna un premi de sou.
 - Als **40 / 50 / 60** → fites de **mitja carrera** (`cruilla_40`, `revisio_50`, `recta_60`):

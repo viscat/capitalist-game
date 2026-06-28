@@ -55,6 +55,8 @@ export interface SimPolicy {
    * d'esquirol (el scorer per defecte maximitza diners+benestar a curt termini).
    */
   collectiu?: boolean
+  /** Si va a la universitat, quin centre tria (per defecte pública, la via realista). */
+  universitat?: 'publica' | 'privada'
 }
 
 /**
@@ -87,7 +89,10 @@ function milestoneChoice(state: GameState, policy: SimPolicy): string {
     case 'postobligatori':
       return policy.postobligatori
     case 'majoria':
-      return policy.majoria
+      if (policy.majoria !== 'universitat') return 'carrera'
+      return policy.universitat === 'privada'
+        ? 'universitat_privada'
+        : 'universitat_publica'
     case 'fi_uni':
       return 'comencar_carrera'
     // Fites de mitja carrera: el jugador simulat prioritza el benestar (la mètrica de

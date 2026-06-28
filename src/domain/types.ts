@@ -32,6 +32,9 @@ export type NivellVida = 'minim' | 'mig' | 'alt'
 /** Règim del benestar del món (força de l'estat social). */
 export type RegimPolitic = 'residual' | 'mixt' | 'socialdemocrata'
 
+/** Tipus d'universitat triada: pública (barata, beca per renda) o privada (cara, amb prestigi). */
+export type TipusUniversitat = 'publica' | 'privada'
+
 /**
  * Política de sou que pagues als empleats del teu negoci. Com més baix els pagues, més
  * dividend t'enduus tu (extreus més plusvàlua) però més baixa la moralitat; pagar bé costa
@@ -418,6 +421,8 @@ export interface GameState {
   habitatge?: Habitatge
   /** Marca si la persona té un títol universitari (premi de sou a la carrera). */
   teDiploma?: boolean
+  /** Universitat triada (pública/privada): determina la matrícula i el prestigi. Absent = pública. */
+  tipusUniversitat?: TipusUniversitat
   /** Sou mensual actual (treball). 0 amb itinerari 'treball' = a l'atur. */
   salari?: number
   /** Sou de referència d'aquesta partida (per a reincorporacions). */
