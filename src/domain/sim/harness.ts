@@ -12,15 +12,18 @@ import {
   applyChoice,
   applyMilestoneChoice,
   classeHereu,
+  continuaGeneracio,
   newGame,
 } from '../engine'
 import type { NewGameSetup } from '../engine'
+import { LLOGUER_HABITACIO_ANUAL } from '../constants'
 import { FAMILY_PRESET_ORDER } from '../family/presets'
 import { edatAnys } from '../time'
 import {
   defaultPlaInversio,
   factorIPC,
   ingressosAnualsCarrera,
+  netAnual,
   patrimoniTotal,
 } from '../stats'
 import type {
@@ -255,6 +258,78 @@ export function simulateClass(
       propietari: final.person.patrimoni.cases.length > 0,
       ambFills: (final.fills ?? 0) > 0,
     })
+  }
+  return out
+}
+
+// --- Dinastia multi-generació (robustesa a llarg termini) ---
+
+/** Resultat d'una generació dins d'una dinastia llarga. */
+export interface DynastyGen {
+  gen: number
+  edatMort: number
+  benestar: number
+  ipc: number
+  indexHabitatge: number
+  /** Ràtio índex d'habitatge / IPC: ha de quedar acotat (no es desindexa infinitament). */
+  ratioHabitatge: number
+  /** Sou NET mensual al final de la vida (en euros nominals d'aquella època). */
+  salariNetMensual: number
+  /** Lloguer mensual d'una habitació en el món d'aquella generació (euros nominals). */
+  lloguerHabitacioMensual: number
+}
+
+/**
+ * Juga una DINASTIA de fins a `maxGens` generacions (mort → `continuaGeneracio` amb un descendent)
+ * i recull l'estat del MÓN a cada generació. Serveix per comprovar que el joc no es trenca a llarg
+ * termini: els preus (IPC, habitatge) no exploten ni es desindexen dels sous fins a fer-ho
+ * insostenible. Si una generació mor sense descendència, la dinastia s'acaba (es retorna el que hi ha).
+ */
+export function playoutDynasty(
+  cls: FamilyClass,
+  policy: SimPolicy,
+  maxGens: number,
+  seed = 12345,
+  regimPolitic?: RegimPolitic,
+  /**
+   * Força la continuïtat de la dinastia encara que una generació mori sense descendència (hi
+   * sintetitza un hereu). Serveix per ESTRESSAR la maquinària de preus a molt llarg termini sense
+   * dependre de la sort reproductiva: aïlla la pregunta «exploten els preus?» de «té fills?».
+   */
+  forçar = false,
+): DynastyGen[] {
+  const setup: NewGameSetup = {}
+  if (regimPolitic) setup.regimPolitic = regimPolitic
+  let state = newGame(cls, seed, setup)
+  const out: DynastyGen[] = []
+  for (let g = 1; g <= maxGens; g++) {
+    const final = playout(state, policy)
+    const ipc = final.ipc ?? 100
+    const idx = final.indexHabitatge ?? 100
+    out.push({
+      gen: g,
+      edatMort: edatAnys(final.person.edatMesos),
+      benestar: final.person.stats.benestar,
+      ipc,
+      indexHabitatge: idx,
+      ratioHabitatge: idx / ipc,
+      salariNetMensual: Math.round(netAnual((final.salari ?? 0) * 12) / 12),
+      lloguerHabitacioMensual: Math.round((LLOGUER_HABITACIO_ANUAL * (idx / 100)) / 12),
+    })
+    let ambHereu = final
+    if ((final.fills ?? 0) <= 0) {
+      if (!forçar) break
+      // Sintetitza un hereu (nascut quan el progenitor tenia ~30) per poder continuar el test.
+      ambHereu = {
+        ...final,
+        fills: 1,
+        fillsNaixement: [Math.max(0, final.person.edatMesos - 30 * 12)],
+        fillsNoms: ['Hereu'],
+      }
+    }
+    const next = continuaGeneracio(ambHereu)
+    if (next === ambHereu) break
+    state = next
   }
   return out
 }

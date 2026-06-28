@@ -279,6 +279,15 @@ export const IPC_INICIAL = 100
 export const IPC_INFLACIO_MIN = -0.015
 export const IPC_INFLACIO_MAX = 0.04
 
+/**
+ * Indexació PARCIAL dels sous a la inflació (revisió anual / COLA). Cada any el sou puja una
+ * fracció de la inflació d'aquell any: < 1 perquè els sous LAGUIN els preus (estancament salarial
+ * real, la crítica), però > 0 perquè no es congelin nominalment i s'erosionin a zero al llarg de
+ * generacions (insostenible). El sou d'ENTRADA i el TERRA, en canvi, s'indexen del tot a l'IPC
+ * (una nova generació no comença cobrant euros-base en un món on els preus s'han multiplicat).
+ */
+export const SALARI_INDEXACIO = 0.6
+
 // --- Índex del preu de l'habitatge (lloguer i compra) ---
 // L'habitatge NO segueix l'IPC: té el seu propi índex, que a llarg termini creix MÉS de pressa
 // (l'habitatge s'encareix per damunt dels preus de consum → la crisi de l'accés a l'habitatge).
@@ -287,3 +296,14 @@ export const INDEX_HABITATGE_INICIAL = 100
 /** Variació anual mínima i màxima del preu de l'habitatge (mitjana ~+3,5%, per sobre de l'IPC). */
 export const HABITATGE_VAR_MIN = -0.02
 export const HABITATGE_VAR_MAX = 0.09
+
+/**
+ * Banda de l'índex d'habitatge RELATIVA a l'IPC. L'habitatge s'encareix per damunt dels preus de
+ * consum (la crisi de l'accés), però NO pot desindexar-se infinitament: sense un límit, al cap de
+ * poques generacions un lloguer val milers de vegades el sou i tothom mor. Per això l'índex queda
+ * acotat a [MIN, MAX] × IPC: pot arribar a ser MAX vegades més car que el nivell general de preus
+ * (crisi dura), i quan toca sostre el mercat es corregeix (bombolles que esclaten). És la
+ * "correcció estructural" que evita el col·lapse de les generacions futures.
+ */
+export const HABITATGE_REAL_MIN = 0.5
+export const HABITATGE_REAL_MAX = 2.5
