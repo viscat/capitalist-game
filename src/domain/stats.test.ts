@@ -17,7 +17,6 @@ import {
   creixementInversions,
   desglosNominaAnual,
   desglosNominaMensual,
-  desgravacioPensions,
   irpfAnual,
   netAnual,
   minimOciCompres,
@@ -49,10 +48,7 @@ const person: Person = {
   stats: { benestar: 50, salut: 100 },
   patrimoni: {
     efectiu: 0,
-    estalvi: 0,
     inversions: 0,
-    fonsIndexat: 0,
-    fonsPensions: 0,
     cases: [],
   },
 }
@@ -67,9 +63,9 @@ describe('clampBenestar', () => {
 
 describe('applyEffect', () => {
   it('aplica deltes de benestar i patrimoni de forma immutable', () => {
-    const next = applyEffect(person, { benestar: 10, estalvi: 50 })
+    const next = applyEffect(person, { benestar: 10, inversions: 50 })
     expect(next.stats.benestar).toBe(60)
-    expect(next.patrimoni.estalvi).toBe(50)
+    expect(next.patrimoni.inversions).toBe(50)
     expect(person.stats.benestar).toBe(50) // l'original no canvia
   })
 
@@ -208,7 +204,7 @@ describe('descendència', () => {
     const ric = {
       ...person,
       edatMesos: 40 * 12,
-      patrimoni: { ...person.patrimoni, estalvi: 200_000 },
+      patrimoni: { ...person.patrimoni, inversions: 200_000 },
     }
     const s = stateFills({ person: ric, fills: 2, fillsNaixement: [35 * 12, 34 * 12] })
     expect(llegatPerFill(s)).toBeGreaterThan(0)
@@ -258,7 +254,7 @@ describe('jubilació', () => {
     const pobre = rendaPatrimoniAnual(person)
     const ric = rendaPatrimoniAnual({
       ...person,
-      patrimoni: { ...person.patrimoni, fonsPensions: 200_000, fonsIndexat: 100_000 },
+      patrimoni: { ...person.patrimoni, inversions: 300_000 },
     })
     expect(pobre).toBe(0)
     expect(ric).toBeGreaterThan(0)
@@ -302,16 +298,12 @@ describe('applyBudgetYear — benestar segons la despesa', () => {
     stats: { benestar: 50, salut: 100 },
     patrimoni: {
       efectiu: 0,
-      estalvi: 0,
       inversions: 0,
-      fonsIndexat: 0,
-      fonsPensions: 0,
       cases: [],
     },
   }
   const budget = (oci: number, compres: number) => ({
     casa: 0,
-    estalvi: 0,
     oci,
     compres,
   })
@@ -365,10 +357,7 @@ describe('resolveDespesaGreu (matalàs familiar)', () => {
     stats: { benestar: 70, salut: 100 },
     patrimoni: {
       efectiu: 0,
-      estalvi,
-      inversions: 0,
-      fonsIndexat: 0,
-      fonsPensions: 0,
+      inversions: estalvi,
       cases: [],
     },
   })
@@ -386,9 +375,9 @@ describe('resolveDespesaGreu (matalàs familiar)', () => {
     expect(res.person.stats.benestar).toBeLessThan(70)
   })
 
-  it('el jugador paga primer del seu estalvi', () => {
+  it('el jugador paga primer venent inversions', () => {
     const res = resolveDespesaGreu(ambEstalvi(1000), FAMILY_PRESETS.pobra.familia, 600)
-    expect(res.person.patrimoni.estalvi).toBe(400)
+    expect(res.person.patrimoni.inversions).toBe(400)
     expect(res.descobert).toBe(0)
     expect(res.donacio).toBe(0)
   })
@@ -398,10 +387,7 @@ describe('resolveDespesaGreu (matalàs familiar)', () => {
 
 const patrimoniAmb = (parts: Partial<Patrimoni>): Patrimoni => ({
   efectiu: 0,
-  estalvi: 0,
   inversions: 0,
-  fonsIndexat: 0,
-  fonsPensions: 0,
   cases: [],
   ...parts,
 })
@@ -442,23 +428,10 @@ describe('balancUniversitatAnual', () => {
 })
 
 describe('creixementInversions', () => {
-  it('el pla de pensions creix de forma estable i el fons indexat segueix el mercat', () => {
-    const p = patrimoniAmb({ fonsPensions: 1000, fonsIndexat: 1000 })
-    const puja = creixementInversions(p, 0.1)
-    expect(puja.fonsPensions).toBeGreaterThan(1000)
-    expect(puja.fonsIndexat).toBe(1100)
-    // En un mal any, el fons indexat baixa; el pla de pensions no.
-    const baixa = creixementInversions(p, -0.2)
-    expect(baixa.fonsIndexat).toBe(800)
-    expect(baixa.fonsPensions).toBeGreaterThan(1000)
-  })
-})
-
-describe('desgravacioPensions', () => {
-  it('retorna una fracció de l’aportació, amb un límit', () => {
-    expect(desgravacioPensions(1000)).toBe(200)
-    // Per sobre del límit de desgravació, no creix més.
-    expect(desgravacioPensions(5000)).toBe(desgravacioPensions(1500))
+  it('la cartera segueix el mercat: puja en bons anys i baixa en dolents', () => {
+    const p = patrimoniAmb({ inversions: 1000 })
+    expect(creixementInversions(p, 0.1).inversions).toBe(1100)
+    expect(creixementInversions(p, -0.2).inversions).toBe(800)
   })
 })
 
@@ -469,12 +442,10 @@ describe('applyCareerYear', () => {
     patrimoni: patrimoniAmb({ efectiu: 20000 }),
   }
 
-  it('aporta a les inversions i la desgravació de pensions torna a efectiu', () => {
-    const pla = { oci: 2000, estalvi: 1000, fonsIndexat: 3000, fonsPensions: 1000 }
+  it('aporta a la cartera d’inversió i deixa la resta a efectiu', () => {
+    const pla = { oci: 2000, inversions: 4000 }
     const after = applyCareerYear(adult, pla, 24000, 0.05)
-    expect(after.patrimoni.fonsIndexat).toBeGreaterThan(0)
-    expect(after.patrimoni.fonsPensions).toBe(1000)
-    expect(after.patrimoni.estalvi).toBe(1000)
+    expect(after.patrimoni.inversions).toBeGreaterThan(0)
     expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })
 
@@ -484,7 +455,7 @@ describe('applyCareerYear', () => {
       stats: { benestar: 50, salut: 100 },
       patrimoni: patrimoniAmb({ efectiu: 0 }),
     }
-    const pla = { oci: 0, estalvi: 0, fonsIndexat: 99999, fonsPensions: 0 }
+    const pla = { oci: 0, inversions: 99999 }
     const after = applyCareerYear(pobre, pla, 12000, 0.05)
     expect(after.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
   })
@@ -504,15 +475,15 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
   const adult = (efectiu: number, estalvi: number, benestar = 60): Person => ({
     edatMesos: 22 * 12,
     stats: { benestar, salut: 100 },
-    patrimoni: patrimoniAmb({ efectiu, estalvi }),
+    patrimoni: patrimoniAmb({ efectiu, inversions: estalvi }),
   })
-  const plaZero = { oci: cap, estalvi: cap, fonsIndexat: cap, fonsPensions: cap }
+  const plaZero = { oci: cap, inversions: cap }
 
-  it('applyCareerYear: el dèficit (cost > ingrés) es paga tirant de l’estalvi, sense deute', () => {
-    // Ingrés 0 i cost de vida 6000 → 6000 de dèficit; surt de l’estalvi.
+  it('applyCareerYear: el dèficit (cost > ingrés) es paga venent inversions, sense deute', () => {
+    // Ingrés 0 i cost de vida 6000 → 6000 de dèficit; surt de la cartera.
     const after = applyCareerYear(adult(0, 5000), plaZero, 0, 0, 6000, 0, FAMILY_PRESETS.rica.familia)
-    expect(after.patrimoni.estalvi).toBeLessThan(5000)
-    expect(after.patrimoni.estalvi).toBeGreaterThanOrEqual(0)
+    expect(after.patrimoni.inversions).toBeLessThan(5000)
+    expect(after.patrimoni.inversions).toBeGreaterThanOrEqual(0)
     expect(after.patrimoni.efectiu).toBe(0)
   })
 
@@ -530,13 +501,13 @@ describe('pressupost amb dèficit (gastar per sobre de l’ingrés)', () => {
     const person: Person = {
       edatMesos: 16 * 12,
       stats: { benestar: 50, salut: 100 },
-      patrimoni: patrimoniAmb({ efectiu: 0, estalvi: 3000 }),
+      patrimoni: patrimoniAmb({ efectiu: 0, inversions: 3000 }),
     }
-    // Sou 100/mes però 300/mes d’oci → dèficit anual cobert per l’estalvi.
-    const budget = { casa: 0, estalvi: 0, oci: 300, compres: 0 }
+    // Sou 100/mes però 300/mes d’oci → dèficit anual cobert venent inversions.
+    const budget = { casa: 0, oci: 300, compres: 0 }
     const after = applyBudgetYear(person, budget, 100, 0, FAMILY_PRESETS.mitjana.familia)
-    expect(after.patrimoni.estalvi).toBeLessThan(3000)
-    expect(after.patrimoni.estalvi).toBeGreaterThanOrEqual(0)
+    expect(after.patrimoni.inversions).toBeLessThan(3000)
+    expect(after.patrimoni.inversions).toBeGreaterThanOrEqual(0)
     expect(after.patrimoni.efectiu).toBe(0)
   })
 })

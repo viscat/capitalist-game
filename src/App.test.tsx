@@ -60,7 +60,6 @@ describe('flux de l’app', () => {
     // Es mostra el panell d'inversió amb les seves partides (també surten al
     // resum de patrimoni, per això n'hi pot haver més d'una ocurrència).
     expect(screen.getByText('On poses els teus diners?')).toBeTruthy()
-    expect(screen.getAllByText('Fons indexat').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Pla de pensions').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Inversió').length).toBeGreaterThan(0)
   })
 })

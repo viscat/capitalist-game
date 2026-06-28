@@ -159,18 +159,17 @@ describe('cobertura i18n (català)', () => {
       ]),
       ...BENESTAR_BUCKETS.map((b) => `benestar.${b}`),
       ...Array.from({ length: 12 }, (_, i) => `mes.${i}`),
-      ...['estalvi', 'oci', 'compres', 'casa'].flatMap((k) => [
+      ...['oci', 'compres', 'casa'].flatMap((k) => [
         `budget.${k}`,
         `budget.${k}.desc`,
       ]),
-      ...['oci', 'estalvi', 'fonsIndexat', 'fonsPensions', 'costVida', 'costHabitatge'].flatMap(
-        (k) => [`pla.${k}`, `pla.${k}.desc`],
-      ),
+      ...['oci', 'inversions', 'costVida', 'costHabitatge'].flatMap((k) => [
+        `pla.${k}`,
+        `pla.${k}.desc`,
+      ]),
       ...['minim', 'mig', 'alt'].map((n) => `nivellVida.${n}`),
       ...QUALITATS_OFERTA.map((q) => `oferta.${q}`),
-      ...['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'].map(
-        (f) => `patrimoni.${f}`,
-      ),
+      ...['efectiu', 'inversions'].map((f) => `patrimoni.${f}`),
       ...['amb_pares', 'habitacio', 'pis_lloguer', 'propietat'].map(
         (h) => `tipusHabitatge.${h}`,
       ),

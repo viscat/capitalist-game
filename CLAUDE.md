@@ -178,8 +178,7 @@ Punts clau perquè res no es bloquegi:
 - **Determinisme**: tota aleatorietat passa pel RNG i actualitza `rngState`. No facis
   servir `Math.random()` dins de la lògica de torn (sí que es pot per a coses no
   jugables com la generació de noms a `identitat.ts`).
-- **Comptes mai negatius**: `efectiu`, `estalvi`, `inversions`, `fonsIndexat` i
-  `fonsPensions` mai baixen de zero. El **deute** sí que es modela, però com una **línia
+- **Comptes mai negatius**: `efectiu` i `inversions` mai baixen de zero. El **deute** sí que es modela, però com una **línia
   pròpia i positiva** (`patrimoni.deute`, l'import que es deu): a la **carrera**, el dèficit
   que ni els estalvis ni el matalàs familiar cobreixen es converteix en deute que **compon**
   (`INTERES_DEUTE`), **bloqueja la inversió** fins extingir-se i té un sostre (~2,5× ingrés;
@@ -212,7 +211,7 @@ Punts clau perquè res no es bloquegi:
 - **Pressupost/pla amb dèficit**: tant `applyBudgetYear` (laboral) com `applyCareerYear`
   (carrera) admeten **gastar per sobre de l'ingrés**. Les necessitats de l'any (cost de
   vida + habitatge + oci) es paguen de l'ingrés i, si no arriba, dels **estalvis propis**
-  (efectiu + estalvi) → **xarxa familiar** (`repartDeficit` / `ajutFamiliarMax`) →
+  (efectiu + venent inversions) → **xarxa familiar** (`repartDeficit` / `ajutFamiliarMax`) →
   **descobert** (`penalitzacioDescobert`, resta benestar). Les aportacions a inversió
   només es fan si sobra (mai a crèdit). La UI mostra el **Balanç del mes** (pot ser
   negatiu = «tires d'estalvis») i, si escau, el descobert amb els punts de benestar que
@@ -249,19 +248,18 @@ Entrar a `carrera` (als 18 o 22) **no et regala feina**: hi entres **a l'atur**
 
 ### Inversions (fase de carrera, el missatge financer)
 
-A `carrera`, cada any el jugador reparteix els seus diners amb un **pla d'inversió**
-(`PlaInversio`: oci, estalvi, fons indexat, pla de pensions) i el patrimoni invertit
-**compon** any rere any (`applyCareerYear`, `creixementInversions` a `stats.ts`):
+A `carrera`, cada any el jugador reparteix els seus diners amb un **pla** (`PlaInversio`: només
+**oci** i **inversió**) i la cartera invertida **compon** any rere any (`applyCareerYear`,
+`creixementInversions` a `stats.ts`). El model és deliberadament SIMPLE: un sol vehicle.
 
-- **estalvi** — líquid i segur, rendiment ≈ 0 (la inflació se'l menja).
-- **fons indexat** — rendiment esperat alt però **volàtil**: cada any es sorteja amb el
-  RNG (`rendimentIndexAnual`, mitjana ≈ +6%, pot ser negatiu) i, a més, hi ha xocs de
-  mercat puntuals (`EventEffect.mercatPct`, p. ex. un crac −28%). Missatge: a llarg
-  termini compon, però cal aguantar els sotracs sense vendre.
-- **pla de pensions** — rendiment estable i baix, amb **desgravació fiscal** (part de
-  l'aportació torna a efectiu) però **bloquejat** (il·líquid; compta al patrimoni net).
-- Ordre del torn: creixen les inversions → ingressa el sou → cost de vida obligatori →
-  aportacions del pla → desgravació → el sobrant va a efectiu (mai negatiu).
+- **inversió** (`Patrimoni.inversions`) — l'únic vehicle d'estalvi/inversió (no hi ha ni compte
+  d'estalvi ni pla de pensions). Rendiment esperat alt però **volàtil**: cada any es sorteja amb
+  el RNG (`rendimentIndexAnual`, mitjana ≈ +6%, pot ser negatiu) i, a més, hi ha xocs de mercat
+  puntuals (`EventEffect.mercatPct`, p. ex. un crac −28%). És **líquid**: es ven per comprar
+  habitatge o cobrir dèficits. Missatge: a llarg termini compon, però cal aguantar els sotracs.
+- **efectiu** — caixa líquida sense rendiment (el sobrant del torn hi va a parar).
+- Ordre del torn: creix la cartera → ingressa el sou → cost de vida obligatori → aportació a
+  inversió (si sobra) → el sobrant va a efectiu (mai negatiu).
 
 L'origen segueix pesant: més patrimoni i el **títol universitari** (`teDiploma`) donen
 un sou inicial més alt (`salariAdultInicial`), i més sou ⇒ més capacitat d'inversió ⇒

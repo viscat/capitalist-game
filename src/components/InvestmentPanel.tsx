@@ -21,7 +21,6 @@ import {
   fillsDependents,
   frugalitat,
   potViureFrugal,
-  desgravacioPensions,
   ingressosAnualsCarrera,
   minimOciAnual,
   netMensual,
@@ -37,12 +36,7 @@ import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { AmountStepper } from './AmountStepper'
 
-const CATEGORIES: (keyof PlaInversio)[] = [
-  'oci',
-  'estalvi',
-  'fonsIndexat',
-  'fonsPensions',
-]
+const CATEGORIES: (keyof PlaInversio)[] = ['oci', 'inversions']
 
 const NIVELLS_VIDA: NivellVida[] = ['minim', 'mig', 'alt']
 
@@ -93,9 +87,9 @@ export function InvestmentPanel() {
   const fillsDeps = fillsDependents(state)
   const obligatori = costVida + costHab + costFills
   const efectiu = state.person.patrimoni.efectiu
-  const estalvi = state.person.patrimoni.estalvi
-  // Pots repartir el sou + els teus estalvis (efectiu + estalvi), per damunt del sou.
-  const assignable = Math.max(0, income + efectiu + estalvi - obligatori)
+  const inversionsActuals = state.person.patrimoni.inversions
+  // Pots repartir el sou + els teus estalvis (efectiu + cartera), per damunt del sou.
+  const assignable = Math.max(0, income + efectiu + inversionsActuals - obligatori)
   // Deute de consum pendent: compon i bloqueja la inversió fins saldar-lo.
   const deuteActual = state.person.patrimoni.deute ?? 0
   const interesDeutePct = Math.round(INTERES_DEUTE * 100)
@@ -109,14 +103,13 @@ export function InvestmentPanel() {
   // El que ningú cobreix es converteix en DEUTE (no és un xoc puntual de benestar).
   const deficit = repartDeficit(
     Math.max(0, obligatori + pla.oci - (efectiu + income)),
-    estalvi,
+    inversionsActuals,
     state.familia,
     ajutPublicMax(patrimoniTotal(state.person), income),
   )
 
   const benestar = benestarOciAnual(pla.oci, income)
   const minOci = minimOciAnual(income)
-  const desgravacio = desgravacioPensions(pla.fonsPensions)
   // Frugalitat: viure de mínim sense penalització només si el nivell de frugalitat hi arriba.
   const nivellFrugalitat = frugalitat(state)
   const potFrugal = potViureFrugal(state)
@@ -340,11 +333,6 @@ export function InvestmentPanel() {
         <p className="text-xs text-sky-300/90">
           📈 {t('pla.notaIndex', { pct: INDEX_MITJANA_PCT })}
         </p>
-        {desgravacio > 0 && (
-          <p className="text-xs text-emerald-300/90">
-            🧾 {t('pla.notaPensions', { amount: formatEuros(perMes(desgravacio)) })}
-          </p>
-        )}
         <div className="flex justify-between">
           <span className="text-slate-400">{t('pla.balanc')}</span>
           <span

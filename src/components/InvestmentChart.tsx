@@ -9,8 +9,8 @@ const PAD = 26
 const PAD_L = 50
 
 // Dues sèries: el que has APORTAT (de la teva butxaca) i el VALOR actual de la cartera
-// (fons indexat + pla de pensions, ja amb els rendiments). La distància entre les dues
-// és el que han crescut (o encongit) les inversions pel rendiment compost.
+// (ja amb els rendiments). La distància entre les dues és el que ha crescut (o encongit)
+// la inversió pel rendiment compost.
 type Punt = { edat: number; aportat: number; valor: number }
 const SERIES: { key: 'valor' | 'aportat'; color: string; labelKey: string }[] = [
   { key: 'valor', color: '#34d399', labelKey: 'chart.valor' },
@@ -29,7 +29,7 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
   const punts: Punt[] = hist.map((s) => ({
     edat: s.edat,
     aportat: s.aportat,
-    valor: s.fonsIndexat + s.fonsPensions,
+    valor: s.inversions,
   }))
 
   const maxVal = Math.max(1, ...punts.flatMap((p) => [p.aportat, p.valor]))

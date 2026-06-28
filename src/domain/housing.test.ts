@@ -17,7 +17,7 @@ import type { FamilyClass, GameState } from './types'
 function ricCarrera(): GameState {
   const s = newGameAtCarrera('mitjana', 1)
   // Prou líquid per a l'entrada d'un habitatge.
-  return { ...s, person: { ...s.person, patrimoni: { ...s.person.patrimoni, estalvi: 40_000 } } }
+  return { ...s, person: { ...s.person, patrimoni: { ...s.person.patrimoni, inversions: 40_000 } } }
 }
 
 function carreraAmbLiquid(classe: FamilyClass, liquid: number): GameState {
@@ -26,7 +26,7 @@ function carreraAmbLiquid(classe: FamilyClass, liquid: number): GameState {
     ...s,
     person: {
       ...s.person,
-      patrimoni: { ...s.person.patrimoni, efectiu: 0, estalvi: liquid },
+      patrimoni: { ...s.person.patrimoni, efectiu: 0, inversions: liquid },
     },
   }
 }
@@ -66,8 +66,8 @@ describe('comprarCasa', () => {
     expect(after.habitatge?.hipoteca).toBeDefined()
     expect(after.person.patrimoni.cases.length).toBe(1)
     // Ha pagat l'entrada (líquid més baix que abans).
-    const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.estalvi
-    const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.estalvi
+    const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.inversions
+    const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.inversions
     expect(liquidDespres).toBeLessThan(liquidAbans)
   })
 

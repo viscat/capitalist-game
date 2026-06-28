@@ -272,7 +272,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
         // Mou fins a 1500 € d'efectiu al fons indexat (mai més del que tens).
         resolve: (s) => {
           const amt = Math.min(1500, s.person.patrimoni.efectiu)
-          return { efectiu: -amt, fonsIndexat: amt, benestar: 1 }
+          return { efectiu: -amt, inversions: amt, benestar: 1 }
         },
       },
       {
@@ -352,7 +352,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
     weight: () => 0.4,
     // L'import heretat escala amb la riquesa de la família d'origen.
     resolve: (s) => ({
-      estalvi: escalaPerClasse(8000, s.familia.classe, HERENCIA_PES),
+      inversions: escalaPerClasse(8000, s.familia.classe, HERENCIA_PES),
       benestar: -4,
     }),
   },
@@ -654,7 +654,7 @@ export const HERENCIA_VIDA_EVENTS: GameEvent[] = [
         // Dóna ~30% del patrimoni líquid als fills (lliure de successions).
         resolve: (s) => {
           const p = s.person.patrimoni
-          const liquid = p.efectiu + p.estalvi + p.fonsIndexat
+          const liquid = p.efectiu + p.inversions
           return {
             llegatEnVidaDelta: Math.round((liquid * 0.3) / 100) * 100,
             benestar: 4,
@@ -709,7 +709,7 @@ export const HERENCIA_PARES_EVENTS: GameEvent[] = [
     // Dol (benestar/salut avall) + l'herència que reps (segons el patrimoni familiar). Marca
     // que ja ha passat perquè no es repeteixi.
     resolve: (s) => ({
-      estalvi: herenciaParesMort(s.familia),
+      inversions: herenciaParesMort(s.familia),
       benestar: -12,
       vinclesDelta: -0.08,
       salutDelta: -2,
@@ -732,7 +732,7 @@ export const HERENCIA_DINASTIA_EVENTS: GameEvent[] = [
     descKey: 'event.herencia_dinastia.desc',
     weight: () => 1,
     resolve: (s) => ({
-      estalvi: s.herenciaPendent?.import ?? 0,
+      inversions: s.herenciaPendent?.import ?? 0,
       benestar: -10,
       vinclesDelta: -0.05,
       salutDelta: -2,
