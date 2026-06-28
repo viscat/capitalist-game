@@ -110,9 +110,22 @@ Transicions (fites):
   per `factorIPC` (patrimoni i deute a `adultBaselineBenestar`, descobert a `applyCareerYear`, i les
   xarxes d'ajut a `repartDeficit`/`ajutPublicMax` via el paràmetre `factorIPCActual`). Es desa a
   `vidaHist` i es dibuixa (amb stats i patrimoni net) a `LifeCharts`, que surt a cada **fita d'edat**
-  (`MilestoneScreen`) i al `GameOver`. La dinastia hereta l'IPC del món (els preus no es reinicien).
-  El **jugador simulat** (harness) reajusta el pla d'inversió cada any a l'ingrés nominal (com qui
-  apuja la despesa amb la inflació); sense fer-ho, l'oci/estalvi fixats s'erosionarien.
+  (`MilestoneScreen`) i al `GameOver`. El **jugador simulat** (harness) reajusta el pla d'inversió
+  cada any a l'ingrés nominal (com qui apuja la despesa amb la inflació); sense fer-ho, l'oci/estalvi
+  fixats s'erosionarien.
+- **Sostenibilitat a llarg termini (multi-generació).** El MÓN es **RE-BASA a cada generació**:
+  `continuaGeneracio` torna `ipc` i `indexHabitatge` a 100 al naixement de l'hereu i **desinfla
+  l'herència** (líquid, herència en vida i cases) pel factor de preus del progenitor (es passa a
+  euros del nou món). Així cada vida és el seu propi arc d'inflació i la inflació NO s'acumula sense
+  fre entre generacions (sense això, a la 3a generació un lloguer valdria milers de vegades el sou i
+  tothom moriria). Dins de CADA vida: (1) els **sous s'indexen parcialment** —el sou d'entrada
+  (`salariBaseOferta`) i el **terra** (`salariAdultInicial`) es multipliquen per `factorIPC`, i hi
+  ha una **revisió anual** (COLA, `SALARI_INDEXACIO` < 1) que LAGA els preus (estancament real) però
+  evita que el sou es congeli nominalment; (2) l'**índex d'habitatge queda acotat** a
+  `[HABITATGE_REAL_MIN, HABITATGE_REAL_MAX] × IPC` (correcció estructural: l'habitatge és el cost
+  més dur —fins a MAX× el nivell general— però no es desindexa infinitament). Validat amb tests de
+  dinastia de 10/20/30 generacions (`playoutDynasty`) que comproven preus acotats, assequibilitat
+  (lloguer < ~2 mesos de sou) i cap col·lapse demogràfic.
 - **MORT = l'únic final.** A qualsevol edat, si la `salut` arriba a **0** → `acabat = true` +
   `mort = true`. La salut (stat `Stats.salut`, 0..100) es degrada amb l'**edat**
   (`declividSalutAnual`, calibrada a l'esperança de vida ~84 per a un sa; un sa mor de vellesa,

@@ -10,6 +10,7 @@ import { SALARI_MINIM_MENSUAL } from './constants'
 import { rng } from './rng'
 import {
   clamp,
+  factorIPC,
   factorSalariPersonal,
   penalitzacioOcupabilitatOrigen,
   salariAdultInicial,
@@ -79,8 +80,13 @@ export function salariBaseOferta(state: GameState): number {
     state.nivellAcademic,
   )
   const ambExperiencia = base * (1 + clamp(anysExperiencia(state) / 10, 0, 1) * 0.4)
+  // El sou d'entrada s'INDEXA a l'IPC: una nova generació (o qui entra al mercat en un món on
+  // els preus s'han multiplicat) no comença cobrant euros-base d'una altra època. Sense això,
+  // a la 3a generació el sou seria irrisori comparat amb el cost de vida i l'habitatge.
   // El sou ofert porta la bretxa de gènere/origen (discriminació salarial).
-  return Math.round(ambExperiencia * factorSalariPersonal(state.identitat))
+  return Math.round(
+    ambExperiencia * factorIPC(state) * factorSalariPersonal(state.identitat),
+  )
 }
 
 /** Factor de sou segons la qualitat de l'oferta. */

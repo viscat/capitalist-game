@@ -15,12 +15,15 @@ import {
   EDAT_REVISIO_50,
   FACTOR_DESPESA_PARELLA,
   FORMACIO_INVERSIO_DELTA,
+  HABITATGE_REAL_MAX,
+  HABITATGE_REAL_MIN,
   INDEX_HABITATGE_INICIAL,
   IPC_INICIAL,
   MAX_FILLS,
   INTERES_DEUTE,
   MORALITAT_INICIAL,
   MORALITAT_LLINDAR_BO,
+  SALARI_INDEXACIO,
   SALUT_INVERSIO_DELTA,
   SINDICAT_CONVENI_BONUS,
   SINDICAT_DECAIMENT_ANUAL,
@@ -339,23 +342,31 @@ export function continuaGeneracio(state: GameState): GameState {
     dataNaixement = `${d.any}-${String(d.mesIndex + 1).padStart(2, '0')}-01`
   }
 
-  // L'herència es reparteix en TRES parts:
+  // El MÓN es RE-BASA a cada generació: els preus (IPC i habitatge) tornen a 100 al naixement de
+  // l'hereu. Si no, la inflació s'acumularia sense fre al llarg de les generacions (a la 3a, un
+  // lloguer valdria milers de vegades el sou i tothom moriria). Cada vida és, doncs, el seu propi
+  // arc d'inflació des de zero. Per preservar la TRANSMISSIÓ REAL de riquesa, l'herència es
+  // DESINFLA pel factor de preus del món del progenitor (es passa a euros del nou món base-100).
+  const fWorld = factorIPC(state)
+  // L'herència es reparteix en TRES parts (totes desinflades al nou món):
   // 1) HERÈNCIA EN VIDA: els regals que el progenitor va fer en vida ja els té l'hereu de petit
   //    → comencen com a patrimoni inicial (els ha rebut durant la infància/joventut).
-  const inVidaPerFill = Math.round((state.llegatEnVida ?? 0) / fills / 100) * 100
+  const inVidaPerFill =
+    Math.round((state.llegatEnVida ?? 0) / fWorld / fills / 100) * 100
   // 2) ESTAT LÍQUID a la mort (efectiu + inversions, net de successions), per fill → diferit.
-  const liquidEstate = Math.max(
-    0,
-    state.person.patrimoni.efectiu + state.person.patrimoni.inversions,
-  )
+  const liquidEstate =
+    Math.max(0, state.person.patrimoni.efectiu + state.person.patrimoni.inversions) /
+    fWorld
   const liquidPerFillBrut = liquidEstate / fills
   const liquidPerFill =
     Math.round(
       Math.max(0, liquidPerFillBrut - impostSuccessions(liquidPerFillBrut)) / 100,
     ) * 100
   // 3) CASES: l'hereu que continua el llinatge es queda l'habitatge familiar (propietats), que
-  //    rep en propietat a la mort del progenitor.
-  const casesHeretades = [...state.person.patrimoni.cases]
+  //    rep en propietat a la mort del progenitor (valor desinflat al nou món).
+  const casesHeretades = state.person.patrimoni.cases.map((v) =>
+    Math.round(v / fWorld),
+  )
 
   const person: Person = {
     edatMesos: 0,
@@ -375,9 +386,13 @@ export function continuaGeneracio(state: GameState): GameState {
     identitat: state.identitat,
     dataNaixement,
     rngState: state.rngState,
-    // L'IPC continua la línia temporal del món (els preus no es reinicien amb cada generació).
-    ipc: state.ipc ?? IPC_INICIAL,
-    indexHabitatge: state.indexHabitatge ?? INDEX_HABITATGE_INICIAL,
+    // El MÓN es re-basa: els preus tornen a 100 al naixement de l'hereu (cada vida té el seu propi
+    // arc d'inflació). Evita l'explosió nominal acumulada al llarg de generacions; l'herència ja
+    // s'ha desinflat a aquest nou món. La INDEXACIÓ del sou i el topall d'habitatge segueixen
+    // operant DINS de cada vida (l'habitatge encara s'encareix per damunt dels sous al llarg dels
+    // anys, fins al topall: la crisi de l'habitatge es viu, però no es torna infinita).
+    ipc: IPC_INICIAL,
+    indexHabitatge: INDEX_HABITATGE_INICIAL,
     // El règim del benestar és del MÓN: la dinastia l'hereta (no es reinicia amb cada generació).
     regimPolitic: state.regimPolitic ?? 'mixt',
     generacio: (state.generacio ?? 1) + 1,
@@ -671,12 +686,23 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     Math.round(
       (state.ipc ?? IPC_INICIAL) * (1 + inflacioAnual(state.rngState + anys)) * 100,
     ) / 100
+  // Inflació efectiva d'enguany i factor de preus actual (per a la revisió salarial i el terra).
+  const inflacioAny = ipc / (state.ipc ?? IPC_INICIAL) - 1
+  const factorIpcActual = ipc / IPC_INICIAL
   // Índex de l'habitatge: camí PROPI (no l'IPC), de mitjana més alt → l'habitatge s'encareix més.
+  // PERÒ acotat a una banda relativa a l'IPC: l'habitatge pot ser molt més car que el nivell
+  // general de preus (fins a HABITATGE_REAL_MAX×), però NO infinitament — sense aquest límit, al
+  // cap de poques generacions un lloguer valdria milers de vegades el sou i tothom moriria. Quan
+  // toca sostre, el mercat es corregeix (la bombolla esclata). És la correcció estructural.
+  const indexHabitatgeRaw =
+    (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL) *
+    (1 + variacioHabitatgeAnual(state.rngState + anys))
   const indexHabitatge =
     Math.round(
-      (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL) *
-        (1 + variacioHabitatgeAnual(state.rngState + anys)) *
-        100,
+      Math.min(
+        ipc * HABITATGE_REAL_MAX,
+        Math.max(ipc * HABITATGE_REAL_MIN, indexHabitatgeRaw),
+      ) * 100,
     ) / 100
 
   // Flux econòmic per fase.
@@ -966,21 +992,25 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     anysExperiencia,
     ipc,
     indexHabitatge,
-    // El sou té un TERRA derivat del capital humà: formar-se (puja el nivell acadèmic) aixeca
-    // aquest terra, així que el sou puja de manera FIABLE amb la formació (escala de baix risc,
-    // a diferència dels augments aleatoris). El sostre salarial (× IPC) s'aplica després a resolveEvent.
+    // El sou es revisa cada any: (1) REVISIÓ ANUAL PARCIAL (COLA) — puja una fracció de la
+    // inflació d'enguany (`SALARI_INDEXACIO` < 1), així que LAGA els preus (estancament salarial
+    // real) però no es congela nominalment (que el faria erosionar a zero al llarg de generacions);
+    // (2) TERRA del capital humà INDEXAT a l'IPC — formar-se aixeca aquest terra de manera fiable,
+    // i com que és × factorIPC, una nova generació no comença cobrant euros-base en un món inflat.
+    // L'acció col·lectiva (poder sindical) també apuja el terra. El sostre (× IPC) s'aplica a
+    // resolveEvent. Resultat: sous sostenibles a llarg termini que, tot i així, laguen els preus.
     salari:
       (stage === 'carrera' || stage === 'laboral') && (state.salari ?? 0) > 0
         ? Math.max(
-            state.salari ?? 0,
-            // L'acció col·lectiva (poder sindical) apuja el terra: la negociació sindical millora
-            // el sou de partida per a tothom qui s'hi organitza (via COMPARTIDA, no individual).
+            Math.round((state.salari ?? 0) * (1 + inflacioAny * SALARI_INDEXACIO)),
             Math.round(
               salariAdultInicial(
                 state.familia,
                 state.teDiploma ?? false,
                 Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic)),
-              ) * factorSindical(state),
+              ) *
+                factorIpcActual *
+                factorSindical(state),
             ),
           )
         : state.salari,
