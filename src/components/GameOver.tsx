@@ -66,7 +66,6 @@ export function GameOver() {
     Math.round(costVidaPropi(state.familia, state.habitatge, state.nivellVida) * f) +
     costHabitatgeAnualNet(state.habitatge, state.familia)
   const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
-
   const salut = Math.round(state.person.stats.salut)
   const moralitat = Math.round(state.person.stats.moralitat ?? 50)
 
@@ -91,6 +90,30 @@ export function GameOver() {
         : total >= 150_000 || benestar >= 65
           ? 'solid'
           : 'precaria'
+
+  // QUÈ HA MARCAT LA VIDA: atribueix el resultat a la seva FONT (origen, política, esforç,
+  // col·lectiu, explotació, herència). Llegibilitat de la causa: el gradient és ESTRUCTURA, no
+  // només mèrit. Cada factor és [icona, text]; només es mostren els que han pesat de debò.
+  const explotador =
+    state.souEmpleats === 'precari' ||
+    state.souEmpleats === 'molt_baix' ||
+    state.souEmpleats === 'baix'
+  const factors: [string, string][] = [
+    ['🎲', t('gameover.factor.origen', { classe: t(`family.${state.familia.classe}.name`) })],
+    ['🏛️', t('gameover.factor.regim', { regim: t(`regim.${state.regimPolitic ?? 'mixt'}.nom`) })],
+  ]
+  if (state.teDiploma) factors.push(['🎓', t('gameover.factor.diploma')])
+  if (state.negociActiu)
+    factors.push([
+      '🏭',
+      explotador ? t('gameover.factor.negoci_explotador') : t('gameover.factor.negoci_just'),
+    ])
+  if ((state.poderSindical ?? 0) >= 0.25) factors.push(['✊', t('gameover.factor.sindicat')])
+  if (state.herenciaParesRebuda || (state.llegatEnVida ?? 0) > 0)
+    factors.push(['🧬', t('gameover.factor.herencia')])
+  if (nivellMoralitat(moralitat) === 'bo') factors.push(['😇', t('gameover.factor.moral_bo')])
+  if (nivellMoralitat(moralitat) === 'malvat')
+    factors.push(['😈', t('gameover.factor.moral_malvat')])
 
   return (
     <div className="flex min-h-full items-center justify-center p-6">
@@ -164,6 +187,21 @@ export function GameOver() {
           <p className="mt-3 text-xs leading-relaxed text-sky-300/90">
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
+        </div>
+
+        {/* Què ha marcat la vida: atribució del resultat a la seva font (estructura vs esforç). */}
+        <div className="mt-4 rounded-xl bg-slate-800/60 p-5 text-left">
+          <h2 className="mb-3 text-sm font-semibold text-slate-300">
+            {t('gameover.factors.titol')}
+          </h2>
+          <ul className="space-y-2">
+            {factors.map(([icon, text], i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                <span aria-hidden>{icon}</span>
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}
