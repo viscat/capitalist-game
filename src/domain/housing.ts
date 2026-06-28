@@ -9,7 +9,7 @@ import {
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
 import { rng } from './rng'
-import { factorIPC, netAnual } from './stats'
+import { factorHabitatge, netAnual } from './stats'
 import type {
   Familia,
   FamilyClass,
@@ -189,9 +189,9 @@ export function ofertaCompra(
   preuReal: number,
   anys: number,
 ): OfertaCompra {
-  // El preu de catàleg és en euros "reals"; l'IPC l'encareix al llarg de la vida (el preu de
-  // mercat puja amb la inflació acumulada).
-  const preu = Math.round((preuReal * factorIPC(state)) / 100) * 100
+  // El preu de catàleg és en euros "reals"; l'ÍNDEX DE L'HABITATGE (no l'IPC) l'encareix al
+  // llarg de la vida (l'habitatge puja pel seu compte, més de pressa que els preus de consum).
+  const preu = Math.round((preuReal * factorHabitatge(state)) / 100) * 100
   // `anys === 0` = compra AL COMPTAT (sense hipoteca): pagues el preu sencer.
   const comptat = anys === 0
   const entrada = comptat ? preu : entradaHipoteca(preu)

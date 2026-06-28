@@ -15,6 +15,7 @@ import {
   EDAT_REVISIO_50,
   FACTOR_DESPESA_PARELLA,
   FORMACIO_INVERSIO_DELTA,
+  INDEX_HABITATGE_INICIAL,
   IPC_INICIAL,
   MAX_FILLS,
   INTERES_DEUTE,
@@ -74,12 +75,14 @@ import {
   contribucioLlar,
   declividSalutAnual,
   factorEsperancaVida,
+  factorHabitatge,
   factorIPC,
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
   fillsDependents,
   inflacioAnual,
+  variacioHabitatgeAnual,
   defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
@@ -149,6 +152,7 @@ export function newGame(
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
+    indexHabitatge: INDEX_HABITATGE_INICIAL,
     historial: [],
     acabat: false,
   }
@@ -176,6 +180,7 @@ export function newGameAt16(
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
+    indexHabitatge: INDEX_HABITATGE_INICIAL,
     pendingMilestone: 'postobligatori',
     historial: [],
     acabat: false,
@@ -206,6 +211,7 @@ export function newGameAtCarrera(
     dataNaixement: setup.dataNaixement,
     rngState: seed >>> 0,
     ipc: IPC_INICIAL,
+    indexHabitatge: INDEX_HABITATGE_INICIAL,
     teDiploma,
     salari,
     salariBase: salari,
@@ -330,6 +336,7 @@ export function continuaGeneracio(state: GameState): GameState {
     rngState: state.rngState,
     // L'IPC continua la línia temporal del món (els preus no es reinicien amb cada generació).
     ipc: state.ipc ?? IPC_INICIAL,
+    indexHabitatge: state.indexHabitatge ?? INDEX_HABITATGE_INICIAL,
     generacio: (state.generacio ?? 1) + 1,
     herenciaPendent: llegat > 0 ? { import: llegat, edat: edatHerencia } : undefined,
     historial: [],
@@ -385,7 +392,7 @@ function ambOfertes(state: GameState): GameState {
       next.lifeStage === 'jubilacio') &&
     next.habitatge?.tipus !== 'propietat'
   if (potLlogar) {
-    const r = generaOfertesLloguer(next.rngState, factorIPC(next))
+    const r = generaOfertesLloguer(next.rngState, factorHabitatge(next))
     next = { ...next, ofertesLloguer: r.ofertes, rngState: r.state }
   } else if (next.ofertesLloguer) {
     next = { ...next, ofertesLloguer: undefined }
@@ -578,11 +585,18 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // p. ex. per sortejar el rendiment anual del fons indexat).
   let rngState = state.rngState
 
-  // IPC: els preus pugen cada any amb la inflació. La taxa és determinista a partir del RNG
-  // PERÒ no el consumeix (no altera la seqüència d'esdeveniments), així el balanceig es manté.
+  // IPC: els preus de consum varien cada any (pot caure, però la tendència és a l'alça). La taxa
+  // és determinista a partir del RNG PERÒ no el consumeix (no altera la seqüència d'esdeveniments).
   const ipc =
     Math.round(
       (state.ipc ?? IPC_INICIAL) * (1 + inflacioAnual(state.rngState + anys)) * 100,
+    ) / 100
+  // Índex de l'habitatge: camí PROPI (no l'IPC), de mitjana més alt → l'habitatge s'encareix més.
+  const indexHabitatge =
+    Math.round(
+      (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL) *
+        (1 + variacioHabitatgeAnual(state.rngState + anys)) *
+        100,
     ) / 100
 
   // Flux econòmic per fase.
@@ -648,37 +662,36 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // Any de carrera o jubilació: el fons indexat rendeix segons l'atzar del mercat.
     const draw = rng(rngState)
     rngState = draw.state
-    // Ingrés de l'any en euros REALS (jubilat → pensió; actiu amb sou → net; atur → prestació).
-    const realIncome =
+    const f = factorIPC(state)
+    // Ingrés de l'any. El SOU NO va lligat a l'IPC (no s'indexa amb la inflació): es queda
+    // nominal i, per tant, perd poder adquisitiu amb els anys (estancament salarial). La
+    // PENSIÓ pública SÍ que s'indexa a l'IPC (revaloració), com a la realitat.
+    const income =
       stage === 'jubilacio'
-        ? pensioPublicaAnual(state)
+        ? Math.round(pensioPublicaAnual(state) * f)
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
           : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
-    // L'IPC encareix la vida però també els sous: l'ingrés i els costos creixen plegats en
-    // termes NOMINALS (el balanceig real es manté; el benestar es calcula en termes reals).
-    const f = factorIPC(state)
-    const income = Math.round(realIncome * f)
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
     // sol: cost de vida sencer (segons el nivell que tries) + habitatge, i s'atura l'ajuda.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
-    const net = stage === 'jubilacio' ? realIncome / MESOS_PER_ANY : netMensual(state.salari ?? 0)
+    const net = stage === 'jubilacio' ? income / MESOS_PER_ANY : netMensual(state.salari ?? 0)
     // Viure en parella reparteix les despeses estructurals (lloguer/hipoteca + cost de vida)
     // entre dues persones: l'altra n'assumeix una part, així que la teva minva (sigui quin
     // sigui l'habitatge: casa els pares, habitació, lloguer o propietat).
     const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
-    // Cost de vida real (× parella) i, finalment, × IPC (s'encareix amb la inflació). L'habitatge
-    // ja és nominal (el lloguer ve d'una oferta IPC i la quota d'hipoteca és nominal fixa).
-    const costVidaReal =
-      (ambPares
-        ? contribucioLlar(state.familia, net)
-        : costVidaPropi(state.familia, habitatge, state.nivellVida)) * factorParella
+    // Cost de vida. Viure AMB ELS PARES = contribució a la llar: una fracció de l'INGRÉS (ja és
+    // nominal, NO s'hi torna a aplicar l'IPC). Viure SOL = cost de vida propi, que SÍ s'encareix
+    // amb l'IPC (× f). L'habitatge va a part (índex d'habitatge / quota fixa).
+    const costVidaBase = ambPares
+      ? contribucioLlar(state.familia, net)
+      : Math.round(costVidaPropi(state.familia, habitatge, state.nivellVida) * f)
     // Accions fixes: inversió en salut i/o formació (cost anual nominal afegit a les necessitats).
     const costSalut = state.inversioSalut ? Math.round(COST_SALUT_ANUAL * f) : 0
     const costFormacio = state.inversioFormacio ? Math.round(COST_FORMACIO_ANUAL * f) : 0
-    const costVida = Math.round(costVidaReal * f) + costSalut + costFormacio
+    const costVida = Math.round(costVidaBase * factorParella) + costSalut + costFormacio
     const costHab = ambPares
       ? 0
       : Math.round(costHabitatgeAnualNet(habitatge, state.familia) * factorParella)
@@ -768,15 +781,19 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     if (habitatge?.tipus === 'propietat' && habitatge.hipoteca) {
       habitatge = { ...habitatge, hipoteca: amortitzaHipoteca(habitatge.hipoteca) }
     }
-    // El lloguer PUJA cada any amb la inflació (revisió de renda): mai baixa.
+    // El lloguer es revisa cada any amb l'ÍNDEX DE L'HABITATGE (no l'IPC), i per al llogater que
+    // ja hi viu mai baixa (revisió de renda enganxosa a la baixa): puja o es manté.
     if (
       (habitatge?.tipus === 'habitacio' || habitatge?.tipus === 'pis_lloguer') &&
       habitatge.lloguerAnual
     ) {
-      const inflacioFactor = ipc / (state.ipc ?? IPC_INICIAL)
+      const factorRevisio = Math.max(
+        1,
+        indexHabitatge / (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL),
+      )
       habitatge = {
         ...habitatge,
-        lloguerAnual: Math.round((habitatge.lloguerAnual * inflacioFactor) / 100) * 100,
+        lloguerAnual: Math.round((habitatge.lloguerAnual * factorRevisio) / 100) * 100,
       }
     }
   }
@@ -850,6 +867,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     patrimoniHist,
     anysExperiencia,
     ipc,
+    indexHabitatge,
     nivellAcademic:
       accAcademic !== 0
         ? Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic))

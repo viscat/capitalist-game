@@ -62,11 +62,12 @@ export function InvestmentPanel() {
   const deuteRef = useCoachmark<HTMLDivElement>('deute')
   if (!state) return null
 
-  // El model treballa en anual; el panell ho presenta tot en mensual. Jubilat → pensió.
-  // L'IPC encareix vida i ingressos plegats (en nominal), coherent amb el motor (`advanceTurn`).
+  // El model treballa en anual; el panell ho presenta tot en mensual. El SOU no s'indexa a
+  // l'IPC (es queda nominal); la PENSIÓ sí (×IPC), coherent amb el motor (`advanceTurn`).
   const f = factorIPC(state)
-  const realIncome = state.jubilat ? pensioPublicaAnual(state) : ingressosAnualsCarrera(state)
-  const income = Math.round(realIncome * f)
+  const income = state.jubilat
+    ? Math.round(pensioPublicaAnual(state) * f)
+    : ingressosAnualsCarrera(state)
   // Cost nominal de les accions fixes de salut i formació (s'encareixen amb l'IPC, com el motor).
   const costSalutNominal = Math.round(COST_SALUT_ANUAL * f)
   const costFormacioNominal = Math.round(COST_FORMACIO_ANUAL * f)
@@ -76,17 +77,15 @@ export function InvestmentPanel() {
   // (segons el nivell) + habitatge, i s'atura l'ajuda a la família.
   const ambPares = (state.habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
   const net = state.jubilat
-    ? Math.round(realIncome / MESOS_PER_ANY)
+    ? Math.round(income / MESOS_PER_ANY)
     : netMensual(state.salari ?? 0)
-  // Viure en parella reparteix les despeses estructurals (cost de vida + habitatge).
+  // Viure en parella reparteix les despeses estructurals (cost de vida + habitatge). Amb pares =
+  // contribució a la llar (fracció de l'ingrés, sense IPC); sol = cost de vida propi × IPC.
   const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
-  const costVida = Math.round(
-    (ambPares
-      ? contribucioLlar(state.familia, net)
-      : costVidaPropi(state.familia, state.habitatge, nivell)) *
-      factorParella *
-      f,
-  )
+  const costVidaBase = ambPares
+    ? contribucioLlar(state.familia, net)
+    : Math.round(costVidaPropi(state.familia, state.habitatge, nivell) * f)
+  const costVida = Math.round(costVidaBase * factorParella)
   const cobertFamilia = ambPares
     ? 0
     : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)

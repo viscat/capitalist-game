@@ -196,6 +196,19 @@ export const REVALORACIO_HABITATGE = 0.02
 
 /** Índex de preus al consum inicial (base 100 al naixement). Creix any rere any. */
 export const IPC_INICIAL = 100
-/** Inflació anual mínima i màxima (es sorteja dins d'aquesta banda cada any). */
-export const IPC_INFLACIO_MIN = 0.005
+/**
+ * Inflació anual mínima i màxima (es sorteja dins d'aquesta banda cada any). El mínim és
+ * NEGATIU: alguns anys hi ha deflació (els preus baixen). Tot i així la mitjana és positiva
+ * (~+2%), així que la tendència en finestres de 10-20 anys sempre és a l'alça.
+ */
+export const IPC_INFLACIO_MIN = -0.01
 export const IPC_INFLACIO_MAX = 0.05
+
+// --- Índex del preu de l'habitatge (lloguer i compra) ---
+// L'habitatge NO segueix l'IPC: té el seu propi índex, que a llarg termini creix MÉS de pressa
+// (l'habitatge s'encareix per damunt dels preus de consum → la crisi de l'accés a l'habitatge).
+/** Índex de l'habitatge inicial (base 100 al naixement). */
+export const INDEX_HABITATGE_INICIAL = 100
+/** Variació anual mínima i màxima del preu de l'habitatge (mitjana ~+3,5%, per sobre de l'IPC). */
+export const HABITATGE_VAR_MIN = -0.02
+export const HABITATGE_VAR_MAX = 0.09
