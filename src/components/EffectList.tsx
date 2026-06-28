@@ -63,6 +63,14 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       positive: v > 0,
     })
   }
+  if (effect.poderSindicalDelta) {
+    const pct = Math.round(effect.poderSindicalDelta * 100)
+    badges.push({
+      label: `✊ ${t('stat.sindicat')}`,
+      text: `${pct > 0 ? '+' : ''}${pct}%`,
+      positive: pct > 0,
+    })
+  }
   if (effect.mercatPct) {
     const pct = Math.round(effect.mercatPct * 100)
     badges.push({

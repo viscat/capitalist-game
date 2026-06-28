@@ -263,6 +263,11 @@ export interface EventEffect {
   /** Marca que muntes un negoci amb empleats a càrrec (activa la gestió i el dividend anual). */
   marcaNegoci?: boolean
   /**
+   * Variació del poder sindical (`GameState.poderSindical`, 0..1): afiliar-se i secundar vagues
+   * l'apugen. És la via d'ascens COL·LECTIVA: protegeix la feina i apuja els salaris per a tothom.
+   */
+  poderSindicalDelta?: number
+  /**
    * Penalització CRÒNICA i duradora de benestar (incapacitat, seqüela permanent):
    * s'acumula a `GameState.salutCronica` i rebaixa la referència de benestar adult de
    * manera persistent, a diferència del cop puntual de `benestar`.

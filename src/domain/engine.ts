@@ -22,6 +22,8 @@ import {
   MORALITAT_INICIAL,
   MORALITAT_LLINDAR_BO,
   SALUT_INVERSIO_DELTA,
+  SINDICAT_DECAIMENT_ANUAL,
+  SINDICAT_PROTECCIO_LLINDAR,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
   REVALORACIO_HABITATGE,
@@ -54,6 +56,7 @@ import {
   NEGOCI_GESTIO_EVENTS,
   PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
+  SINDICAT_EVENTS,
   UNIVERSITAT_EVENTS,
 } from './events/adult'
 import {
@@ -88,8 +91,10 @@ import {
   costVidaPropi,
   dividendNegociAnual,
   moralitatActual,
+  poderSindicalActual,
   factorAportacioLlar,
   factorServeisPublics,
+  factorSindical,
   fillsDependents,
   inflacioAnual,
   variacioHabitatgeAnual,
@@ -445,6 +450,11 @@ function esLloguer(state: GameState): boolean {
   )
 }
 
+/** Treu tots els esdeveniments amb un id concret del pool (p. ex. protecció contra acomiadament). */
+function removeById(pool: GameEvent[], id: string): GameEvent[] {
+  return pool.filter((e) => e.id !== id)
+}
+
 /** Pot oferir herència en vida: té fills i prou patrimoni líquid per avançar-ne una part. */
 function potHeretarEnVida(state: GameState): boolean {
   const p = state.person.patrimoni
@@ -484,6 +494,8 @@ function eventPool(state: GameState): GameEvent[] {
       }
       // Amb negoci propi: la decisió recurrent de quant pagues els empleats (explotació visible).
       if (state.negociActiu) pool.push(...NEGOCI_GESTIO_EVENTS)
+      // Amb feina: acció col·lectiva (sindicar-se, vagues). Via d'ascens COMPARTIDA.
+      if ((state.salari ?? 0) > 0) pool.push(...SINDICAT_EVENTS)
       // Cruïlles morals (frau/solidaritat): sempre presents a la vida adulta.
       pool.push(...MORAL_EVENTS)
       // OPORTUNITATS DEPREDADORES: enriquir-se a costa dels altres. El sistema només les obre a
@@ -518,6 +530,11 @@ function eventPool(state: GameState): GameEvent[] {
       if (!state.herenciaParesRebuda) {
         pool.push(...AJUT_PARES_EVENTS)
         if (edat >= 40 && !state.herenciaPendent) pool.push(...HERENCIA_PARES_EVENTS)
+      }
+      // Protecció col·lectiva: amb prou poder sindical, els acomiadaments queden aturats (la
+      // força organitzada protegeix la feina; és l'altra cara del poder de l'empresari).
+      if (poderSindicalActual(state) >= SINDICAT_PROTECCIO_LLINDAR) {
+        return removeById(pool, 'acomiadament')
       }
       return pool
     }
@@ -948,10 +965,14 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       (stage === 'carrera' || stage === 'laboral') && (state.salari ?? 0) > 0
         ? Math.max(
             state.salari ?? 0,
-            salariAdultInicial(
-              state.familia,
-              state.teDiploma ?? false,
-              Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic)),
+            // L'acció col·lectiva (poder sindical) apuja el terra: la negociació sindical millora
+            // el sou de partida per a tothom qui s'hi organitza (via COMPARTIDA, no individual).
+            Math.round(
+              salariAdultInicial(
+                state.familia,
+                state.teDiploma ?? false,
+                Math.max(0, Math.min(1, (state.nivellAcademic ?? 0) + accAcademic)),
+              ) * factorSindical(state),
             ),
           )
         : state.salari,
@@ -1058,7 +1079,8 @@ function resolveEvent(
       salari,
       Math.round(
         sostreSalari(state.familia, state.teDiploma ?? false, state.nivellAcademic) *
-          factorIPC(state),
+          factorIPC(state) *
+          factorSindical(state),
       ),
     )
   }
@@ -1206,6 +1228,13 @@ function resolveEvent(
     llegatEnVida = (state.llegatEnVida ?? 0) + donat
   }
 
+  // Acció col·lectiva: afiliar-se o secundar una vaga apuja el poder sindical; cada any sense
+  // reforçar-lo decau una mica (l'organització s'ha de mantenir viva). Clampat a 0..1.
+  let poderSindical = Math.max(0, (state.poderSindical ?? 0) - SINDICAT_DECAIMENT_ANUAL)
+  if (effect.poderSindicalDelta) {
+    poderSindical = Math.max(0, Math.min(1, poderSindical + effect.poderSindicalDelta))
+  }
+
   // Negoci propi amb empleats (mecànica d'EXPLOTACIÓ visible): muntar-lo l'activa amb la
   // política de sou neutral (mercat); la gestió posterior la canvia (i amb ella la moralitat i
   // el dividend anual). Pagar menys els treballadors et deixa més dividend i menys moralitat.
@@ -1250,6 +1279,7 @@ function resolveEvent(
     llegatEnVida,
     negociActiu,
     souEmpleats,
+    poderSindical,
     pendingEvent: undefined,
     pendingMilestone,
     historial: [...state.historial, entry],
