@@ -210,6 +210,9 @@ export function ofertaCompra(
   const aportacioInicial = Math.max(0, aportacioBruta - ajutFamiliar)
   // En parella, el banc compta els dos sous: relaxa el límit d'endeutament (dues rendes).
   const ingres = ingressosAnuals(state) * (enParella ? 1.8 : 1)
+  // Per a una compra ADDICIONAL, el banc suma la quota de la hipoteca que ja tens: el límit
+  // d'endeutament es mira sobre el TOTAL de quotes (no pots acumular hipoteques sense fre).
+  const quotaExistent = state.habitatge?.hipoteca?.quotaAnual ?? 0
   return {
     preu,
     entrada,
@@ -220,7 +223,7 @@ export function ofertaCompra(
     aportacioInicial,
     teEntrada: liquid + ajutFamiliar >= aportacioBruta,
     // Al comptat no cal aprovació del banc (no hi ha préstec).
-    bancAprova: comptat ? true : bancConcedeix(hipoteca.quotaAnual, ingres),
+    bancAprova: comptat ? true : bancConcedeix(quotaExistent + hipoteca.quotaAnual, ingres),
   }
 }
 
@@ -270,9 +273,10 @@ export function tornarAmbPares(state: GameState): GameState {
 
 /**
  * Compra un habitatge: paga l'aportació inicial (entrada + despeses de transacció, repartides
- * amb la parella i menys l'ajut familiar), liquidant efectiu → inversions; suma el
- * valor a les cases en propietat i obre la hipoteca. No fa res si no es pot pagar o el banc no
- * concedeix la hipoteca.
+ * amb la parella i menys l'ajut familiar), liquidant efectiu → inversions; suma el valor a les
+ * cases en propietat i obre/amplia la hipoteca. Es pot comprar MÉS D'UNA casa: les hipoteques
+ * es combinen en una de sola (deute i quota sumats). No fa res si no es pot pagar o el banc no
+ * concedeix el total d'endeutament.
  */
 export function comprarCasa(
   state: GameState,
@@ -280,7 +284,7 @@ export function comprarCasa(
   anys: number,
 ): GameState {
   const propietat = getPropietat(propietatId)
-  if (!propietat || state.habitatge?.tipus === 'propietat') return state
+  if (!propietat) return state
 
   const oferta = ofertaCompra(state, propietat.preu, anys)
   if (!oferta.teEntrada || !oferta.bancAprova) return state
@@ -294,11 +298,23 @@ export function comprarCasa(
     pat[font] = Math.round(pat[font] - treu)
     restant -= treu
   }
-  // El valor desat és el preu de mercat pagat (ja amb l'IPC aplicat), no el de catàleg.
+  // El valor desat és el preu de mercat pagat (ja amb l'índex d'habitatge aplicat).
   pat.cases = [...pat.cases, oferta.preu]
 
-  // Al comptat (o si la hipoteca queda en 0) no es desa cap hipoteca.
-  const hipoteca = oferta.hipoteca.deute > 0 ? oferta.hipoteca : undefined
+  // La hipoteca nova es COMBINA amb la que ja tinguessis (compra addicional): deute i quota
+  // sumats, i el termini més llarg dels dos.
+  const previa = state.habitatge?.tipus === 'propietat' ? state.habitatge.hipoteca : undefined
+  const nova = oferta.hipoteca.deute > 0 ? oferta.hipoteca : undefined
+  let hipoteca: Hipoteca | undefined
+  if (previa && nova) {
+    hipoteca = {
+      deute: previa.deute + nova.deute,
+      quotaAnual: previa.quotaAnual + nova.quotaAnual,
+      anysRestants: Math.max(previa.anysRestants, nova.anysRestants),
+    }
+  } else {
+    hipoteca = nova ?? previa
+  }
 
   return {
     ...state,

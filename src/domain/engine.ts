@@ -89,6 +89,7 @@ import {
   factorSalariPersonal,
   familyBaselineBenestar,
   herenciaVida,
+  impostSuccessions,
   ingressosAnualsCarrera,
   ingressosMensuals16,
   llegatPerFill,
@@ -302,30 +303,46 @@ export function familiaHereva(patrimoniHeretat: number): Familia {
  * així l'edat (0) i l'any de calendari quadren, i l'herència arriba justament l'any de la mort.
  */
 export function continuaGeneracio(state: GameState): GameState {
-  if ((state.fills ?? 0) <= 0) return state
+  const fills = state.fills ?? 0
+  if (fills <= 0) return state
+  // Classe de l'hereu: inèrcia de classe forta a partir de l'herència REAL (desinflada per l'IPC).
   const llegat = llegatPerFill(state)
-  // Classe de l'hereu: inèrcia de classe forta a partir de l'herència REAL (desinflada per l'IPC)
-  // i la classe d'origen. L'import nominal heretat segueix arribant via `herenciaPendent`.
   const llegatReal = llegat / factorIPC(state)
   const familia = FAMILY_PRESETS[classeHereu(state.familia.classe, llegatReal)].familia
   const edatMortProgenitor = edatAnys(state.person.edatMesos)
-  // Mesos de vida del progenitor quan va néixer el fill (el primer): la data de naixement real.
   const naixementMesosProgenitor = state.fillsNaixement?.[0] ?? 0
   const edatProgenitorAlNaixer = edatAnys(naixementMesosProgenitor)
-  // Edat del fill quan el progenitor va morir = edat de mort − edat del progenitor quan el
-  // va tenir. És quan rebrà l'herència (i, en calendari, coincideix amb l'any de la mort).
   const edatHerencia = Math.max(1, edatMortProgenitor - edatProgenitorAlNaixer)
-  // El nou protagonista neix (any 0) a l'any de calendari REAL del seu naixement.
   let dataNaixement = state.dataNaixement
   if (dataNaixement) {
     const d = dataActual(dataNaixement, naixementMesosProgenitor)
     dataNaixement = `${d.any}-${String(d.mesIndex + 1).padStart(2, '0')}-01`
   }
+
+  // L'herència es reparteix en TRES parts:
+  // 1) HERÈNCIA EN VIDA: els regals que el progenitor va fer en vida ja els té l'hereu de petit
+  //    → comencen com a patrimoni inicial (els ha rebut durant la infància/joventut).
+  const inVidaPerFill = Math.round((state.llegatEnVida ?? 0) / fills / 100) * 100
+  // 2) ESTAT LÍQUID a la mort (efectiu + inversions, net de successions), per fill → diferit.
+  const liquidEstate = Math.max(
+    0,
+    state.person.patrimoni.efectiu + state.person.patrimoni.inversions,
+  )
+  const liquidPerFillBrut = liquidEstate / fills
+  const liquidPerFill =
+    Math.round(
+      Math.max(0, liquidPerFillBrut - impostSuccessions(liquidPerFillBrut)) / 100,
+    ) * 100
+  // 3) CASES: l'hereu que continua el llinatge es queda l'habitatge familiar (propietats), que
+  //    rep en propietat a la mort del progenitor.
+  const casesHeretades = [...state.person.patrimoni.cases]
+
   const person: Person = {
     edatMesos: 0,
     stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
-    patrimoni: emptyPatrimoni(),
+    patrimoni: { ...emptyPatrimoni(), inversions: inVidaPerFill },
   }
+  const teHerenciaDiferida = liquidPerFill > 0 || casesHeretades.length > 0
   return {
     torn: 0,
     lifeStage: 'infancia',
@@ -338,7 +355,9 @@ export function continuaGeneracio(state: GameState): GameState {
     ipc: state.ipc ?? IPC_INICIAL,
     indexHabitatge: state.indexHabitatge ?? INDEX_HABITATGE_INICIAL,
     generacio: (state.generacio ?? 1) + 1,
-    herenciaPendent: llegat > 0 ? { import: llegat, edat: edatHerencia } : undefined,
+    herenciaPendent: teHerenciaDiferida
+      ? { import: liquidPerFill, cases: casesHeretades, edat: edatHerencia }
+      : undefined,
     historial: [],
     acabat: false,
   }
@@ -938,6 +957,21 @@ function resolveEvent(
     (habitatge?.tipus === 'habitacio' || habitatge?.tipus === 'pis_lloguer')
   ) {
     habitatge = { tipus: 'amb_pares' }
+  }
+
+  // Heretar cases (herència del progenitor): s'afegeixen com a propietats. Si encara no eres
+  // propietari, passes a viure a l'habitatge heretat (sense hipoteca: ja està pagat).
+  if (effect.heretaCases && effect.heretaCases.length > 0) {
+    person = {
+      ...person,
+      patrimoni: {
+        ...person.patrimoni,
+        cases: [...person.patrimoni.cases, ...effect.heretaCases],
+      },
+    }
+    if (habitatge?.tipus !== 'propietat') {
+      habitatge = { tipus: 'propietat' }
+    }
   }
 
   // Canvis de sou persistents.

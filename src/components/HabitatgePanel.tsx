@@ -172,7 +172,9 @@ export function HabitatgePanel() {
         {esPropietari && (
           <>
             <Row
-              label={t('habitatge.valor')}
+              label={t('habitatge.casesCount', {
+                n: state.person.patrimoni.cases.length,
+              })}
               value={formatEuros(
                 state.person.patrimoni.cases.reduce((a, b) => a + b, 0),
               )}
@@ -194,6 +196,16 @@ export function HabitatgePanel() {
           </>
         )}
       </div>
+
+      {/* Propietari: pot comprar MÉS cases (inversió immobiliària). */}
+      {esPropietari && (
+        <button
+          onClick={() => setVista('comprar')}
+          className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
+        >
+          🏠 {t('habitatge.comprarMes')}
+        </button>
+      )}
 
       {!esPropietari && (
         <div className="space-y-2">
