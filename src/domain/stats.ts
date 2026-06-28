@@ -425,6 +425,42 @@ export function precarietatAdulta(state: GameState): number {
   return Math.round(residu * estabilitat)
 }
 
+/** Un component del benestar de referència, amb etiqueta i12n i valor (signat). */
+export interface ComponentBenestar {
+  clau: string
+  valor: number
+}
+
+/**
+ * Desglossament LLEGIBLE de la referència de benestar adult (`adultBaselineBenestar`): què t'apuja
+ * i què t'esfondra el benestar. Perquè el jugador entengui PER QUÈ acaba com acaba (no és màgia).
+ */
+export function desglosBenestarAdult(state: GameState): ComponentBenestar[] {
+  const f = factorIPC(state)
+  const incomeM = netMensual(state.salari ?? 0) / f
+  const econ = clamp(incomeM / 3500, 0, 1)
+  const wealth = clamp(patrimoniTotal(state.person) / f / 600_000, 0, 1)
+  const deute = penalitzacioDeute(
+    (state.person.patrimoni.deute ?? 0) / f,
+    incomeM * MESOS_PER_ANY,
+  )
+  const comps: ComponentBenestar[] = [
+    { clau: 'desglos.base', valor: 38 },
+    { clau: 'desglos.ingres', valor: Math.round(econ * 30) - (incomeM === 0 ? 12 : 0) },
+    { clau: 'desglos.patrimoni', valor: Math.round(wealth * 10) },
+    { clau: 'desglos.vincles', valor: Math.round((state.vinclesSocials ?? 0) * 18 * (1 - wealth * 0.5)) },
+    { clau: 'desglos.deute', valor: -Math.round(deute) },
+    { clau: 'desglos.sequela', valor: -(state.salutCronica ?? 0) },
+    {
+      clau: 'desglos.petjada',
+      valor: -petjadaEcologicaBenestar(state.nivellVida, state.person.patrimoni.cases.length),
+    },
+    { clau: 'desglos.precarietat', valor: -precarietatAdulta(state) },
+  ]
+  // Només els que pesen (no soroll de zeros, tret de la base).
+  return comps.filter((c) => c.valor !== 0 || c.clau === 'desglos.base')
+}
+
 // Primeres feines més precàries per a les classes baixes (menys contactes, feines
 // pitjor pagades), a banda del plus per patrimoni.
 const PRECARIETAT_SALARI: Record<FamilyClass, number> = {
