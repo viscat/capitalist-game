@@ -347,6 +347,11 @@ export interface GameState {
    * Encareix l'habitatge (preus de compra i lloguer) al llarg de la vida. Absent = 100.
    */
   ipc?: number
+  /**
+   * Índex del preu de l'habitatge (base 100 al naixement). Segueix el SEU propi camí, no l'IPC:
+   * a llarg termini puja més de pressa (encareix lloguer i compra). Absent = 100.
+   */
+  indexHabitatge?: number
   /** Id de l'últim esdeveniment, per evitar repeticions immediates. */
   ultimEventId?: string
   /** Esdeveniment pendent d'una decisió del jugador (bloqueja el següent torn). */

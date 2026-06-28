@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
-import { factorIPC, patrimoniTotal } from '../domain/stats'
+import { patrimoniTotal } from '../domain/stats'
 import { nomComplet } from '../domain/identitat'
 import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
@@ -128,7 +128,7 @@ export function GameScreen() {
             familia={familia}
             stage={lifeStage}
             itinerari={itinerari}
-            salari={salari ? Math.round(salari * factorIPC(state)) : salari}
+            salari={salari}
             identitat={state.identitat}
             habitatge={state.habitatge}
           />

@@ -7,8 +7,11 @@ import {
   DEPENDENCIA_FILLS_ANYS,
   NIVELL_VIDA_DEFAULT,
   FRUGALITAT_LLINDAR,
+  HABITATGE_VAR_MAX,
+  HABITATGE_VAR_MIN,
   IMV_ANUAL,
   IMV_COBERTURA,
+  INDEX_HABITATGE_INICIAL,
   INDEX_RENDIMENT_MIN,
   INDEX_RENDIMENT_RANG,
   INTERES_DEUTE,
@@ -235,6 +238,21 @@ export function factorIPC(state: GameState): number {
   return (state.ipc ?? IPC_INICIAL) / IPC_INICIAL
 }
 
+/**
+ * Variació anual del preu de l'habitatge (fracció), determinista a partir d'una llavor sense
+ * consumir el RNG. Banda pròpia (no la de l'IPC): pot caure, però la mitjana és més alta, així
+ * que a llarg termini l'habitatge s'encareix per damunt dels preus de consum.
+ */
+export function variacioHabitatgeAnual(seed: number): number {
+  const r = rng(Math.trunc(seed) + 104729)
+  return HABITATGE_VAR_MIN + r.value * (HABITATGE_VAR_MAX - HABITATGE_VAR_MIN)
+}
+
+/** Factor del preu de l'habitatge actual (índex/100): 1 al naixement; índex propi, no l'IPC. */
+export function factorHabitatge(state: GameState): number {
+  return (state.indexHabitatge ?? INDEX_HABITATGE_INICIAL) / INDEX_HABITATGE_INICIAL
+}
+
 // --- Frugalitat ---
 
 /**
@@ -352,8 +370,9 @@ const PRECARIETAT_BENESTAR_ADULT: Record<FamilyClass, number> = {
 }
 
 export function adultBaselineBenestar(state: GameState): number {
-  // La seguretat econòmica depèn del que es cobra de veritat (net), no del brut.
-  const incomeM = netMensual(state.salari ?? 0)
+  // La seguretat econòmica depèn del poder adquisitiu REAL del sou: com que el sou NO s'indexa
+  // a l'IPC, el mateix sou nominal compra menys amb els anys → es desinfla per l'IPC.
+  const incomeM = netMensual(state.salari ?? 0) / factorIPC(state)
   const econ = clamp(incomeM / 3500, 0, 1)
   // El patrimoni net ja descompta el deute; pesa menys que abans (P7: 16→10), perquè
   // la riquesa acumulada no és el factor dominant del benestar a la vida adulta. Es DESINFLA
@@ -1214,14 +1233,11 @@ export function applyCareerYear(
   patrimoni.inversions = Math.max(0, Math.round(inversions))
   patrimoni.deute = deute > 0 ? Math.round(deute) : undefined
 
-  // El benestar d'aquest any reflecteix l'estil de vida (oci + nivell de vida) i el XOC
-  // d'un dèficit nou no finançable. L'estrès CRÒNIC de viure endeutat NO es resta aquí
-  // (seria doble comptabilitat): ja rebaixa la referència a `adultBaselineBenestar`.
-  // L'oci i l'ingrés ja són tots dos nominals → la seva relació (i el benestar que en surt) és
-  // correcta sense desinflar. El descobert, en canvi, és un import absolut: es desinfla per l'IPC
-  // perquè un descobert nominal més gran per inflació no resti més benestar del que toca en real.
+  // El benestar es calcula en termes REALS (poder adquisitiu): oci, ingrés i descobert es
+  // desinflen per l'IPC, perquè un import nominal més gran per la inflació no canviï el benestar
+  // que aporta o resta. Així, amb el sou estancat i els preus pujant, el benestar real cau.
   const deltaBenestar =
-    benestarOciAnual(pla.oci, annualIncome) +
+    benestarOciAnual(pla.oci / f, annualIncome / f) +
     benestarNivell -
     penalitzacioDescobert(Math.round(nouDescobert / f))
   const stats = {
