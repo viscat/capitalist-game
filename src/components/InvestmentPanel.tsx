@@ -19,6 +19,7 @@ import {
   costFillsAnual,
   costVidaPropi,
   defaultPlaInversio,
+  factorAportacioLlar,
   factorIPC,
   fillsDependents,
   frugalitat,
@@ -83,7 +84,7 @@ export function InvestmentPanel() {
   // contribució a la llar (fracció de l'ingrés, sense IPC); sol = cost de vida propi × IPC.
   const factorParella = state.parella ? FACTOR_DESPESA_PARELLA : 1
   const costVidaBase = ambPares
-    ? contribucioLlar(state.familia, net)
+    ? contribucioLlar(state.familia, net, factorAportacioLlar(state))
     : Math.round(costVidaPropi(state.familia, state.habitatge, nivell) * f)
   const costVida = Math.round(costVidaBase * factorParella)
   const cobertFamilia = ambPares

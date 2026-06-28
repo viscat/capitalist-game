@@ -80,6 +80,7 @@ import {
   costFillsAnual,
   costVidaAnual,
   costVidaPropi,
+  factorAportacioLlar,
   fillsDependents,
   inflacioAnual,
   variacioHabitatgeAnual,
@@ -254,19 +255,12 @@ export function classePerPatrimoni(patrimoni: number): FamilyClass {
 }
 
 /**
- * Riquesa real (en euros d'avui) per damunt de la qual una vida EXCEPCIONAL permet pujar UN
- * sol graó de classe respecte de l'origen. És deliberadament altíssim (la de la classe més
- * rica): a la pràctica, pujar de classe és gairebé impossible —la reproducció social mana—.
- */
-const LLINDAR_ASCENS_CLASSE = PATRIMONI_CLASSE[0][0] // super_rica (5.000.000 €)
-
-/**
- * Classe en què s'acaba (per a l'hereu o per a un mateix), amb inèrcia de classe MOLT forta
- * (reproducció social): l'origen condiciona el destí. Pots CAURE lliurement (si la riquesa real
- * queda per sota de la classe d'origen, mana la riquesa), però PUJAR és gairebé impossible: com a
- * molt UN graó, i només amb una riquesa real EXTRAORDINÀRIA (`LLINDAR_ASCENS_CLASSE`). Així, qui
- * neix pobre mor pobre quasi sempre; qui neix treballador, treballador o pobre; i així amunt. La
- * via d'escapada de §8.4 deixa de ser una sortida realista: és una excepció raríssima.
+ * Classe en què s'acaba (per a l'hereu o per a un mateix), amb inèrcia de classe forta
+ * (reproducció social): l'origen condiciona molt el destí.
+ * Pots CAURE sense fre, però PUJAR està limitat a UN sol graó per generació: la mobilitat existeix
+ * (jugar bé i acumular riquesa real et fa enfilar un esglaó), però no hi ha salts de pobre a ric en
+ * una vida —cal construir-ho generació rere generació—. Així es manté la crítica (l'origen pesa
+ * moltíssim i pujar és dur) però jugar bé té recompensa real.
  *
  * `llegatReal` ha de venir ja DESINFLAT per l'IPC (en termes reals), perquè la inflació d'una vida
  * no "pugi de classe" pel sol fet que els números nominals creixen.
@@ -277,11 +271,8 @@ export function classeHereu(origen: FamilyClass, llegatReal: number): FamilyClas
   const rangRiquesa = FAMILY_PRESET_ORDER.indexOf(perRiquesa)
   // Caure: sense fre (la riquesa per sota de l'origen mana).
   if (rangRiquesa <= rangOrigen) return perRiquesa
-  // Pujar: només amb una fortuna real extraordinària, i com a molt UN graó.
-  if (llegatReal >= LLINDAR_ASCENS_CLASSE) {
-    return FAMILY_PRESET_ORDER[Math.min(rangOrigen + 1, FAMILY_PRESET_ORDER.length - 1)]
-  }
-  return origen
+  // Pujar: fins a la classe que et permet la teva riquesa real, però com a molt UN graó per vida.
+  return FAMILY_PRESET_ORDER[Math.min(rangRiquesa, rangOrigen + 1)]
 }
 
 /**
@@ -705,7 +696,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // nominal, NO s'hi torna a aplicar l'IPC). Viure SOL = cost de vida propi, que SÍ s'encareix
     // amb l'IPC (× f). L'habitatge va a part (índex d'habitatge / quota fixa).
     const costVidaBase = ambPares
-      ? contribucioLlar(state.familia, net)
+      ? contribucioLlar(state.familia, net, factorAportacioLlar(state))
       : Math.round(costVidaPropi(state.familia, habitatge, state.nivellVida) * f)
     // Accions fixes: inversió en salut i/o formació (cost anual nominal afegit a les necessitats).
     const costSalut = state.inversioSalut ? Math.round(COST_SALUT_ANUAL * f) : 0
@@ -877,7 +868,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // Aplica els stats no monetaris acumulats per les accions (gating de vincles per deute,
   // com a resolveEvent). Els events del torn hi sumaran els seus deltes a sobre.
   const vinclesAccio =
-    accVincles > 0 && (person.patrimoni.deute ?? 0) > 0 ? accVincles * 0.3 : accVincles
+    accVincles > 0 && (person.patrimoni.deute ?? 0) > 0 ? accVincles * 0.6 : accVincles
   const base: GameState = {
     ...state,
     torn,
@@ -982,11 +973,16 @@ function resolveEvent(
     salari = Math.max(0, Math.round((salari ?? 0) + effect.salariDelta))
   }
   // Sostre salarial: la carrera fa plateau (no s'infla indefinidament en 49 anys de vida
-  // laboral). Cap el sou a un múltiple realista del de partida; no afecta el 0 (atur).
+  // laboral). Cap el sou a un múltiple realista del de partida; no afecta el 0 (atur). El sostre
+  // PUJA amb l'IPC: el sou no s'indexa automàticament, però qui negocia augments actius pot
+  // mantenir el ritme de la inflació (jugar bé compensa l'estancament; la passivitat no).
   if (salari !== undefined && salari > 0) {
     salari = Math.min(
       salari,
-      sostreSalari(state.familia, state.teDiploma ?? false, state.nivellAcademic),
+      Math.round(
+        sostreSalari(state.familia, state.teDiploma ?? false, state.nivellAcademic) *
+          factorIPC(state),
+      ),
     )
   }
 
@@ -1080,7 +1076,7 @@ function resolveEvent(
   // reservada a qui s'escapa de la trampa del deute, no a tothom.
   let vinclesDelta = effect.vinclesDelta
   if (vinclesDelta !== undefined && vinclesDelta > 0 && (person.patrimoni.deute ?? 0) > 0) {
-    vinclesDelta *= 0.3
+    vinclesDelta *= 0.6
   }
   const vinclesSocials =
     vinclesDelta !== undefined
@@ -1261,7 +1257,7 @@ export function applyMilestoneChoice(
     // Vincles: el guany es redueix molt si es viu endeutat (com a `resolveEvent`).
     let vinclesDelta = eff.vinclesDelta
     if (vinclesDelta !== undefined && vinclesDelta > 0 && (next.person.patrimoni.deute ?? 0) > 0) {
-      vinclesDelta *= 0.3
+      vinclesDelta *= 0.6
     }
     if (vinclesDelta !== undefined) {
       next.vinclesSocials = Math.max(0, Math.min(1, (state.vinclesSocials ?? 0) + vinclesDelta))

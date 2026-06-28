@@ -115,7 +115,7 @@ export const DERIVA_BAIXA = 0.32
  * s'extingeix. És el mecanisme estructural que reprodueix la pobresa malgrat bones
  * decisions (la trampa del deute, no una penalització per etiqueta de classe).
  */
-export const INTERES_DEUTE = 0.18
+export const INTERES_DEUTE = 0.10
 
 // --- Capa pública del benestar (P8): existeix però és insuficient i arriba tard ---
 
@@ -201,8 +201,8 @@ export const IPC_INICIAL = 100
  * NEGATIU: alguns anys hi ha deflació (els preus baixen). Tot i així la mitjana és positiva
  * (~+2%), així que la tendència en finestres de 10-20 anys sempre és a l'alça.
  */
-export const IPC_INFLACIO_MIN = -0.01
-export const IPC_INFLACIO_MAX = 0.05
+export const IPC_INFLACIO_MIN = -0.015
+export const IPC_INFLACIO_MAX = 0.04
 
 // --- Índex del preu de l'habitatge (lloguer i compra) ---
 // L'habitatge NO segueix l'IPC: té el seu propi índex, que a llarg termini creix MÉS de pressa

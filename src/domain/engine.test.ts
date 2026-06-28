@@ -299,13 +299,14 @@ describe('dinastia i herència', () => {
     expect(gen2.herenciaPendent?.cases).toEqual([200_000])
   })
 
-  it('classeHereu: inèrcia de classe forta (cau lliure, puja gairebé mai)', () => {
-    // Qui neix pobre, mor pobre encara que acumuli força (no n'hi ha prou per pujar).
+  it('classeHereu: inèrcia forta, puja com a molt UN graó, cau lliure', () => {
+    // Sense riquesa real, el pobre es queda pobre.
     expect(classeHereu('pobra', 0)).toBe('pobra')
-    expect(classeHereu('pobra', 200_000)).toBe('pobra')
-    expect(classeHereu('pobra', 1_000_000)).toBe('pobra')
-    // Només una fortuna real extraordinària permet pujar UN sol graó.
+    // Acumular riquesa et fa enfilar, però NOMÉS un graó per vida (mai de pobre a ric).
+    expect(classeHereu('pobra', 200_000)).toBe('treballadora')
     expect(classeHereu('pobra', 5_000_000)).toBe('treballadora')
+    // El treballador que prospera puja un graó (a mitjana).
+    expect(classeHereu('treballadora', 200_000)).toBe('mitjana')
     // Caure és lliure: un ric que ho perd tot baixa de classe.
     expect(classeHereu('rica', 0)).toBe('pobra')
     expect(classeHereu('mitjana', 60_000)).toBe('mitjana')

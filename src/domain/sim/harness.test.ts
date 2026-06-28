@@ -33,10 +33,15 @@ function row(label: string, s: ClassSummary): string {
   return [
     label.padEnd(14),
     `ben med ${String(s.benestarMediana).padStart(3)}`,
-    `p10 ${String(s.benestarP10).padStart(3)}`,
     `p90 ${String(s.benestarP90).padStart(3)}`,
-    `patr med ${String(s.patrimoniMediana).padStart(9)}€`,
     `cua≥60 ${pct(s.cuaBenestar60).padStart(6)}`,
+    `patr real ${String(s.patrimoniRealMediana).padStart(9)}€`,
+    `mort ${String(s.edatMortMediana).padStart(2)}`,
+    `67+ ${pct(s.arribaA67).padStart(6)}`,
+    `deute ${pct(s.ambDeute).padStart(6)}`,
+    `prop ${pct(s.propietari).padStart(6)}`,
+    `fills ${pct(s.ambFills).padStart(6)}`,
+    `gini ${s.giniPatrimoni.toFixed(2)}`,
   ].join('  ')
 }
 
@@ -88,23 +93,38 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
       console.log(`\n=== Mobilitat de classe «${name}» (mor en classe…) ===\n${lines.join('\n')}`)
     }
 
-    // Invariants (robustos, no de balanceig fi):
+    // Invariants del nou disseny: CRÍTICA DURA (l'origen pesa moltíssim) PERÒ jugar bé recompensa.
     for (const name of Object.keys(POLICIES)) {
       for (const cls of FAMILY_PRESET_ORDER) {
         const s = summaries[name][cls]
         expect(s.benestarMediana).toBeGreaterThanOrEqual(0)
         expect(s.benestarMediana).toBeLessThanOrEqual(100)
+        // SENSE SALTS: en una sola vida es puja com a molt UN graó de classe (mai de pobre a ric).
+        const rangOrigen = FAMILY_PRESET_ORDER.indexOf(cls)
+        for (let r = rangOrigen + 2; r < FAMILY_PRESET_ORDER.length; r++) {
+          expect(s.classeFinal[FAMILY_PRESET_ORDER[r]]).toBe(0)
+        }
       }
-      // El ric viu, de mediana, clarament millor que el pobre.
+      // El ric viu, de mediana, clarament millor que el pobre (gradient de classe pronunciat).
       expect(summaries[name]['rica'].benestarMediana).toBeGreaterThan(
-        summaries[name]['pobra'].benestarMediana,
+        summaries[name]['pobra'].benestarMediana + 30,
       )
-      // Corba de la pobresa (la tesi del joc): qui neix pobre, mor pobre quasi sempre; qui neix
-      // treballador, mor treballador o pobre quasi sempre. La mobilitat ASCENDENT és mínima.
-      expect(fraccioSenseAscens(summaries[name]['pobra'], 'pobra')).toBeGreaterThanOrEqual(0.98)
-      expect(
-        fraccioSenseAscens(summaries[name]['treballadora'], 'treballadora'),
-      ).toBeGreaterThanOrEqual(0.95)
+      // L'origen segueix predint molt el resultat fins i tot amb bon joc: el pobre, de mediana,
+      // ho té molt pitjor que la mitjana (la crítica es manté).
+      expect(summaries[name]['mitjana'].benestarMediana).toBeGreaterThan(
+        summaries[name]['pobra'].benestarMediana + 20,
+      )
     }
+    // JUGAR BÉ RECOMPENSA: per a les classes baixes, el millor joc (estudiar a fons) dóna més
+    // benestar i més mobilitat que el joc passiu/laboral. "Si el jugues bé, te'n pots sortir."
+    for (const cls of ['pobra', 'treballadora'] as const) {
+      expect(summaries['estudis_actiu'][cls].benestarMediana).toBeGreaterThan(
+        summaries['treball'][cls].benestarMediana,
+      )
+    }
+    // El bon joc obre mobilitat real per al pobre (pot enfilar un graó), però no és automàtic.
+    const ascensPobreActiu =
+      1 - fraccioSenseAscens(summaries['estudis_actiu']['pobra'], 'pobra')
+    expect(ascensPobreActiu).toBeGreaterThan(0.1)
   })
 })
