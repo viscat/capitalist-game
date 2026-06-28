@@ -231,3 +231,61 @@ a l'esforç, no a l'estructura). **La Fase 3 ja és obligatòria, no opcional.**
 **Invariant de reconciliació (validar a cada pas):** l'origen segueix sent la norma estadística;
 l'escapada individual, rara/cara; el guany s'atribueix a la seva FONT (esforç/herència/col·lectiu/
 règim); cap canal aplana el gradient (harness-gated).
+
+## 7. Ronda d'anàlisi — DESPRÉS de la Fase 3
+
+La Fase 3 ja és completa: les tres palanques **no individuals** són a pantalla — règim del
+benestar (política), poder sindical (col·lectiu) i visibilitat de l'explotació via moralitat +
+negoci amb empleats. El panel (game-tester/dades, activista anticapitalista, activista liberal)
+ha revisat l'estat resultant.
+
+### Dades del harness (250 llavors/classe)
+- **Crítica dura intacta:** pobra PASSIVA (treball) → benestar 14, mort 61, 67+ 27,6%, **64% no
+  puja mai de classe**. L'origen segueix sent destí per defecte.
+- **Jugar bé recompensa:** pobra que juga bé (`estudis_actiu`) → benestar 43, mort 71, 67+ 67,6%,
+  patrimoni real 144k€, **només 16,8% no ascendeix**. "Si el jugues bé, te'n pots sortir molt bé."
+- **Gradient pronunciat:** rica/super-rica benestar 80-83; cap canal l'aplana.
+- **Palanca POLÍTICA (pobra passiva, només canviant de règim):** residual benestar 8-9 / mort 54-57
+  / 67+ ~10-22% → socialdemòcrata benestar 16-21 / mort 61-65 / 67+ ~27-43%. El terra puja sense
+  estalvi privat.
+- **Palanca COL·LECTIVA (treballadora, organitzada vs sola):** patrimoni real 127k→**189k** (+49%),
+  deute 5,2%→3,6%, 67+ 74→78%. El sindicat guanya SEGURETAT MATERIAL (el seu efecte real), no
+  necessàriament "felicitat" (el benestar és enganxós al sostre de classe).
+
+### Veredicte del panel
+- **Game-tester:** la peça que faltava era instrumentar la via col·lectiva al harness — el scorer
+  per defecte feia d'ESQUIROL (rebutjava la vaga). Resolt: `SimPolicy.collectiu` + premi de conveni
+  (`SINDICAT_CONVENI_BONUS`) que escala amb el poder sindical, i pes més alt dels events sindicals.
+  Ara la via està validada per dades.
+- **Anticapitalista:** el missatge és íntegre i la mecànica d'explotació (dividend ∝ 1/sou dels
+  empleats) NO és cosmètica. El risc real és de LLEGIBILITAT (que el jugador llegeixi "estudia i
+  te'n sortiràs"). Resolt parcialment amb l'atribució de causa al `GameOver`.
+- **Liberal:** l'agència individual es recompensa bé i de manera satisfactòria. Reserves: el gate
+  d'emprenedoria (≥120k) la fa cosa de rics, i caldria no penalitzar moralment el "bon patró"
+  (pagar sou de mercat ja és moralment NEUTRE, no negatiu — verificat: `souEmpleats:'mercat'` →
+  `moralitatDelta:0`).
+
+### Poliment aplicat en aquesta ronda
+1. **Acció col·lectiva validable i efectiva:** `SimPolicy.collectiu` (s'afilia + secunda vagues);
+   `SINDICAT_CONVENI_BONUS` (premi salarial recurrent que escala amb el poder sindical); events
+   sindicals amb més pes; gains per acció més alts i menys decaïment. Test de harness que comprova
+   que el treballador organitzat guanya ≥15% de patrimoni real sense perdre benestar.
+2. **Llegibilitat de la CAUSA (§6 Pas 4):** nova secció «Què t'ha marcat la vida» al `GameOver` que
+   atribueix el resultat a la seva FONT — origen, règim, títol, negoci (just vs explotador),
+   sindicat, herència i banda moral. El gradient es llegeix com a ESTRUCTURA, no com a mèrit pur.
+
+### Pendents (poliment futur, no bloquegen)
+- **Gate d'emprenedoria** (≥120k): valorar que el capital humà alt + contactes hi puguin substituir
+  part del capital, perquè un graduat humil tingui una cua real (validar que NO reintrodueix la
+  regressió de la Fase 2b: l'event de negoci contaminava el pool del pobre).
+- **Serveis universals tangibles** (§6 Pas 2): topall de despesa sanitària de butxaca i escola
+  bressol pública sota règims forts, perquè el canal de mort per malaltia catastròfica es faci més
+  simètric entre classes (avui el règim mou el terra via xarxa pública, però no encara el cost dels
+  xocs de salut).
+- **Contrafàctic al GameOver:** "amb un règim residual hauries mort als X" per fer encara més
+  evident que la regla, no el jugador, va moure el terra.
+
+**Conclusió:** la directiva es compleix — crítica dura (l'origen domina, el pobre passiu mor jove i
+no puja) i, alhora, "si jugues bé te'n surts molt bé" (educació, organització col·lectiva, i un
+context polític favorable obren sortides reals). Les tres FONTS d'ascens —individual, col·lectiva i
+política— són a pantalla i atribuïdes, de manera que el guany no es llegeix com a pur mèrit.

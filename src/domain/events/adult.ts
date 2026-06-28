@@ -134,13 +134,13 @@ export const SINDICAT_EVENTS: GameEvent[] = [
     category: 'economia',
     titleKey: 'event.afiliar_sindicat.title',
     descKey: 'event.afiliar_sindicat.desc',
-    weight: () => 1.2,
+    weight: () => 2.2,
     choices: [
       {
         id: 'afiliar',
         labelKey: 'event.afiliar_sindicat.choice.afiliar',
         effect: {
-          poderSindicalDelta: 0.16,
+          poderSindicalDelta: 0.2,
           vinclesDelta: 0.05,
           benestar: 1,
           moralitatDelta: 2,
@@ -158,7 +158,7 @@ export const SINDICAT_EVENTS: GameEvent[] = [
     category: 'economia',
     titleKey: 'event.vaga.title',
     descKey: 'event.vaga.desc',
-    weight: () => 1,
+    weight: () => 1.8,
     choices: [
       {
         id: 'secundar',
@@ -166,9 +166,9 @@ export const SINDICAT_EVENTS: GameEvent[] = [
         // Perds el jornal del dia de vaga, però reforces el poder col·lectiu i n'arrenques una
         // millora salarial compartida. Solidaritat → una mica de moralitat.
         effect: {
-          efectiu: -300,
-          poderSindicalDelta: 0.16,
-          salariDelta: 50,
+          efectiu: -200,
+          poderSindicalDelta: 0.2,
+          salariDelta: 120,
           benestar: -1,
           moralitatDelta: 2,
         },

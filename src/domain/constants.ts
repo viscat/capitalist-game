@@ -115,11 +115,17 @@ export const PRECARIETAT_EROSIO_SERVEIS = 0.6
  * la feina i contrapès al propietari. Es construeix afiliant-se i secundant vagues.
  */
 /** Increment de poder sindical per afiliar-se o secundar una vaga. */
-export const SINDICAT_AFILIACIO_DELTA = 0.16
+export const SINDICAT_AFILIACIO_DELTA = 0.2
 /** Decaïment anual del poder sindical (si no es manté l'organització, s'erosiona). */
-export const SINDICAT_DECAIMENT_ANUAL = 0.02
+export const SINDICAT_DECAIMENT_ANUAL = 0.015
 /** Bonus màxim al sou (terra i sostre) amb poder sindical ple: la negociació col·lectiva apuja salaris. */
 export const SINDICAT_SOU_BONUS = 0.35
+/**
+ * Premi de CONVENI: amb poder sindical ple, l'ingrés del treball puja aquesta fracció cada any (la
+ * negociació col·lectiva arrenca millores salarials recurrents). És la palanca principal de l'acció
+ * col·lectiva: escala amb l'organització i és un guany COMPARTIT mentre es treballa.
+ */
+export const SINDICAT_CONVENI_BONUS = 0.3
 /** Per sobre d'aquest poder sindical, la protecció col·lectiva atura els acomiadaments. */
 export const SINDICAT_PROTECCIO_LLINDAR = 0.5
 /**

@@ -678,6 +678,26 @@ export const ca: Record<string, string> = {
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
   'gameover.notaLlegat':
     'Deixes {fills} fill/s. A cada un li tocaria un llegat d’uns {llegat}: com tu vas arrencar d’on et van deixar els teus pares, ells arrenquen d’aquí. Així es transmet (o no) l’avantatge entre generacions.',
+  // Què ha marcat la vida: atribució del resultat a la seva FONT (estructura vs esforç).
+  'gameover.factors.titol': 'Què t’ha marcat la vida',
+  'gameover.factor.origen':
+    'El teu origen, {classe}: el punt de sortida pesa més que cap altra cosa.',
+  'gameover.factor.regim':
+    'Vas viure sota un estat del benestar {regim}: les regles del joc no eren naturals, eren polítiques.',
+  'gameover.factor.diploma':
+    'Vas estudiar una carrera: el capital humà et va donar un terra de sou més alt.',
+  'gameover.factor.negoci_just':
+    'Vas tenir un negoci i vas pagar bé la teva gent: menys benefici per a tu, més dignitat per a ells.',
+  'gameover.factor.negoci_explotador':
+    'Vas tenir un negoci i vas pagar sous baixos: el teu dividend va sortir de la butxaca dels qui hi treballaven.',
+  'gameover.factor.sindicat':
+    'Et vas organitzar col·lectivament: el que no s’aconsegueix sol, es va arrencar en comú.',
+  'gameover.factor.herencia':
+    'L’herència (rebuda o deixada) va moure la teva línia: el capital es transmet entre generacions.',
+  'gameover.factor.moral_bo':
+    'Vas tractar bé els altres: no t’ho va pagar el mercat, però vas viure amb la consciència tranquil·la.',
+  'gameover.factor.moral_malvat':
+    'Vas trepitjar qui calia per pujar: el sistema premia qui no té escrúpols… fins que es passa comptes.',
   // Dinastia: herència i continuació amb un descendent
   'gameover.dinastia.titol': 'El llinatge continua',
   'gameover.dinastia.herencia':

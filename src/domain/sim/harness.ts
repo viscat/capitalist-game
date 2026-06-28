@@ -45,6 +45,13 @@ export interface SimPolicy {
    * és passiu (no tria cap acció) i no pot accedir a la cua de mobilitat.
    */
   actiu?: boolean
+  /**
+   * Jugador que segueix la via COL·LECTIVA: s'afilia al sindicat i SECUNDA les vagues (no fa
+   * d'esquirol). Acumula `poderSindical` → apuja el sou (terra+sostre) i protegeix la feina.
+   * És la via d'ascens compartida (no individual) de la Fase 3; sense això el harness fa
+   * d'esquirol (el scorer per defecte maximitza diners+benestar a curt termini).
+   */
+  collectiu?: boolean
 }
 
 /**
@@ -100,8 +107,14 @@ function milestoneChoice(state: GameState, policy: SimPolicy): string {
  * el benestar immediat (i, a igualtat, la que deixa més diners). Representa algú que
  * intenta estar bé sense arruïnar-se — una política neutra i consistent.
  */
-function eventChoice(state: GameState): string {
+function eventChoice(state: GameState, policy: SimPolicy): string {
   const choices = state.pendingEvent?.choices ?? []
+  // Via COL·LECTIVA: s'afilia i secunda les vagues (no fa d'esquirol). És una aposta a mitjà
+  // termini (perds jornal ara, guanyes poder sindical que apuja el sou i protegeix la feina).
+  if (policy.collectiu) {
+    if (state.pendingEvent?.id === 'afiliar_sindicat') return 'afiliar'
+    if (state.pendingEvent?.id === 'vaga') return 'secundar'
+  }
   // Descendència: un jugador raonable no té un fill quan està financerament contra les
   // cordes (deute, benestar baix o sense coixí líquid). Si va bé, sí que en té.
   if (state.pendingEvent?.id === 'tenir_fill') {
@@ -154,7 +167,7 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
       continue
     }
     if (s.pendingEvent) {
-      s = applyChoice(s, eventChoice(s))
+      s = applyChoice(s, eventChoice(s, policy))
       continue
     }
     // Cerca de feina (carrera, a l'atur amb ofertes): accepta la millor i continua.

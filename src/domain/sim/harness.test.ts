@@ -149,4 +149,23 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
     // sense estalvi privat (és la palanca col·lectiva, no individual).
     expect(social.benestarMediana).toBeGreaterThanOrEqual(residual.benestarMediana + 6)
   })
+
+  // Acció COL·LECTIVA (Fase 3): sindicar-se i secundar vagues és una via d'ascens COMPARTIDA. El
+  // treballador que s'organitza viu millor que el que no ho fa, sense estudis ni negoci (via no
+  // individual). Valida que la 3a palanca de la Fase 3 mou de debò la mediana del treballador.
+  it('l’acció col·lectiva millora el treballador que s’organitza', { timeout: 60_000 }, () => {
+    const soliari: SimPolicy = { postobligatori: 'treball', majoria: 'carrera' }
+    const collectiu: SimPolicy = { ...soliari, collectiu: true }
+    const sol = summarize(simulateClass('treballadora', N, soliari))
+    const org = summarize(simulateClass('treballadora', N, collectiu))
+    console.log(
+      `\n=== Acció col·lectiva (treballadora) ===\n` +
+        `${row('en solitari', sol)}\n${row('organitzat', org)}`,
+    )
+    // L'acció col·lectiva guanya SEGURETAT MATERIAL (l'efecte propi d'un sindicat): més patrimoni
+    // real i no menys benestar. El benestar és enganxós (a prop del sostre de classe), així que el
+    // senyal fort és el patrimoni: el conveni i la protecció de la feina capitalitzen amb els anys.
+    expect(org.patrimoniRealMediana).toBeGreaterThan(sol.patrimoniRealMediana * 1.15)
+    expect(org.benestarMediana).toBeGreaterThanOrEqual(sol.benestarMediana)
+  })
 })

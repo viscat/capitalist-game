@@ -22,6 +22,7 @@ import {
   MORALITAT_INICIAL,
   MORALITAT_LLINDAR_BO,
   SALUT_INVERSIO_DELTA,
+  SINDICAT_CONVENI_BONUS,
   SINDICAT_DECAIMENT_ANUAL,
   SINDICAT_PROTECCIO_LLINDAR,
   MESOS_PER_ANY,
@@ -760,7 +761,13 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // Dividend del negoci propi (real → nominal amb l'IPC): el que t'enduus de més pagant menys
     // els treballadors NO és creació de valor, és plusvàlua extreta. Suma a l'ingrés de l'any.
     const dividend = dividendNegociAnual(state) * f
-    const income = incomeFeina + dividend
+    // Premi de CONVENI: l'acció col·lectiva arrenca millores salarials recurrents (escala amb el
+    // poder sindical). Només sobre l'ingrés del TREBALL (carrera amb sou), no sobre la pensió.
+    const conveni =
+      stage === 'carrera' && (state.salari ?? 0) > 0
+        ? incomeFeina * poderSindicalActual(state) * SINDICAT_CONVENI_BONUS
+        : 0
+    const income = incomeFeina + dividend + conveni
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
