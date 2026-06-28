@@ -130,25 +130,11 @@ export const IMV_COBERTURA = 0.3
 /** Fracció del net que cobreix la prestació d'atur (depèn d'haver cotitzat). */
 export const PRESTACIO_ATUR_FRACCIO = 0.6
 
-// --- Rendiments anuals de la inversió (fase de carrera) ---
+// --- Rendiment anual de la inversió (fase de carrera) ---
 
-/** Rendiment anual del compte d'estalvi (gairebé nul: la inflació se'l menja). */
-export const RENDIMENT_ESTALVI = 0.0
-
-/** Rendiment anual mitjà de les inversions genèriques. */
-export const RENDIMENT_INVERSIONS = 0.03
-
-/** Rendiment anual del pla de pensions: estable i baix. */
-export const RENDIMENT_PENSIONS = 0.04
-
-/** Rendiment anual del fons indexat = MIN + aleatori·RANG (mitjana ≈ +6%, volàtil). */
+/** Rendiment anual de la cartera d'inversió = MIN + aleatori·RANG (mitjana ≈ +6%, volàtil). */
 export const INDEX_RENDIMENT_MIN = -0.1
 export const INDEX_RENDIMENT_RANG = 0.32
-
-/** Desgravació fiscal de l'aportació anual al pla de pensions (es retorna a efectiu). */
-export const DESGRAVACIO_PENSIONS = 0.2
-/** Aportació anual al pla de pensions amb dret a desgravació (límit legal aproximat). */
-export const LIMIT_DESGRAVACIO_PENSIONS = 1500
 
 // --- Universitat i cost de vida adult ---
 

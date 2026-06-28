@@ -69,8 +69,7 @@ export function PatrimoniPanel({
   habitatge?: Habitatge
 }) {
   const { t } = useT()
-  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
-    person.patrimoni
+  const { efectiu, inversions, cases } = person.patrimoni
   const esAdult = stage === 'universitat' || stage === 'carrera'
   const valorCases = cases.reduce((a, b) => a + b, 0)
   const deuteHipoteca = habitatge?.hipoteca?.deute ?? 0
@@ -86,14 +85,7 @@ export function PatrimoniPanel({
         </h3>
         <div className="space-y-1.5">
           <Row label={t('patrimoni.efectiu')} value={formatEuros(efectiu)} />
-          <Row label={t('patrimoni.estalvi')} value={formatEuros(estalvi)} />
-          {(esAdult || fonsIndexat > 0) && (
-            <Row label={t('patrimoni.fonsIndexat')} value={formatEuros(fonsIndexat)} />
-          )}
-          {(esAdult || fonsPensions > 0) && (
-            <Row label={t('patrimoni.fonsPensions')} value={formatEuros(fonsPensions)} />
-          )}
-          {inversions > 0 && (
+          {(esAdult || inversions > 0) && (
             <Row label={t('patrimoni.inversions')} value={formatEuros(inversions)} />
           )}
           {cases.length > 0 && (

@@ -8,13 +8,7 @@ interface Badge {
   positive: boolean
 }
 
-const MONEY_FIELDS: (keyof EventEffect)[] = [
-  'efectiu',
-  'estalvi',
-  'inversions',
-  'fonsIndexat',
-  'fonsPensions',
-]
+const MONEY_FIELDS: (keyof EventEffect)[] = ['efectiu', 'inversions']
 
 export function EffectList({ effect }: { effect: EventEffect }) {
   const { t } = useT()

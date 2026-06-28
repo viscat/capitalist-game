@@ -104,7 +104,7 @@ function eventChoice(state: GameState): string {
     const precari =
       (p.deute ?? 0) > 0 ||
       state.person.stats.benestar < 35 ||
-      p.efectiu + p.estalvi < 5000
+      p.efectiu + p.inversions < 5000
     return precari ? 'no' : 'si'
   }
   let best = choices[0]
@@ -112,7 +112,7 @@ function eventChoice(state: GameState): string {
   for (const c of choices) {
     const eff = choiceEffect(c, state)
     const diners =
-      (eff.efectiu ?? 0) + (eff.estalvi ?? 0) - (eff.despesaGreu ?? 0)
+      (eff.efectiu ?? 0) + (eff.inversions ?? 0) - (eff.despesaGreu ?? 0)
     const score = (eff.benestar ?? 0) * 1000 + diners
     if (score > bestScore) {
       bestScore = score

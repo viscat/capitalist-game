@@ -35,9 +35,8 @@ export function GameOver() {
   const generacio = state.generacio ?? 1
 
   const benestar = Math.round(state.person.stats.benestar)
-  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases } =
-    state.person.patrimoni
-  const invertit = inversions + fonsIndexat + fonsPensions
+  const { efectiu, inversions, cases } = state.person.patrimoni
+  const invertit = inversions
   const deuteHipoteca = state.habitatge?.hipoteca?.deute ?? 0
   const deuteConsum = state.person.patrimoni.deute ?? 0
   const total = patrimoniTotal(state.person) - deuteHipoteca
@@ -118,12 +117,7 @@ export function GameOver() {
           </h2>
           <div className="space-y-1.5">
             <Line label={t('patrimoni.efectiu')} value={formatEurosCompact(efectiu)} />
-            <Line label={t('patrimoni.estalvi')} value={formatEurosCompact(estalvi)} />
-            <Line label={t('patrimoni.fonsIndexat')} value={formatEurosCompact(fonsIndexat)} />
-            <Line label={t('patrimoni.fonsPensions')} value={formatEurosCompact(fonsPensions)} />
-            {inversions > 0 && (
-              <Line label={t('patrimoni.inversions')} value={formatEurosCompact(inversions)} />
-            )}
+            <Line label={t('patrimoni.inversions')} value={formatEurosCompact(inversions)} />
             {cases.length > 0 && (
               <Line label={t('patrimoni.cases')} value={String(cases.length)} />
             )}

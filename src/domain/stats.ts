@@ -6,7 +6,6 @@ import {
   COST_VIDA_NIVELLS,
   DEPENDENCIA_FILLS_ANYS,
   NIVELL_VIDA_DEFAULT,
-  DESGRAVACIO_PENSIONS,
   FRUGALITAT_LLINDAR,
   IMV_ANUAL,
   IMV_COBERTURA,
@@ -17,14 +16,10 @@ import {
   IPC_INFLACIO_MAX,
   IPC_INFLACIO_MIN,
   PRESTACIO_ATUR_FRACCIO,
-  LIMIT_DESGRAVACIO_PENSIONS,
   MATRICULA_ANUAL,
   MESOS_PER_ANY,
   PAS_PLA,
   PREMI_DIPLOMA,
-  RENDIMENT_ESTALVI,
-  RENDIMENT_INVERSIONS,
-  RENDIMENT_PENSIONS,
   SALARI_ADULT_BASE,
   SALARI_BASE_16,
   SALARI_MINIM_MENSUAL,
@@ -203,28 +198,16 @@ export function applyEffect(person: Person, effect: EventEffect): Person {
   const patrimoni = { ...person.patrimoni }
   if (effect.efectiu)
     patrimoni.efectiu = Math.max(0, Math.round(patrimoni.efectiu + effect.efectiu))
-  if (effect.estalvi)
-    patrimoni.estalvi = Math.max(0, Math.round(patrimoni.estalvi + effect.estalvi))
   if (effect.inversions)
     patrimoni.inversions = Math.max(
       0,
       Math.round(patrimoni.inversions + effect.inversions),
     )
-  if (effect.fonsIndexat)
-    patrimoni.fonsIndexat = Math.max(
-      0,
-      Math.round(patrimoni.fonsIndexat + effect.fonsIndexat),
-    )
-  if (effect.fonsPensions)
-    patrimoni.fonsPensions = Math.max(
-      0,
-      Math.round(patrimoni.fonsPensions + effect.fonsPensions),
-    )
-  // Xoc de mercat: variació percentual del fons indexat (crisi o eufòria).
+  // Xoc de mercat: variació percentual de la cartera d'inversió (crisi o eufòria).
   if (effect.mercatPct)
-    patrimoni.fonsIndexat = Math.max(
+    patrimoni.inversions = Math.max(
       0,
-      Math.round(patrimoni.fonsIndexat * (1 + effect.mercatPct)),
+      Math.round(patrimoni.inversions * (1 + effect.mercatPct)),
     )
 
   const stats = { ...person.stats }
@@ -273,14 +256,10 @@ export function potViureFrugal(state: GameState): boolean {
 
 /** Patrimoni net total de la persona (actius menys el deute de consum pendent). */
 export function patrimoniTotal(person: Person): number {
-  const { efectiu, estalvi, inversions, fonsIndexat, fonsPensions, cases, deute } =
-    person.patrimoni
+  const { efectiu, inversions, cases, deute } = person.patrimoni
   return (
     efectiu +
-    estalvi +
     inversions +
-    fonsIndexat +
-    fonsPensions +
     cases.reduce((a, b) => a + b, 0) -
     (deute ?? 0)
   )
@@ -721,7 +700,7 @@ export interface DespesaGreuResult {
 
 /**
  * Resol una despesa greu amb el matalàs familiar: el jugador paga el que pot
- * (efectiu → estalvi), la família cobreix el dèficit fins a `ajutFamiliarMax`, i
+ * (efectiu → ven inversions), la família cobreix el dèficit fins a `ajutFamiliarMax`, i
  * el descobert restant resta benestar (estrès). Mai genera deute.
  */
 export function resolveDespesaGreu(
@@ -732,13 +711,13 @@ export function resolveDespesaGreu(
   const patrimoni = { ...person.patrimoni }
   let restant = cost
 
-  const pagaDe = (font: 'efectiu' | 'estalvi') => {
+  const pagaDe = (font: 'efectiu' | 'inversions') => {
     const real = Math.min(restant, patrimoni[font])
     patrimoni[font] = Math.round(patrimoni[font] - real)
     restant -= real
   }
   pagaDe('efectiu')
-  pagaDe('estalvi')
+  pagaDe('inversions')
 
   const donacio = Math.min(restant, ajutFamiliarMax(familia))
   restant -= donacio
@@ -848,11 +827,11 @@ export function contribucioLlar(familia: Familia, netMensual: number): number {
 
 /**
  * Pressupost mensual per defecte: només es pre-omple l'**obligatori** (l'aportació mínima a
- * casa); tota la resta (estalvi, oci, compres) comença a **0** perquè el jugador el
- * construeixi des de zero i mai parteixi d'un pressupost que supera l'ingrés.
+ * casa); la resta (oci, compres) comença a **0** perquè el jugador el construeixi des de zero
+ * i mai parteixi d'un pressupost que supera l'ingrés. El que sobra es queda com a efectiu.
  */
 export function defaultBudget(_income: number, minCasa = 0): Budget {
-  return { casa: minCasa, estalvi: 0, oci: 0, compres: 0 }
+  return { casa: minCasa, oci: 0, compres: 0 }
 }
 
 // Setmanes de l'any (de 52) que un jove ja té compromeses ajudant a casa o al negoci
@@ -903,10 +882,9 @@ export function benestarEstilDeVida(
  * Aplica un ANY sencer de la fase laboral a partir d'un pressupost MENSUAL (× 12).
  * Pots gastar per sobre de l'ingrés: les **necessitats** (aportació obligatòria a casa
  * + oci + compres) es paguen de l'ingrés i, si no arriben, es tira dels estalvis
- * propis i, després, de la xarxa familiar; el que ningú cobreix és **descobert** i
- * resta benestar (`penalitzacioDescobert`). L'aportació a estalvi només es fa si sobra
- * (mai s'estalvia a crèdit). Mai genera deute. El benestar per oci+compres s'aplica un
- * cop l'any.
+ * propis (efectiu + inversions) i, després, de la xarxa familiar; el que ningú cobreix és
+ * **descobert** i resta benestar (`penalitzacioDescobert`). El que sobra es queda com a
+ * efectiu. Mai genera deute. El benestar per oci+compres s'aplica un cop l'any.
  */
 export function applyBudgetYear(
   person: Person,
@@ -920,29 +898,25 @@ export function applyBudgetYear(
   const necessitats =
     (Math.max(budget.casa, minCasa) + budget.oci + budget.compres) * MESOS_PER_ANY
   const caixa = patrimoni.efectiu + income * MESOS_PER_ANY
-  let estalvi = patrimoni.estalvi
+  let inversions = patrimoni.inversions
   let descobert = 0
 
   if (caixa >= necessitats) {
-    // Sobra: aporta a estalvi el que es pugui i deixa la resta a efectiu.
-    let rem = caixa - necessitats
-    const aEstalvi = Math.min(budget.estalvi * MESOS_PER_ANY, rem)
-    estalvi += aEstalvi
-    rem -= aEstalvi
-    patrimoni.efectiu = Math.round(rem)
+    // Sobra: es queda com a efectiu (a la fase laboral no s'inverteix encara).
+    patrimoni.efectiu = Math.round(caixa - necessitats)
   } else {
-    // Dèficit: estalvis propis → xarxa familiar → xarxa pública (IMV) → descobert.
+    // Dèficit: estalvis propis (venent inversions) → xarxa familiar → pública → descobert.
     const r = repartDeficit(
       necessitats - caixa,
-      estalvi,
+      inversions,
       familia,
       ajutPublicMax(patrimoniTotal(person), income * MESOS_PER_ANY),
     )
-    estalvi -= r.propi
+    inversions -= r.propi
     descobert = r.descobert
     patrimoni.efectiu = 0
   }
-  patrimoni.estalvi = Math.round(estalvi)
+  patrimoni.inversions = Math.round(inversions)
 
   const deltaBenestar =
     benestarEstilDeVida(budget.oci, budget.compres, income) -
@@ -1119,17 +1093,11 @@ export function rendimentIndexAnual(rngValue: number): number {
   return INDEX_RENDIMENT_MIN + rngValue * INDEX_RENDIMENT_RANG
 }
 
-/** Desgravació fiscal que torna a efectiu segons l'aportació al pla de pensions. */
-export function desgravacioPensions(aportacio: number): number {
-  return Math.round(
-    Math.min(aportacio, LIMIT_DESGRAVACIO_PENSIONS) * DESGRAVACIO_PENSIONS,
-  )
-}
 
 /**
- * Aplica un any de rendiments compostos al patrimoni invertit. El fons indexat
- * varia segons `indexReturn` (pot baixar!); pensions i inversions creixen estables;
- * l'estalvi a penes (la inflació se'l menja). Aquí és on es veu l'interès compost.
+ * Aplica un any de rendiment compost a la cartera d'inversió. El rendiment és VOLÀTIL
+ * (`indexReturn`, pot baixar!). És l'únic vehicle de creixement: aquí es veu l'interès compost
+ * a llarg termini, però cal aguantar els sotracs sense vendre.
  */
 export function creixementInversions(
   patrimoni: Patrimoni,
@@ -1137,10 +1105,7 @@ export function creixementInversions(
 ): Patrimoni {
   return {
     ...patrimoni,
-    estalvi: Math.round(patrimoni.estalvi * (1 + RENDIMENT_ESTALVI)),
-    inversions: Math.round(patrimoni.inversions * (1 + RENDIMENT_INVERSIONS)),
-    fonsIndexat: Math.max(0, Math.round(patrimoni.fonsIndexat * (1 + indexReturn))),
-    fonsPensions: Math.round(patrimoni.fonsPensions * (1 + RENDIMENT_PENSIONS)),
+    inversions: Math.max(0, Math.round(patrimoni.inversions * (1 + indexReturn))),
   }
 }
 
@@ -1160,25 +1125,22 @@ export function benestarOciAnual(oci: number, annualIncome: number): number {
   return -clamp(Math.round(((min - oci) / min) * 4), 0, 4)
 }
 
-/** Pla d'inversió anual per defecte (prioritza fons indexat i una mica de pensions). */
+/** Pla anual per defecte: reparteix el marge entre oci i inversió. */
 export function defaultPlaInversio(annualIncome: number): PlaInversio {
   const round = (n: number) => Math.max(0, Math.round(n / PAS_PLA) * PAS_PLA)
   const rest = Math.max(0, annualIncome - costVidaAnual())
   return {
     oci: round(rest * 0.35),
-    estalvi: round(rest * 0.15),
-    fonsIndexat: round(rest * 0.35),
-    fonsPensions: round(rest * 0.15),
+    inversions: round(rest * 0.5),
   }
 }
 
 /**
  * Aplica un any de la fase de carrera. Els diners invertits creixen (interès compost);
- * després les **necessitats** (cost de vida + habitatge + oci) es paguen de l'ingrés i
- * els estalvis, amb el **matalàs familiar** i, si cal, **descobert** (resta benestar)
- * quan ni l'ingrés ni els estalvis ni la família hi arriben. Les **aportacions**
- * (fons indexat, pla de pensions, estalvi) només es fan si sobra (mai a crèdit ni amb
- * diners de la família). La desgravació de pensions torna a efectiu. Mai genera deute.
+ * després les **necessitats** (cost de vida + habitatge + oci) es paguen de l'ingrés i, si
+ * cal, venent inversions, amb el **matalàs familiar** i, si cal, **descobert** (resta benestar)
+ * quan ni l'ingrés ni la cartera ni la família hi arriben. L'**aportació a inversió** només es
+ * fa si sobra (mai a crèdit ni amb diners de la família). Mai genera deute.
  */
 export function applyCareerYear(
   person: Person,
@@ -1208,12 +1170,12 @@ export function applyCareerYear(
   // criança dels fills dependents.
   const necessitats = costVida + costHabitatge + pla.oci + aportacioFamilia + costFills
   const caixa = patrimoni.efectiu + annualIncome
-  let estalvi = patrimoni.estalvi
+  let inversions = patrimoni.inversions
   let nouDescobert = 0
 
   if (caixa >= necessitats) {
     let rem = caixa - necessitats
-    // El deute es paga ABANS d'invertir: bloqueja l'estalvi i la inversió fins extingir-se.
+    // El deute es paga ABANS d'invertir: bloqueja la inversió fins extingir-se.
     const pagaDeute = Math.min(rem, deute)
     deute -= pagaDeute
     rem -= pagaDeute
@@ -1221,21 +1183,14 @@ export function applyCareerYear(
       // Encara endeutat: tot el marge ha anat a deute, no es pot invertir res.
       patrimoni.efectiu = Math.round(rem)
     } else {
-      // Sense deute: reparteix entre aportacions (capades al sobrant) i efectiu.
-      const aIndex = Math.min(pla.fonsIndexat, rem)
-      rem -= aIndex
-      const aPensions = Math.min(pla.fonsPensions, rem)
-      rem -= aPensions
-      const aEstalvi = Math.min(pla.estalvi, rem)
-      rem -= aEstalvi
-      estalvi += aEstalvi
-      patrimoni.fonsIndexat = Math.round(patrimoni.fonsIndexat + aIndex)
-      patrimoni.fonsPensions = Math.round(patrimoni.fonsPensions + aPensions)
-      // La desgravació fiscal de l'aportació a pensions torna a efectiu.
-      patrimoni.efectiu = Math.round(rem + desgravacioPensions(aPensions))
+      // Sense deute: aporta a inversió (capat al sobrant) i deixa la resta a efectiu.
+      const aInversio = Math.min(pla.inversions, rem)
+      rem -= aInversio
+      inversions += aInversio
+      patrimoni.efectiu = Math.round(rem)
     }
   } else {
-    // Dèficit: estalvis propis → xarxa familiar → xarxa pública (IMV degradat) → el que
+    // Dèficit: ven inversions → xarxa familiar → xarxa pública (IMV degradat) → el que
     // ningú cobreix es converteix en DEUTE (s'acumula i compon). El que no es pot ni
     // finançar (per sobre del sostre) és descobert dur: un xoc puntual de benestar.
     // Les xarxes (pública i familiar) es mesuren en euros nominals: amb inflació, els seus
@@ -1243,12 +1198,12 @@ export function applyCareerYear(
     // protegeixin la mateixa proporció real (no s'erosionin numèricament amb l'IPC).
     const r = repartDeficit(
       necessitats - caixa,
-      estalvi,
+      inversions,
       familia,
       ajutPublicMax(patrimoniTotal(person) / f, annualIncome / f) * f,
       f,
     )
-    estalvi -= r.propi
+    inversions -= r.propi
     deute += r.descobert
     if (deute > maxDeute) {
       nouDescobert = deute - maxDeute
@@ -1256,7 +1211,7 @@ export function applyCareerYear(
     }
     patrimoni.efectiu = 0
   }
-  patrimoni.estalvi = Math.round(estalvi)
+  patrimoni.inversions = Math.max(0, Math.round(inversions))
   patrimoni.deute = deute > 0 ? Math.round(deute) : undefined
 
   // El benestar d'aquest any reflecteix l'estil de vida (oci + nivell de vida) i el XOC
@@ -1381,15 +1336,12 @@ export function pensioPublicaAnual(state: GameState): number {
 }
 
 /**
- * Renda anual que genera el patrimoni a la jubilació: el pla de pensions (ara desbloquejat),
- * l'estalvi, el fons indexat i les inversions, aplicant-hi una retirada segura (~4%/any). És
- * la recompensa de l'interès compost: qui ha pogut invertir hi té una renda complementària.
+ * Renda anual que genera el patrimoni a la jubilació: la cartera d'inversió, aplicant-hi una
+ * retirada segura (~4%/any). És la recompensa de l'interès compost: qui ha pogut invertir hi té
+ * una renda complementària.
  */
 export function rendaPatrimoniAnual(person: Person): number {
-  const { fonsPensions, estalvi, fonsIndexat, inversions } = person.patrimoni
-  return Math.round(
-    (fonsPensions + estalvi + fonsIndexat + inversions) * TAXA_RETIRADA_SEGURA,
-  )
+  return Math.round(person.patrimoni.inversions * TAXA_RETIRADA_SEGURA)
 }
 
 /** Renda total anual de jubilació = pensió pública + renda del patrimoni. */

@@ -74,7 +74,6 @@ export interface Budget {
   oci: number
   compres: number
   casa: number
-  estalvi: number
 }
 
 /**
@@ -85,12 +84,12 @@ export interface Budget {
 export interface PlaInversio {
   /** Despesa discrecional (oci/vida): és el que dóna o treu benestar. */
   oci: number
-  /** A compte d'estalvi: líquid i segur, però amb rendiment ~nul. */
-  estalvi: number
-  /** Fons indexat: més rendiment esperat però volàtil (puja i baixa). */
-  fonsIndexat: number
-  /** Pla de pensions: rendiment estable i desgravació fiscal, però bloquejat. */
-  fonsPensions: number
+  /**
+   * Inversió: el que destines a fer créixer el patrimoni. Rendiment esperat alt però VOLÀTIL
+   * (puja i baixa amb el mercat). És l'únic vehicle d'estalvi/inversió del joc (no hi ha ni
+   * compte d'estalvi ni pla de pensions: el missatge és invertir a llarg termini i aguantar).
+   */
+  inversions: number
 }
 
 /** On viu la persona adulta. */
@@ -131,14 +130,14 @@ export interface Stats {
 }
 
 export interface Patrimoni {
+  /** Diners líquids disponibles (caixa). */
   efectiu: number
-  estalvi: number
-  /** Inversions genèriques (heretat; rendiment moderat). */
+  /**
+   * Cartera d'inversió: l'únic vehicle per fer créixer els diners. Líquid (es pot vendre per
+   * comprar o cobrir dèficits) i volàtil (rendiment de mercat, pot baixar). Substitueix els
+   * antics conceptes de compte d'estalvi, fons indexat i pla de pensions.
+   */
   inversions: number
-  /** Fons indexat: alt rendiment esperat, volàtil, líquid. */
-  fonsIndexat: number
-  /** Pla de pensions: rendiment estable, desgravació, bloquejat fins a la jubilació. */
-  fonsPensions: number
   /** Valor de cada casa en propietat. */
   cases: number[]
   /**
@@ -207,11 +206,9 @@ export type EventCategory =
 export interface EventEffect {
   benestar?: number
   efectiu?: number
-  estalvi?: number
+  /** Variació de la cartera d'inversió (estalvi/inversió de tota la vida). */
   inversions?: number
-  fonsIndexat?: number
-  fonsPensions?: number
-  /** Xoc de mercat: variació percentual aplicada al fons indexat (p. ex. -0.3 = -30%). */
+  /** Xoc de mercat: variació percentual aplicada a la cartera d'inversió (p. ex. -0.3 = -30%). */
   mercatPct?: number
   /** Canvi persistent del sou mensual (fase laboral). */
   salariDelta?: number
@@ -462,13 +459,11 @@ export interface GameState {
 /** Instantània anual del patrimoni invertit (per al gràfic de rendiment). */
 export interface PatrimoniSnapshot {
   edat: number
-  fonsIndexat: number
-  fonsPensions: number
-  estalvi: number
+  /** Valor actual de la cartera d'inversió. */
+  inversions: number
   /**
-   * Suma ACUMULADA de les aportacions fetes al fons indexat + pla de pensions (el que has
-   * posat de la teva butxaca, sense rendiments). Comparada amb el valor actual (fonsIndexat
-   * + fonsPensions) fa visible quant ha crescut la cartera pel rendiment.
+   * Suma ACUMULADA de les aportacions fetes a la cartera (el que has posat de la teva butxaca,
+   * sense rendiments). Comparada amb el valor actual fa visible quant ha crescut pel rendiment.
    */
   aportat: number
 }

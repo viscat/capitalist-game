@@ -17,7 +17,6 @@ import {
   INTERES_DEUTE,
   MESOS_PER_ANY,
   NIVELL_VIDA_DEFAULT,
-  RENDIMENT_PENSIONS,
   REVALORACIO_HABITATGE,
   SALUT_INICIAL,
 } from './constants'
@@ -162,7 +161,7 @@ export function newGameAt16(
   const person: Person = {
     edatMesos: EDAT_FI_ADOLESCENCIA * MESOS_PER_ANY,
     stats: { benestar: familyBaselineBenestar(familia), salut: SALUT_INICIAL },
-    patrimoni: { ...emptyPatrimoni(), efectiu: 50, estalvi: 200 },
+    patrimoni: { ...emptyPatrimoni(), efectiu: 250 },
   }
   return {
     torn: 16,
@@ -192,7 +191,7 @@ export function newGameAtCarrera(
   const person: Person = {
     edatMesos: EDAT_FI_UNIVERSITAT * MESOS_PER_ANY,
     stats: { benestar: 55, salut: SALUT_INICIAL },
-    patrimoni: { ...emptyPatrimoni(), efectiu: 3000, estalvi: 2000 },
+    patrimoni: { ...emptyPatrimoni(), efectiu: 3000, inversions: 2000 },
   }
   return {
     torn: 22,
@@ -207,7 +206,7 @@ export function newGameAtCarrera(
     salari,
     salariBase: salari,
     // Pla buit: el jugador el reparteix des de zero (coherent amb l'entrada normal).
-    plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+    plaInversio: { oci: 0, inversions: 0 },
     nivellVida: NIVELL_VIDA_DEFAULT,
     habitatge: { tipus: 'amb_pares' },
     historial: [],
@@ -219,10 +218,7 @@ export function newGameAtCarrera(
 function emptyPatrimoni(): Person['patrimoni'] {
   return {
     efectiu: 0,
-    estalvi: 0,
     inversions: 0,
-    fonsIndexat: 0,
-    fonsPensions: 0,
     cases: [],
   }
 }
@@ -369,7 +365,7 @@ function esLloguer(state: GameState): boolean {
 /** Pot oferir herència en vida: té fills i prou patrimoni líquid per avançar-ne una part. */
 function potHeretarEnVida(state: GameState): boolean {
   const p = state.person.patrimoni
-  return (state.fills ?? 0) > 0 && p.efectiu + p.estalvi + p.fonsIndexat > 30_000
+  return (state.fills ?? 0) > 0 && p.efectiu + p.inversions > 30_000
 }
 
 /** Pool d'esdeveniments corresponent a la fase (i situació) actual. */
@@ -557,7 +553,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       ...person,
       patrimoni: {
         ...person.patrimoni,
-        estalvi: person.patrimoni.estalvi + estalviAnualCriatura(state.familia),
+        inversions: person.patrimoni.inversions + estalviAnualCriatura(state.familia),
       },
     }
   } else if (stage === 'laboral') {
@@ -578,7 +574,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     const costVidaUni = ambPares ? 0 : costVidaAnual('minim')
     const fluxNet = balancUniversitatAnual(state.familia) - costHab - costVidaUni
     let efectiu = person.patrimoni.efectiu
-    let estalvi = person.patrimoni.estalvi
+    let inversions = person.patrimoni.inversions
     let deute = Math.round((person.patrimoni.deute ?? 0) * (1 + INTERES_DEUTE))
     if (fluxNet >= 0) {
       efectiu += fluxNet
@@ -591,11 +587,11 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       efectiu -= fromEfectiu
       const r = repartDeficit(
         deficit - fromEfectiu,
-        estalvi,
+        inversions,
         state.familia,
         ajutPublicMax(patrimoniTotal(person), 0),
       )
-      estalvi -= r.propi
+      inversions -= r.propi
       deute += r.descobert
     }
     person = {
@@ -603,7 +599,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       patrimoni: {
         ...person.patrimoni,
         efectiu: Math.max(0, Math.round(efectiu)),
-        estalvi: Math.max(0, Math.round(estalvi)),
+        inversions: Math.max(0, Math.round(inversions)),
         deute: deute > 0 ? Math.round(deute) : undefined,
       },
     }
@@ -646,9 +642,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       ? 0
       : Math.round(costHabitatgeAnualNet(habitatge, state.familia) * factorParella)
     const indexReturn = rendimentIndexAnual(draw.value)
-    // Valors invertits ABANS d'aplicar l'any (per derivar les aportacions reals d'enguany).
-    const prevIndex = person.patrimoni.fonsIndexat
-    const prevPensions = person.patrimoni.fonsPensions
+    // Valor invertit ABANS d'aplicar l'any (per derivar l'aportació real d'enguany).
+    const prevInversions = person.patrimoni.inversions
     person = applyCareerYear(
       person,
       pla,
@@ -667,21 +662,19 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       costFillsAnual(state), // criança dels fills dependents (ja en euros nominals amb IPC)
       f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
     )
-    // Aportació REAL d'enguany al fons indexat + pensions = valor nou − valor crescut (el
-    // que ha pujat pel rendiment no és aportació). Acumulada, és el «que has posat» que es
-    // compara amb el valor actual al gràfic.
-    const aportatAny =
-      Math.max(0, person.patrimoni.fonsIndexat - Math.round(prevIndex * (1 + indexReturn))) +
-      Math.max(0, person.patrimoni.fonsPensions - Math.round(prevPensions * (1 + RENDIMENT_PENSIONS)))
+    // Aportació REAL d'enguany a la cartera = valor nou − valor crescut (el que ha pujat pel
+    // rendiment no és aportació). Acumulada, és el «que has posat» que es compara al gràfic.
+    const aportatAny = Math.max(
+      0,
+      person.patrimoni.inversions - Math.round(prevInversions * (1 + indexReturn)),
+    )
     const aportatAcum = (state.patrimoniHist?.at(-1)?.aportat ?? 0) + aportatAny
     // Instantània anual del patrimoni invertit, per al gràfic de rendiment.
     patrimoniHist = [
       ...(state.patrimoniHist ?? []),
       {
         edat: anys,
-        fonsIndexat: person.patrimoni.fonsIndexat,
-        fonsPensions: person.patrimoni.fonsPensions,
-        estalvi: person.patrimoni.estalvi,
+        inversions: person.patrimoni.inversions,
         aportat: aportatAcum,
       },
     ]
@@ -1020,7 +1013,7 @@ function resolveEvent(
   if (effect.llegatEnVidaDelta && effect.llegatEnVidaDelta > 0) {
     const pat = { ...person.patrimoni }
     let restant = effect.llegatEnVidaDelta
-    for (const font of ['efectiu', 'estalvi', 'fonsIndexat'] as const) {
+    for (const font of ['efectiu', 'inversions'] as const) {
       const treu = Math.min(restant, pat[font])
       pat[font] = Math.round(pat[font] - treu)
       restant -= treu
@@ -1124,7 +1117,7 @@ export function applyMilestoneChoice(
         ...next.person,
         patrimoni: {
           ...next.person.patrimoni,
-          estalvi: next.person.patrimoni.estalvi + herencia,
+          inversions: next.person.patrimoni.inversions + herencia,
         },
       }
     }
@@ -1203,7 +1196,7 @@ export function acceptarOferta(state: GameState, ofertaId: string): GameState {
     salariBase: salari,
     // El pla d'inversió comença BUIT: el jugador reparteix des de zero (cap categoria
     // opcional pre-omplerta). Les obligacions (cost de vida/habitatge) ja les calcula el motor.
-    plaInversio: state.plaInversio ?? { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+    plaInversio: state.plaInversio ?? { oci: 0, inversions: 0 },
     ofertesFeina: undefined,
     historial: [...state.historial, entry],
   }

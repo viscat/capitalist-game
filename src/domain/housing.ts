@@ -119,12 +119,12 @@ export function bancConcedeix(quotaAnual: number, annualIncome: number): boolean
 }
 
 /**
- * Diners disponibles per comprar (entrada o pagament al comptat): efectiu + estalvi + fons
- * indexat (es poden liquidar les inversions per comprar). El pla de pensions queda bloquejat.
+ * Diners disponibles per comprar (entrada o pagament al comptat): efectiu + la cartera
+ * d'inversió (es pot liquidar per comprar).
  */
 export function liquidDisponible(state: GameState): number {
   const p = state.person.patrimoni
-  return p.efectiu + p.estalvi + p.fonsIndexat
+  return p.efectiu + p.inversions
 }
 
 // L'origen pesa també a l'hora de comprar: la família pot regalar part de
@@ -270,7 +270,7 @@ export function tornarAmbPares(state: GameState): GameState {
 
 /**
  * Compra un habitatge: paga l'aportació inicial (entrada + despeses de transacció, repartides
- * amb la parella i menys l'ajut familiar), liquidant efectiu → estalvi → fons indexat; suma el
+ * amb la parella i menys l'ajut familiar), liquidant efectiu → inversions; suma el
  * valor a les cases en propietat i obre la hipoteca. No fa res si no es pot pagar o el banc no
  * concedeix la hipoteca.
  */
@@ -286,10 +286,10 @@ export function comprarCasa(
   if (!oferta.teEntrada || !oferta.bancAprova) return state
 
   // El jugador paga la seva aportació inicial (la parella ja n'ha cobert la meitat, i la família
-  // l'ajut), liquidant primer efectiu, després estalvi i finalment el fons indexat.
+  // l'ajut), liquidant primer efectiu i després la cartera d'inversió.
   const pat = { ...state.person.patrimoni }
   let restant = oferta.aportacioInicial
-  for (const font of ['efectiu', 'estalvi', 'fonsIndexat'] as const) {
+  for (const font of ['efectiu', 'inversions'] as const) {
     const treu = Math.min(restant, pat[font])
     pat[font] = Math.round(pat[font] - treu)
     restant -= treu

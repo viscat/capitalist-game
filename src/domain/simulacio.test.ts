@@ -20,7 +20,7 @@ import type { GameState, MilestoneId } from './types'
 // que els comptes mai van a deute, que el benestar es manté 0..100, que la partida és
 // determinista per llavor i que l'estat és serialitzable (autosave).
 
-const COMPTES = ['efectiu', 'estalvi', 'inversions', 'fonsIndexat', 'fonsPensions'] as const
+const COMPTES = ['efectiu', 'inversions'] as const
 
 /** Comprova els invariants numèrics del joc en un estat qualsevol. */
 function assertInvariants(s: GameState, ctx: string) {
@@ -174,7 +174,7 @@ describe('hipoteca: amortització jugant de debò', () => {
     let s: GameState = newGameAtCarrera('mitjana', 3)
     s = {
       ...s,
-      person: { ...s.person, patrimoni: { ...s.person.patrimoni, estalvi: 60_000 } },
+      person: { ...s.person, patrimoni: { ...s.person.patrimoni, inversions: 60_000 } },
     }
     s = comprarCasa(s, 'pis_petit', 20)
     expect(s.habitatge?.tipus).toBe('propietat')

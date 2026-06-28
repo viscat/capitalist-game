@@ -15,7 +15,7 @@ import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { AmountStepper } from './AmountStepper'
 
-const CATEGORIES: (keyof Budget)[] = ['estalvi', 'oci', 'compres', 'casa']
+const CATEGORIES: (keyof Budget)[] = ['oci', 'compres', 'casa']
 
 export function BudgetPanel() {
   const { t } = useT()
@@ -32,10 +32,10 @@ export function BudgetPanel() {
   const budget: Budget = { ...base, casa: Math.max(base.casa, minCasa) }
   const total = CATEGORIES.reduce((sum, k) => sum + budget[k], 0)
 
-  // Pots gastar per sobre del sou tirant dels teus estalvis (repartits al llarg de l'any).
+  // Pots gastar per sobre del sou tirant dels teus estalvis (efectiu + inversions, repartits).
   const efectiu = state.person.patrimoni.efectiu
-  const estalvi = state.person.patrimoni.estalvi
-  const assignable = income + (efectiu + estalvi) / MESOS_PER_ANY
+  const inversions = state.person.patrimoni.inversions
+  const assignable = income + (efectiu + inversions) / MESOS_PER_ANY
 
   // Balanç del mes: ingrés − pressupost. Pot ser negatiu (tires d'estalvis).
   const balancMes = income - total
@@ -43,7 +43,7 @@ export function BudgetPanel() {
   const necessitatsAnual = (budget.casa + budget.oci + budget.compres) * MESOS_PER_ANY
   const deficit = repartDeficit(
     Math.max(0, necessitatsAnual - (efectiu + income * MESOS_PER_ANY)),
-    estalvi,
+    inversions,
     state.familia,
   )
   const benestarDescobert = penalitzacioDescobert(deficit.descobert)

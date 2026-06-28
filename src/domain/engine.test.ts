@@ -220,18 +220,17 @@ describe('aportació obligatòria a casa', () => {
 })
 
 describe('fase laboral i pressupost', () => {
-  it('cada torn avança 1 any i estalvia segons el pressupost mensual', () => {
+  it('cada torn avança 1 any i el sobrant del pressupost es queda com a efectiu', () => {
     const base = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
-    // Per defecte l'opcional és 0; per provar l'estalvi, destinem-hi diners explícitament.
+    // Pressupost frugal (oci/compres baixos): l'ingrés sobrant s'acumula a efectiu.
     const s = {
       ...base,
-      pressupost: { ...base.pressupost!, estalvi: 100, oci: 0, compres: 0 },
+      pressupost: { ...base.pressupost!, oci: 0, compres: 0 },
     }
-    const estalviAbans = s.person.patrimoni.estalvi
+    const efectiuAbans = s.person.patrimoni.efectiu
     const after = advanceTurn(s)
     expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
-    expect(after.person.patrimoni.estalvi).toBeGreaterThan(estalviAbans)
-    expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
+    expect(after.person.patrimoni.efectiu).toBeGreaterThan(efectiuAbans)
   })
 
   it('treballar dóna més ingrés que no fer res', () => {
@@ -246,7 +245,7 @@ describe('herència dels pares', () => {
     const s = laboralTreball()
     expect(s.herenciaParesRebuda ?? false).toBe(false)
     const after = resolWith(s, [
-      { id: 'a', labelKey: 'x', effect: { estalvi: 5000, marcaHerenciaPares: true } },
+      { id: 'a', labelKey: 'x', effect: { inversions: 5000, marcaHerenciaPares: true } },
     ])
     expect(after.herenciaParesRebuda).toBe(true)
   })
@@ -285,7 +284,7 @@ describe('dinastia i herència', () => {
       fillsNaixement: [s.person.edatMesos],
       person: {
         ...s.person,
-        patrimoni: { ...s.person.patrimoni, estalvi: 100_000 },
+        patrimoni: { ...s.person.patrimoni, inversions: 100_000 },
       },
     }
     const after = resolWith(s, [
@@ -293,8 +292,8 @@ describe('dinastia i herència', () => {
     ])
     expect(after.llegatEnVida).toBe(30_000)
     // El patrimoni líquid ha baixat en la mateixa quantitat.
-    const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.estalvi
-    const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.estalvi
+    const liquidAbans = s.person.patrimoni.efectiu + s.person.patrimoni.inversions
+    const liquidDespres = after.person.patrimoni.efectiu + after.person.patrimoni.inversions
     expect(liquidAbans - liquidDespres).toBe(30_000)
   })
 
@@ -308,13 +307,13 @@ describe('dinastia i herència', () => {
         ...s.person,
         edatMesos: 60 * MESOS_PER_ANY,
         stats: { benestar: 60, salut: 0 },
-        patrimoni: { ...s.person.patrimoni, estalvi: 300_000 },
+        patrimoni: { ...s.person.patrimoni, inversions: 300_000 },
       },
     }
     const gen2 = continuaGeneracio(s)
     // El progenitor el va tenir als 30 i va morir als 60 → herència als 30 (no al néixer).
     expect(gen2.herenciaPendent).toEqual({ import: expect.any(Number), edat: 30 })
-    expect(gen2.person.patrimoni.estalvi).toBe(0) // no hereta al néixer
+    expect(gen2.person.patrimoni.inversions).toBe(0) // no hereta al néixer
 
     // En arribar a l'edat de l'herència, es dispara l'esdeveniment previst i la rep.
     const previ = {
@@ -326,7 +325,7 @@ describe('dinastia i herència', () => {
     const after = advanceTurn(previ)
     expect(after.historial.at(-1)!.eventId).toBe('herencia_dinastia')
     expect(after.herenciaPendent).toBeUndefined()
-    expect(after.person.patrimoni.estalvi).toBeGreaterThan(0)
+    expect(after.person.patrimoni.inversions).toBeGreaterThan(0)
   })
 
   it('continuaGeneracio comença una vida nova amb la família heretada', () => {
@@ -341,7 +340,7 @@ describe('dinastia i herència', () => {
       person: {
         ...s.person,
         edatMesos: 80 * 12,
-        patrimoni: { ...s.person.patrimoni, estalvi: 1_000_000 },
+        patrimoni: { ...s.person.patrimoni, inversions: 1_000_000 },
       },
     }
     const gen2 = continuaGeneracio(s)
@@ -373,7 +372,7 @@ describe('descendència', () => {
       ...s,
       fills: 1,
       fillsNaixement: [s.person.edatMesos],
-      plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+      plaInversio: { oci: 0, inversions: 0 },
       person: { ...s.person, patrimoni: { ...s.person.patrimoni, efectiu: 40_000 } },
     }
     const senseFill = advanceTurn({ ...s, fills: 0, fillsNaixement: [] })
@@ -400,7 +399,7 @@ describe('parella', () => {
   it('viure en parella reparteix les despeses (queda més efectiu en avançar l’any)', () => {
     const base = {
       ...newGameAtCarrera('mitjana', 3),
-      plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 0 },
+      plaInversio: { oci: 0, inversions: 0 },
     }
     base.person = {
       ...base.person,
@@ -458,7 +457,7 @@ describe('mort (salut 0 = fi)', () => {
       person: {
         ...s.person,
         stats: { benestar: 60, salut: 90 },
-        patrimoni: { ...s.person.patrimoni, efectiu: 0, estalvi: 0 },
+        patrimoni: { ...s.person.patrimoni, efectiu: 0, inversions: 0 },
       },
     }
     const ev: GameEvent = {
@@ -513,7 +512,7 @@ describe('vida fins a la mort (jubilació als 67)', () => {
     expect(s.person.stats.benestar).toBeGreaterThanOrEqual(0)
     expect(s.person.stats.benestar).toBeLessThanOrEqual(100)
     expect(s.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
-    expect(s.person.patrimoni.fonsIndexat).toBeGreaterThanOrEqual(0)
+    expect(s.person.patrimoni.inversions).toBeGreaterThanOrEqual(0)
   })
 
   it('als 18 obre la fita de majoria d’edat (no acaba)', () => {
@@ -566,29 +565,27 @@ describe('universitat i carrera', () => {
     const base = newGameAtCarrera('mitjana', 7)
     const s = {
       ...base,
-      plaInversio: { oci: 2400, estalvi: 1200, fonsIndexat: 3600, fonsPensions: 1200 },
+      plaInversio: { oci: 2400, inversions: 6000 },
     }
     const after = advanceTurn(s)
     expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
     expect(after.person.patrimoni.efectiu).toBeGreaterThanOrEqual(0)
-    // Amb un pla amb aportacions, s'inverteix a fons indexat i/o pla de pensions.
-    const inv = after.person.patrimoni
-    expect(inv.fonsIndexat + inv.fonsPensions).toBeGreaterThan(0)
+    // Amb un pla amb aportacions, s'inverteix a la cartera.
+    expect(after.person.patrimoni.inversions).toBeGreaterThan(0)
   })
 
-  it('el pla de pensions creix de forma estable any rere any', () => {
+  it('la cartera d’inversió acumula aportacions any rere any', () => {
     let s = newGameAtCarrera('alta', 3)
-    s = { ...s, plaInversio: { oci: 0, estalvi: 0, fonsIndexat: 0, fonsPensions: 2000 } }
-    const fons: number[] = []
+    s = { ...s, plaInversio: { oci: 0, inversions: 4000 } }
+    let aportatPrev = 0
     for (let i = 0; i < 4 && !s.acabat; i++) {
       s = advanceTurn(s)
       if (s.pendingEvent) s = applyChoice(s, s.pendingEvent.choices![0].id)
-      fons.push(s.person.patrimoni.fonsPensions)
     }
-    // Sèrie monòtona creixent (aportació + rendiment estable, sense volatilitat).
-    for (let i = 1; i < fons.length; i++) {
-      expect(fons[i]).toBeGreaterThan(fons[i - 1])
-    }
+    // Amb aportacions sostingudes, el valor invertit acaba per damunt de zero.
+    expect(s.person.patrimoni.inversions).toBeGreaterThan(aportatPrev)
+    aportatPrev = s.person.patrimoni.inversions
+    expect(aportatPrev).toBeGreaterThan(0)
   })
 
   it('un any treballat a la carrera suma experiència', () => {
