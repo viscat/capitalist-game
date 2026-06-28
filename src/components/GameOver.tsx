@@ -1,9 +1,9 @@
 import {
   costVidaPropi,
+  factorIPC,
   llegatPerFill,
   patrimoniTotal,
   pensioPublicaAnual,
-  rendaJubilacioAnual,
   rendaPatrimoniAnual,
   veredicteJubilacio,
 } from '../domain/stats'
@@ -48,12 +48,15 @@ export function GameOver() {
   const fills = state.fills ?? 0
   const llegat = llegatPerFill(state)
 
-  // Balanç de jubilació (final als 67): renda de jubilació vs. necessitats anuals.
-  const pensioAnual = pensioPublicaAnual(state)
+  // Balanç de jubilació (final als 67): renda vs. necessitats, tot en euros NOMINALS d'aquell
+  // any (com es veu durant el joc). La pensió s'indexa a l'IPC i el cost de vida també; el
+  // patrimoni i l'habitatge ja són nominals. Així el que es mostra quadra amb el que cobraves.
+  const f = factorIPC(state)
+  const pensioAnual = Math.round(pensioPublicaAnual(state) * f)
   const rendaPatrimoni = rendaPatrimoniAnual(state.person)
-  const rendaAnual = rendaJubilacioAnual(state)
+  const rendaAnual = pensioAnual + rendaPatrimoni
   const necessitatsAnual =
-    costVidaPropi(state.familia, state.habitatge, state.nivellVida) +
+    Math.round(costVidaPropi(state.familia, state.habitatge, state.nivellVida) * f) +
     costHabitatgeAnualNet(state.habitatge, state.familia)
   const veredicte = veredicteJubilacio(rendaAnual, necessitatsAnual)
 

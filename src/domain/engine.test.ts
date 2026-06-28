@@ -18,6 +18,7 @@ import {
   augmentSou,
   familyBaselineBenestar,
   ingressosMensuals16,
+  pensioPublicaAnual,
   salariInicial,
 } from './stats'
 import { MILESTONES } from './milestones'
@@ -454,6 +455,27 @@ describe('parella', () => {
     expect(after.fillsNoms).toHaveLength(1)
     expect(typeof after.fillsNoms?.[0]).toBe('string')
     expect(after.fillsNoms?.[0]?.length).toBeGreaterThan(0)
+  })
+})
+
+describe('jubilació: pensió segons el sou de jubilar-se', () => {
+  it('la base reguladora és el sou final (amb augments), no el sou inicial', () => {
+    // Carrera amb sou inicial baix però que ha pujat molt al llarg de la vida.
+    let s = newGameAtCarrera('mitjana', 5)
+    s = {
+      ...s,
+      salari: 2600, // sou actual (amb augments)
+      salariBase: 1300, // sou inicial de la carrera
+      anysExperiencia: 40,
+      pendingMilestone: 'jubilacio',
+    }
+    const jubilat = applyMilestoneChoice(s, 'jubilar')
+    expect(jubilat.jubilat).toBe(true)
+    // La base de la pensió ha de ser el sou de jubilar-se (2600), no l'inicial (1300).
+    expect(jubilat.salariBase).toBe(2600)
+    // La pensió amb base 2600 és més alta que si s'hagués calculat amb 1300.
+    const pensioBaixa = pensioPublicaAnual({ ...jubilat, salariBase: 1300 })
+    expect(pensioPublicaAnual(jubilat)).toBeGreaterThan(pensioBaixa)
   })
 })
 
