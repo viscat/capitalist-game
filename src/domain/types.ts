@@ -29,6 +29,9 @@ export type Itinerari = 'batxillerat' | 'grau_mig' | 'treball' | 'nini'
 /** Nivell de vida (cost del dia a dia) que tria la persona a la fase adulta. */
 export type NivellVida = 'minim' | 'mig' | 'alt'
 
+/** Règim del benestar del món (força de l'estat social). */
+export type RegimPolitic = 'residual' | 'mixt' | 'socialdemocrata'
+
 /** Qualitat d'una oferta de feina (determina sou i to). */
 export type QualitatOferta = 'precaria' | 'estandard' | 'bona'
 
@@ -431,6 +434,19 @@ export interface GameState {
    * partida NO acaba aquí (continua fins a la mort). Absent = false.
    */
   jubilat?: boolean
+  /**
+   * Règim del benestar del MÓN on vius (no depèn de tu): com de fort és l'estat social. Escala
+   * els serveis públics (`factorServeisPublics`), que erosionen la precarietat estructural i
+   * apugen la xarxa pública. És la palanca POLÍTICA: les regles són contingents, no naturals.
+   * Absent = 'mixt'.
+   */
+  regimPolitic?: RegimPolitic
+  /**
+   * Poder sindical / organització col·lectiva acumulat (0..1). Es construeix amb l'acció
+   * col·lectiva (sindicar-se, vagues) i protegeix la feina, apuja el sostre salarial i contesta
+   * el propietari. A diferència de l'estalvi, és una via d'ascens COMPARTIDA. Absent = 0.
+   */
+  poderSindical?: number
   /** Generació de la dinastia (1 = protagonista inicial; 2+ = descendents continuats). */
   generacio?: number
   /**

@@ -21,6 +21,7 @@ import {
   defaultPlaInversio,
   factorAportacioLlar,
   factorIPC,
+  factorServeisPublics,
   fillsDependents,
   frugalitat,
   potViureFrugal,
@@ -120,7 +121,7 @@ export function InvestmentPanel() {
     Math.max(0, obligatori + pla.oci - (efectiu + income)),
     inversionsActuals,
     state.familia,
-    ajutPublicMax(patrimoniTotal(state.person), income),
+    ajutPublicMax(patrimoniTotal(state.person), income, factorServeisPublics(state)),
   )
 
   const benestar = benestarOciAnual(pla.oci, income)

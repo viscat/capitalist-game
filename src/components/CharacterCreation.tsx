@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { FAMILY_PRESETS } from '../domain/family/presets'
 import { cognomsPersona, randomIdentitat } from '../domain/identitat'
-import type { FamilyClass, Genere, Identitat, Origen } from '../domain/types'
+import type {
+  FamilyClass,
+  Genere,
+  Identitat,
+  Origen,
+  RegimPolitic,
+} from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 
@@ -43,6 +49,7 @@ function Segmented<T extends string>({
 
 const GENERES: readonly Genere[] = ['dona', 'home', 'no_binari']
 const ORIGENS: readonly Origen[] = ['autocton', 'migrant']
+const REGIMS: readonly RegimPolitic[] = ['residual', 'mixt', 'socialdemocrata']
 
 function Field({
   label,
@@ -77,6 +84,7 @@ export function CharacterCreation({
   const { t } = useT()
   const { startGame, startGameAt16, startGameAtCarrera } = useGame()
   const [id, setId] = useState<Identitat>(() => randomIdentitat())
+  const [regim, setRegim] = useState<RegimPolitic>('mixt')
 
   // Els cognoms de la persona deriven sempre dels pares.
   const cognoms = cognomsPersona(id.pare, id.mare)
@@ -87,9 +95,9 @@ export function CharacterCreation({
 
   const comencar = () => {
     const identitat: Identitat = { ...id, cognoms }
-    if (mode === 'at16') startGameAt16(preset, identitat)
-    else if (mode === 'atCarrera') startGameAtCarrera(preset, identitat)
-    else startGame(preset, identitat)
+    if (mode === 'at16') startGameAt16(preset, identitat, regim)
+    else if (mode === 'atCarrera') startGameAtCarrera(preset, identitat, regim)
+    else startGame(preset, identitat, regim)
   }
 
   const avui = new Date().toLocaleDateString('ca-ES', {
@@ -143,6 +151,20 @@ export function CharacterCreation({
               {id.nom} {cognoms}
             </span>
           </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-800/60 p-4">
+          <div className="mb-2 text-sm font-semibold text-slate-300">
+            {t('create.mon')}
+          </div>
+          <Segmented
+            label={t('create.regim')}
+            options={REGIMS}
+            value={regim}
+            onChange={setRegim}
+            optionLabel={(r) => t(`regim.${r}.nom`)}
+          />
+          <p className="mt-2 text-xs text-slate-500">{t(`regim.${regim}.desc`)}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

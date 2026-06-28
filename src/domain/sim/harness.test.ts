@@ -127,4 +127,26 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
       1 - fraccioSenseAscens(summaries['estudis_actiu']['pobra'], 'pobra')
     expect(ascensPobreActiu).toBeGreaterThan(0.1)
   })
+
+  // Capa de RÈGIM del benestar (Fase 3, clau de volta): la política mou el terra. El mateix
+  // pobre PASSIU viu millor sota un estat social fort que sota un de residual, SENSE haver
+  // d'estalviar res. És la via NO-individual d'ascens (vegeu DESIGN.md §6 / DESIGN_REVIEW_R2.md).
+  it('el règim del benestar aixeca el terra del pobre passiu', { timeout: 60_000 }, () => {
+    const passiva: SimPolicy = { postobligatori: 'treball', majoria: 'carrera' }
+    const residual = summarize(simulateClass('pobra', N, passiva, undefined, 'residual'))
+    const mixt = summarize(simulateClass('pobra', N, passiva, undefined, 'mixt'))
+    const social = summarize(
+      simulateClass('pobra', N, passiva, undefined, 'socialdemocrata'),
+    )
+    console.log(
+      `\n=== Règim del benestar (pobra, PASSIVA) ===\n` +
+        `${row('residual', residual)}\n${row('mixt', mixt)}\n${row('socialdem.', social)}`,
+    )
+    // Monotonia: més estat social ⇒ millor terra de benestar per al pobre passiu.
+    expect(social.benestarMediana).toBeGreaterThan(residual.benestarMediana)
+    expect(mixt.benestarMediana).toBeGreaterThanOrEqual(residual.benestarMediana)
+    // El salt és material: el règim fort aixeca el pobre passiu de manera notable (≥6 punts),
+    // sense estalvi privat (és la palanca col·lectiva, no individual).
+    expect(social.benestarMediana).toBeGreaterThanOrEqual(residual.benestarMediana + 6)
+  })
 })

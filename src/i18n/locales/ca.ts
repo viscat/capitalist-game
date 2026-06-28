@@ -207,6 +207,17 @@ export const ca: Record<string, string> = {
   'create.mare': 'Mare',
   'create.random': 'A l’atzar',
   'create.start': 'Començar la vida',
+  'create.mon': 'El món on neixes',
+  'create.regim': 'Estat del benestar',
+  'regim.residual.nom': 'Residual',
+  'regim.residual.desc':
+    'Estat mínim: serveis públics febles i ajuts escassos. Tot depèn de tu i la teva família. El mercat mana; qui cau, cau sol.',
+  'regim.mixt.nom': 'Mixt',
+  'regim.mixt.desc':
+    'Model continental: sanitat i educació públiques, però xarxa d’ajuts limitada i amb forats. L’origen encara pesa molt.',
+  'regim.socialdemocrata.nom': 'Socialdemòcrata',
+  'regim.socialdemocrata.desc':
+    'Estat social fort: serveis universals i ajuts amplis financats amb impostos progressius. El terra puja per a tothom, no només per a qui estalvia.',
 
   // Itineraris (fork dels 16)
   'itinerari.batxillerat.label': 'Batxillerat',
