@@ -11,8 +11,10 @@ import {
   advanceTurn,
   applyChoice,
   applyMilestoneChoice,
+  classeHereu,
   newGame,
 } from '../engine'
+import { FAMILY_PRESET_ORDER } from '../family/presets'
 import {
   defaultPlaInversio,
   factorIPC,
@@ -172,6 +174,8 @@ export interface SimOutcome {
   patrimoni: number
   salari: number
   teDiploma: boolean
+  /** Classe econòmica en què mor (segons el patrimoni net REAL, desinflat per l'IPC). */
+  classeFinal: FamilyClass
 }
 
 /** Llavor decorrelacionada a partir d'un índex (evita seqüències correlacionades). */
@@ -192,11 +196,15 @@ export function simulateClass(
       newGame(cls, seedFor(i), identitat ? { identitat } : {}),
       policy,
     )
+    const deuteHipoteca = final.habitatge?.hipoteca?.deute ?? 0
+    const netReal = (patrimoniTotal(final.person) - deuteHipoteca) / factorIPC(final)
     out.push({
       benestar: final.person.stats.benestar,
       patrimoni: patrimoniTotal(final.person),
       salari: final.salari ?? 0,
       teDiploma: !!final.teDiploma,
+      // La classe en què mor: ancorada a l'origen (només es pot caure; pujar és quasi impossible).
+      classeFinal: classeHereu(cls, netReal),
     })
   }
   return out
@@ -236,16 +244,39 @@ export interface ClassSummary {
   patrimoniMediana: number
   /** Fracció amb benestar ≥ 60 als 35 (proxy de la "cua de mobilitat"). */
   cuaBenestar60: number
+  /** Distribució de la classe econòmica en què MOREN (recompte per classe). */
+  classeFinal: Record<FamilyClass, number>
 }
 
 export function summarize(outcomes: SimOutcome[]): ClassSummary {
   const b = outcomes.map((o) => o.benestar)
   const p = outcomes.map((o) => o.patrimoni)
+  const classeFinal = Object.fromEntries(
+    FAMILY_PRESET_ORDER.map((c) => [c, 0]),
+  ) as Record<FamilyClass, number>
+  for (const o of outcomes) classeFinal[o.classeFinal]++
   return {
     benestarMediana: median(b),
     benestarP10: percentile(b, 10),
     benestarP90: percentile(b, 90),
     patrimoniMediana: Math.round(median(p)),
     cuaBenestar60: fraction(b, (x) => x >= 60),
+    classeFinal,
   }
+}
+
+/** Fracció (0..1) de morts en una classe d'IGUAL o INFERIOR rang que l'origen (no han pujat). */
+export function fraccioSenseAscens(
+  summary: ClassSummary,
+  origen: FamilyClass,
+): number {
+  const rangOrigen = FAMILY_PRESET_ORDER.indexOf(origen)
+  let total = 0
+  let senseAscens = 0
+  for (const c of FAMILY_PRESET_ORDER) {
+    const n = summary.classeFinal[c]
+    total += n
+    if (FAMILY_PRESET_ORDER.indexOf(c) <= rangOrigen) senseAscens += n
+  }
+  return total === 0 ? 1 : senseAscens / total
 }
