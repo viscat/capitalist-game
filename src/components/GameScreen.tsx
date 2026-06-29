@@ -8,6 +8,7 @@ import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
 import { BenestarDesglos } from './BenestarDesglos'
 import { BarChart3, Icon } from './icons'
+import { SoundToggle } from './SoundToggle'
 import { BudgetPanel } from './BudgetPanel'
 import { EmpresaPanel } from './EmpresaPanel'
 import { GameHud } from './GameHud'
@@ -180,12 +181,15 @@ function DetallDrawer({
           <h2 className="flex items-center gap-1.5 text-sm font-bold text-ink">
             <Icon icon={BarChart3} size={16} /> {t('game.detalls')}
           </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg bg-surface2 px-3 py-1 text-sm text-inksoft transition hover:text-ink"
-          >
-            {t('game.tancar')}
-          </button>
+          <div className="flex items-center gap-1">
+            <SoundToggle />
+            <button
+              onClick={onClose}
+              className="rounded-lg bg-surface2 px-3 py-1 text-sm text-inksoft transition hover:text-ink"
+            >
+              {t('game.tancar')}
+            </button>
+          </div>
         </div>
         <div className="space-y-3">{children}</div>
       </div>

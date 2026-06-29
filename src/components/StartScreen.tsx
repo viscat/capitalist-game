@@ -2,6 +2,7 @@ import { useGame } from '../state/GameContext'
 import { useTutorial } from '../state/tutorial'
 import { useT } from '../i18n'
 import { Icon, Landmark } from './icons'
+import { SoundToggle } from './SoundToggle'
 
 export function StartScreen({
   onNew,
@@ -56,12 +57,16 @@ export function StartScreen({
               </button>
             </div>
           )}
-          <button
-            onClick={resetTutorial}
-            className="mt-2 text-xs text-inkfaint underline-offset-2 transition hover:text-inksoft hover:underline"
-          >
-            {t('coach.reset')}
-          </button>
+          <div className="mt-2 flex items-center justify-center gap-3">
+            <button
+              onClick={resetTutorial}
+              className="text-xs text-inkfaint underline-offset-2 transition hover:text-inksoft hover:underline"
+            >
+              {t('coach.reset')}
+            </button>
+            <span className="text-inkfaint">·</span>
+            <SoundToggle />
+          </div>
         </div>
       </div>
     </div>
