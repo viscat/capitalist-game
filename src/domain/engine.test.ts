@@ -266,6 +266,22 @@ describe('selecció d’accions recordada entre anys', () => {
   })
 })
 
+describe('efecte fantasma: la deriva de fons es registra a l’historial', () => {
+  it('amb el benestar molt per sota de la referència, l’entrada porta derivaBenestar > 0', () => {
+    let s = newGameAtCarrera('mitjana', 1)
+    s = { ...s, person: { ...s.person, stats: { ...s.person.stats, benestar: 5 } } }
+    s = advanceTurn(s)
+    // Si l'esdeveniment del torn té opcions, resol-lo perquè es creï l'entrada definitiva.
+    if (s.pendingEvent) s = applyChoice(s, s.pendingEvent.choices![0].id)
+    const last = s.historial.at(-1)!
+    // La deriva cap a la referència (no causada per l'esdeveniment) ha de ser positiva i
+    // quedar registrada a part del +N de l'esdeveniment.
+    expect(last.derivaBenestar ?? 0).toBeGreaterThan(0)
+    // El camp transitori s'ha netejat en resoldre.
+    expect(s.derivaPendent).toBeUndefined()
+  })
+})
+
 describe('empresa: historial econòmic', () => {
   function carreraAmbCapital() {
     const s = newGameAtCarrera('mitjana', 1)

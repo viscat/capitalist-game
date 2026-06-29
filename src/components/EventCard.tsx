@@ -3,7 +3,7 @@ import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
 import { Icon, TriangleAlert, Users } from './icons'
-import { EffectList } from './EffectList'
+import { DerivaList, EffectList } from './EffectList'
 
 function CategoryBadge({ category }: { category: EventCategory }) {
   const { t } = useT()
@@ -71,6 +71,7 @@ export function EventCard({
         )}
         <div className="mt-4">
           <EffectList effect={lastEntry.effect} />
+          <DerivaList entry={lastEntry} />
         </div>
         {lastEntry.donacio ? (
           <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-money">

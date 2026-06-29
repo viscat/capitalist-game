@@ -687,6 +687,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   const benestar = clampBenestar(
     Math.round(state.person.stats.benestar + gap * derivaFactor),
   )
+  // Deriva de FONS del benestar (cap a la referència d'entorn), NO causada per l'esdeveniment:
+  // és l'"efecte fantasma" que fa que el benestar real es mogui diferent del "+N" de l'event.
+  const derivaBenestar = benestar - state.person.stats.benestar
   // Declivi anual de la salut: edat + benestar (estrès/precarietat) + seqüeles, modulat per
   // el progrés mèdic de l'època (esperança de vida actual i futura). El benestar que es fa
   // servir és el ja derivat d'aquest any. Pot recuperar-se (delta negatiu) si la persona és
@@ -706,6 +709,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         declividSalutAnual(anys, benestar, state.salutCronica ?? 0, factorEpoca),
     ),
   )
+  // Deriva de FONS de la salut (desgast per edat + precarietat + seqüeles), abans de cap cop
+  // de l'esdeveniment. És l'altra meitat de l'"efecte fantasma".
+  const derivaSalut = salut - state.person.stats.salut
   let person: Person = {
     ...state.person,
     edatMesos,
@@ -1149,6 +1155,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     rngState: nextRng,
     ultimEventId: event.id,
     ultimaOfertaVida,
+    derivaPendent: { benestar: derivaBenestar, salut: derivaSalut },
     historial: [...state.historial, ...entries],
   }
 
@@ -1266,6 +1273,9 @@ function resolveEvent(
     effect,
     donacio,
     descobert,
+    // Efecte fantasma: la deriva de fons d'aquest torn (no és de l'esdeveniment).
+    derivaBenestar: state.derivaPendent?.benestar || undefined,
+    derivaSalut: state.derivaPendent?.salut || undefined,
   }
 
   // Fites i final segons l'edat i la fase assolida.
@@ -1439,6 +1449,7 @@ function resolveEvent(
     poderSindical,
     pendingEvent: undefined,
     pendingMilestone,
+    derivaPendent: undefined,
     historial: [...state.historial, entry],
     acabat,
     mort,
