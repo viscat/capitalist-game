@@ -461,7 +461,7 @@ export const CARRERA_EVENTS: GameEvent[] = [
     category: 'economia',
     titleKey: 'event.ascens_carrera.title',
     descKey: 'event.ascens_carrera.desc',
-    weight: () => 1,
+    weight: () => 0.9,
     choices: [
       {
         id: 'acceptar',

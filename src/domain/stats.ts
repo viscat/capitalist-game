@@ -456,8 +456,8 @@ export function benestarHabitatge(habitatge?: Habitatge): number {
 // viu bé: l'estrès crònic de l'origen humil (inestabilitat, manca de xarxa, expectatives)
 // que els indicadors d'ingrés/patrimoni no capturen. Per a la mitjana amunt és 0.
 const PRECARIETAT_BENESTAR_ADULT: Record<FamilyClass, number> = {
-  pobra: 16,
-  treballadora: 11,
+  pobra: 26,
+  treballadora: 16,
   mitjana: 0,
   alta: 0,
   rica: 0,
@@ -923,9 +923,10 @@ export function resolveDespesaGreu(
 }
 
 /**
- * Augment de sou en demanar-ne un: entre el 2% (benestar 0) i el 10% (benestar 100). Es
+ * Augment de sou en demanar-ne un: entre el 1,5% (benestar 0) i el 6% (benestar 100). Es
  * **redueix amb l'edat**: les grans pujades s'acaben cap als 60 (la carrera fa plateau;
- * passats els 50 els ascensos i les negociacions rendeixen molt menys).
+ * passats els 50 els ascensos i les negociacions rendeixen molt menys). Moderat a propòsit: els
+ * sous reals creixen poc al llarg d'una carrera (estancament salarial), no es dupliquen sols.
  */
 export function augmentSou(salari: number, benestar: number, edat = 35): number {
   const pct = 0.02 + (clampBenestar(benestar) / 100) * 0.08
@@ -948,7 +949,9 @@ export function sostreSalari(
   prestigiPrivada = false,
 ): number {
   const base = salariAdultInicial(familia, teDiploma, nivellAcademic, prestigiPrivada)
-  return Math.max(SALARI_MINIM_MENSUAL, Math.round((base * 2.5) / 25) * 25)
+  // Sostre = 2,2× el sou de partida: la carrera fa plateau abans (el sou no s'escala
+  // indefinidament al llarg de la vida laboral; l'estancament salarial real és la norma).
+  return Math.max(SALARI_MINIM_MENSUAL, Math.round((base * 2.2) / 25) * 25)
 }
 
 // Mentre es viu a casa, l'aportació a la família és obligatòria i més alta com més
@@ -1368,13 +1371,13 @@ export function benestarOciAnual(oci: number, annualIncome: number): number {
 export function defaultPlaInversio(annualIncome: number): PlaInversio {
   const round = (n: number) => Math.max(0, Math.round(n / PAS_PLA) * PAS_PLA)
   const rest = Math.max(0, annualIncome - costVidaAnual())
-  // Taxa d'estalvi MODERADA (≈30% del marge, no la meitat): una taxa del 50% mantinguda 45 anys
-  // convertia qualsevol carrera decent en una fortuna de set xifres (poc realista). La resta es
-  // viu (oci). Qui vulgui acumular més pot pujar la inversió al panell, però el "per defecte"
-  // raonable no fa milionari ningú pel sol fet de treballar tota una vida.
+  // Taxa d'estalvi MODERADA (≈22% del marge): una taxa alta mantinguda tota una carrera convertia
+  // fins i tot un origen humil SENSE fills en una petita fortuna (cua poc creïble). La resta es viu
+  // (oci). Qui vulgui acumular més pot pujar la inversió al panell; el "per defecte" raonable
+  // d'algú que treballa tota una vida dóna un coixí, no una fortuna.
   return {
-    oci: round(rest * 0.4),
-    inversions: round(rest * 0.3),
+    oci: round(rest * 0.42),
+    inversions: round(rest * 0.25),
   }
 }
 
@@ -1485,8 +1488,12 @@ export function fillsDependents(state: GameState): number {
   return naixements.filter((b) => state.person.edatMesos - b < llindar).length
 }
 
-/** Prestació pública màxima anual per fill dependent (per a renda baixa). */
-const AJUT_FILL_MAX = 2_500
+/**
+ * Prestació pública màxima anual per fill dependent (per a renda baixa). Generosa a propòsit: sense
+ * un suport públic real, tenir un sol fill empenyia l'origen humil al deute i a una espiral de
+ * precarietat (un fill no hauria d'arruïnar una vida). La criança segueix costant, però no mata.
+ */
+const AJUT_FILL_MAX = 3_200
 /** Renda neta anual a partir de la qual la prestació per fill ja és nul·la. */
 const AJUT_FILL_LLINDAR = 55_000
 

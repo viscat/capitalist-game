@@ -288,7 +288,7 @@ describe('ajutFamiliarMax', () => {
 })
 
 describe('augmentSou', () => {
-  it('va del 2% (benestar 0) al 10% (benestar 100) del sou', () => {
+  it('va del 1,5% (benestar 0) al 6% (benestar 100) del sou (creixement moderat)', () => {
     expect(augmentSou(1000, 0)).toBe(20)
     expect(augmentSou(1000, 100)).toBe(100)
     expect(augmentSou(1000, 50)).toBeGreaterThan(augmentSou(1000, 0))

@@ -483,6 +483,38 @@ function potHeretarEnVida(state: GameState): boolean {
   return (state.fills ?? 0) > 0 && p.efectiu + p.inversions > 30_000
 }
 
+/** Anys entre ofertes GARANTIDES de vida personal (buscar parella / tenir un fill). */
+const ANYS_REOFERTA_VIDA = 3
+
+/**
+ * Oferta GARANTIDA de vida personal: formar parella i tenir fills no es deixa a l'atzar dels
+ * esdeveniments (es podia no oferir mai en una partida). Mentre s'hi és elegible, el motor força
+ * l'opció cada pocs anys (`ANYS_REOFERTA_VIDA`): primer trobar parella; després, amb parella i dins
+ * de la finestra fèrtil, tenir un fill. El jugador sempre pot dir que no; es torna a oferir més
+ * endavant. Retorna l'esdeveniment a forçar, o null si no toca (cooldown / no elegible).
+ */
+function vidaPersonalForcada(
+  state: GameState,
+  anys: number,
+  torn: number,
+): GameEvent | null {
+  if (state.lifeStage !== 'carrera' && state.lifeStage !== 'jubilacio') return null
+  if (torn - (state.ultimaOfertaVida ?? -ANYS_REOFERTA_VIDA - 1) < ANYS_REOFERTA_VIDA) {
+    return null
+  }
+  // Sense parella: sempre s'ofereix conèixer-ne una (requisit per als fills).
+  if (!state.parella) return PARELLA_EVENTS[0]
+  // Amb parella i dins de la finestra fèrtil, sense haver arribat al màxim: s'ofereix tenir un fill.
+  if (
+    anys >= EDAT_FERTIL_MIN &&
+    anys <= EDAT_FERTIL_MAX &&
+    (state.fills ?? 0) < MAX_FILLS
+  ) {
+    return DESCENDENCIA_EVENTS[0]
+  }
+  return null
+}
+
 /** Pool d'esdeveniments corresponent a la fase (i situació) actual. */
 function eventPool(state: GameState): GameEvent[] {
   switch (state.lifeStage) {
@@ -537,18 +569,9 @@ function eventPool(state: GameState): GameEvent[] {
         // Suborn a la feina: només amb feina.
         if ((state.salari ?? 0) > 0) pool.push(DEPREDADOR_EVENTS[1])
       }
-      // Sense parella encara: pot aparèixer l'oportunitat d'establir-ne una (requisit per als fills).
-      if (!state.parella) pool.push(...PARELLA_EVENTS)
-      // Dins de la finestra fèrtil, AMB PARELLA i sense haver arribat al màxim de fills, pot
-      // aparèixer l'oportunitat de tenir descendència.
-      if (
-        state.parella &&
-        edat >= EDAT_FERTIL_MIN &&
-        edat <= EDAT_FERTIL_MAX &&
-        (state.fills ?? 0) < MAX_FILLS
-      ) {
-        pool.push(...DESCENDENCIA_EVENTS)
-      }
+      // (Parella i descendència ja NO van a l'atzar del pool: s'ofereixen de manera GARANTIDA cada
+      // pocs anys mentre s'hi és elegible —vegeu `vidaPersonalForcada`—, perquè formar família
+      // sigui sempre una opció i no depengui de la sort dels esdeveniments.)
       // Amb fills dependents a càrrec: alegries i ensurts de la criança (benestar amunt i avall).
       if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       // Amb fills i un coixí, pot sortir l'opció d'herència en vida.
@@ -573,7 +596,7 @@ function eventPool(state: GameState): GameEvent[] {
       if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
       if (state.habitatge?.tipus === 'habitacio') pool.push(...HABITACIO_EVENTS)
       if (state.habitatge?.tipus === 'propietat') pool.push(...PROPIETARI_EVENTS)
-      if (!state.parella) pool.push(...PARELLA_EVENTS)
+      // (Parella: oferta garantida via `vidaPersonalForcada`, no a l'atzar del pool.)
       if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
       // Si encara no han mort els pares (i no és una herència de dinastia prevista), poden morir.
@@ -990,9 +1013,16 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     state.herenciaPendent !== undefined && anys >= state.herenciaPendent.edat
   let event: GameEvent
   let nextRng: number
+  let ultimaOfertaVida = state.ultimaOfertaVida
+  const vidaForcada = herenciaDue ? null : vidaPersonalForcada(state, anys, torn)
   if (herenciaDue) {
     event = HERENCIA_DINASTIA_EVENTS[0]
     nextRng = rngState
+  } else if (vidaForcada) {
+    // Oferta garantida de parella/fill: no consumeix el RNG (no altera la seqüència d'events).
+    event = vidaForcada
+    nextRng = rngState
+    ultimaOfertaVida = torn
   } else {
     const sel = selectEvent(eventPool(state), state.familia, rngState, state.ultimEventId)
     event = sel.event
@@ -1055,6 +1085,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         : state.salutCronica,
     rngState: nextRng,
     ultimEventId: event.id,
+    ultimaOfertaVida,
     historial: [...state.historial, ...entries],
   }
 

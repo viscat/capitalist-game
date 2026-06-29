@@ -127,11 +127,27 @@ function eventChoice(state: GameState, policy: SimPolicy): string {
   // cordes (deute, benestar baix o sense coixí líquid). Si va bé, sí que en té.
   if (state.pendingEvent?.id === 'tenir_fill') {
     const p = state.person.patrimoni
-    const precari =
-      (p.deute ?? 0) > 0 ||
-      state.person.stats.benestar < 35 ||
-      p.efectiu + p.inversions < 5000
-    return precari ? 'no' : 'si'
+    // Un jugador PRUDENT només té fills quan està còmode de debò: criar costa molt (sobretot a
+    // l'origen humil), i ara l'opció s'ofereix sovint (garantida), així que cal ser exigent o
+    // s'acumulen fills que no es poden mantenir → deute i precarietat. Com més fills ja té, més
+    // exigent (cada fill addicional costa més). Així el pobre en té pocs o cap; el benestant, més.
+    const fillsActuals = state.fills ?? 0
+    // Límit de fills segons els recursos: una llar humil que vol ser prudent en té com a molt un;
+    // les acomodades, més. I només si està còmoda de debò (sense deute, benestar alt, coixí gros):
+    // criar és car i ara l'opció s'ofereix sovint, així que cal ser exigent o s'acumulen fills que
+    // empenyen al deute.
+    const acomodada =
+      state.familia.classe === 'mitjana' ||
+      state.familia.classe === 'alta' ||
+      state.familia.classe === 'rica' ||
+      state.familia.classe === 'super_rica'
+    const maxFills = acomodada ? 3 : 1
+    const comode =
+      fillsActuals < maxFills &&
+      (p.deute ?? 0) === 0 &&
+      state.person.stats.benestar >= 50 &&
+      p.efectiu + p.inversions >= 18_000 + fillsActuals * 20_000
+    return comode ? 'si' : 'no'
   }
   // Emprenedoria: un jugador raonable munta un negoci si té coixí (capital i sense deute) i és
   // prou jove per recuperar-se d'un fracàs. És una aposta de mobilitat (alta variància).
