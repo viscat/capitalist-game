@@ -2,7 +2,7 @@ import type { LogEntry } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 import { Icon, TriangleAlert, Users } from './icons'
-import { EffectList } from './EffectList'
+import { DerivaList, EffectList } from './EffectList'
 
 export function TurnLog({ historial }: { historial: LogEntry[] }) {
   const { t } = useT()
@@ -42,6 +42,7 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
               )}
               <div className="mt-1">
                 <EffectList effect={entry.effect} />
+                <DerivaList entry={entry} />
               </div>
               {entry.donacio ? (
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-money">

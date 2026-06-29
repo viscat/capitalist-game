@@ -742,6 +742,9 @@ export const ca: Record<string, string> = {
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',
   'gameover.desglosBenestar': 'Per què el teu benestar (què t’apuja i què t’esfondra)',
+  'deriva.titol': 'De fons (no de l’esdeveniment)',
+  'deriva.entorn': 'Entorn',
+  'deriva.edat': 'Desgast (edat)',
   'desglos.titol': 'D’on surt el teu benestar',
   'desglos.nota':
     'El benestar gravita cap a aquesta referència. Cada factor hi suma o resta: per això la situació d’habitatge, els vincles o el deute es noten tant.',

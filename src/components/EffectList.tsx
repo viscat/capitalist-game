@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import type { EventEffect } from '../domain/types'
+import type { EventEffect, LogEntry } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
 import { Icon, STAT_ICON, type LucideIcon } from './icons'
@@ -157,6 +157,38 @@ export function EffectList({ effect }: { effect: EventEffect }) {
             <Icon icon={b.icon} size={b.fort ? 15 : 13} className="mr-1 inline-block align-[-2px]" />
           )}
           {b.label} {b.text}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Canvis de FONS de l'any que NO són de l'esdeveniment (l'"efecte fantasma"): la deriva del
+ * benestar cap a la referència d'entorn i el desgast de salut per edat/precarietat. Es mostren
+ * a part, amb estil tènue i vora discontínua, perquè el "+N" dels anells (que reflecteix només
+ * l'esdeveniment) i el canvi REAL de l'stat quadrin: stat_real = esdeveniment + això.
+ */
+export function DerivaList({ entry }: { entry: LogEntry }) {
+  const { t } = useT()
+  const items: { label: string; icon: LucideIcon; valor: number }[] = []
+  if (entry.derivaBenestar) {
+    items.push({ label: t('deriva.entorn'), icon: STAT_ICON.benestar, valor: entry.derivaBenestar })
+  }
+  if (entry.derivaSalut) {
+    items.push({ label: t('deriva.edat'), icon: STAT_ICON.salut, valor: entry.derivaSalut })
+  }
+  if (items.length === 0) return null
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2">
+      <span className="text-[10px] uppercase tracking-wide text-inkfaint">{t('deriva.titol')}</span>
+      {items.map((it) => (
+        <span
+          key={it.label}
+          className="rounded-full border border-dashed border-line px-2 py-0.5 text-[11px] text-inkfaint"
+        >
+          <Icon icon={it.icon} size={12} className="mr-1 inline-block align-[-2px]" />
+          {it.label} {it.valor > 0 ? `+${it.valor}` : it.valor}
         </span>
       ))}
     </div>

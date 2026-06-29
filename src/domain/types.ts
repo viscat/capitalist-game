@@ -381,6 +381,14 @@ export interface LogEntry {
   donacio?: number
   /** Part d'una despesa greu que ningú ha pogut cobrir. */
   descobert?: number
+  /**
+   * Canvi de FONS del benestar aquest any, NO causat per l'esdeveniment: la deriva cap a la
+   * referència d'entorn (l'estructura t'hi torna). Explica per què el benestar real es mou més
+   * (o menys) que el "+N" de l'esdeveniment. Pot ser 0.
+   */
+  derivaBenestar?: number
+  /** Canvi de FONS de la salut aquest any (desgast per edat + precarietat + seqüeles). Sol ser ≤ 0. */
+  derivaSalut?: number
 }
 
 export interface GameState {
@@ -519,6 +527,12 @@ export interface GameState {
    * Pot tornar a buscar feina quan vulgui. Absent/false = treballa o busca feina normalment.
    */
   aturVoluntari?: boolean
+  /**
+   * Deriva de FONS d'aquest torn (benestar cap a la referència, desgast de salut), calculada a
+   * `advanceTurn` ABANS de l'esdeveniment i traspassada a l'entrada d'historial per `resolveEvent`
+   * (perquè es vegi l'"efecte fantasma"). Transitori: es neteja en resoldre l'esdeveniment.
+   */
+  derivaPendent?: { benestar: number; salut: number }
   /**
    * Nombre de vegades que has FUNDAT una empresa (experiència acumulada: "learning by doing").
    * Poder reintentar després d'un fracàs —cosa que demana capital— és el determinant pràctic de
