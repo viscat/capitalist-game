@@ -1146,21 +1146,27 @@ const SUPORT_UNI_FACTOR: Record<FamilyClass, number> = {
   super_rica: 1,
 }
 
-/** Suport familiar anual durant la universitat (com més recursos, més ajut). */
+/**
+ * Suport familiar anual durant la universitat (com més recursos, més ajut). Acotat perquè no es
+ * converteixi en un WINDFALL (un fill ric que VIU dels diners que li donen els pares mentre
+ * estudia i encara n'estalvia milers): com a molt cobreix una matrícula privada + un estipendi.
+ */
 export function suportUniversitatAnual(familia: Familia): number {
   const factor = SUPORT_UNI_FACTOR[familia.classe]
   if (factor === 0) return 0
-  const perIngressos = familia.ingressosMensuals * 12 * 0.06
-  const perPatrimoni = Math.min(familia.patrimoni, 1_000_000) * 0.002
-  return Math.round((perIngressos + perPatrimoni) * factor / 50) * 50
+  const perIngressos = familia.ingressosMensuals * 12 * 0.035
+  const perPatrimoni = Math.min(familia.patrimoni, 1_000_000) * 0.0012
+  const brut = (perIngressos + perPatrimoni) * factor
+  return Math.min(MATRICULA_PRIVADA_ANUAL + 4_000, Math.round(brut / 50) * 50)
 }
 
-// Beca per renda: cobreix més matrícula com més baixa és la renda familiar (les
-// rendes baixes no es queden fora de la universitat, però l'origen segueix pesant).
+// Beca per renda: cobreix PART de la matrícula pública com més baixa és la renda (les rendes
+// baixes no es queden fora de la universitat, però MAI la cobreix del tot: estudiar costa diners
+// a tothom —material, taxes, desplaçaments— i l'origen humil hi entra amb deute, no de franc).
 const FACTOR_BECA: Record<FamilyClass, number> = {
-  pobra: 1,
-  treballadora: 0.7,
-  mitjana: 0.3,
+  pobra: 0.7,
+  treballadora: 0.5,
+  mitjana: 0.25,
   alta: 0,
   rica: 0,
   super_rica: 0,
@@ -1216,7 +1222,7 @@ export function salariAdultInicial(
   if (familia.classe === 'pobra' || familia.classe === 'treballadora') {
     return SALARI_MINIM_MENSUAL + premi + bonusAcademic + prestigi
   }
-  const plusContactes = clamp(familia.patrimoni * 0.0005, 0, 500)
+  const plusContactes = clamp(familia.patrimoni * 0.0003, 0, 300)
   const sou =
     SALARI_ADULT_BASE +
     premi +

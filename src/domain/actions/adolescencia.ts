@@ -15,7 +15,8 @@ export const ADOLESCENCE_ACTIONS: GameAction[] = [
     descKey: 'action.estudiar.desc',
     // Dedicar-se als estudis: una mica menys de benestar (esforç), però apuja el nivell
     // acadèmic. Com més s'hi dedica (multiselecció), més puja. Val per a l'ESO i el batxillerat.
-    effect: { benestar: -2, academicDelta: 0.06 },
+    // Pujada lenta (el coneixement s'acumula a poc a poc; no es domina una matèria en un any).
+    effect: { benestar: -2, academicDelta: 0.03 },
     setmanes: 12,
   },
   {

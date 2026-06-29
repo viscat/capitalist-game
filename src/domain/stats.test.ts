@@ -422,11 +422,23 @@ describe('salariAdultInicial', () => {
 })
 
 describe('balancUniversitatAnual', () => {
-  it('és més alt com més recursos té la família, i mai negatiu per a la pobra', () => {
+  it('és més alt com més recursos té la família', () => {
     const pobra = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia)
     const rica = balancUniversitatAnual(FAMILY_PRESETS.rica.familia)
-    expect(pobra).toBeGreaterThanOrEqual(0) // la beca compensa la matrícula
     expect(rica).toBeGreaterThan(pobra)
+  })
+
+  it('la universitat pública COSTA diners al pobre (la beca no la cobreix del tot)', () => {
+    // La beca cobreix la major part de la matrícula però MAI tota: estudiar no és gratis ni per
+    // a l'origen humil (material, taxes, desplaçaments) → hi entra amb un cost (sovint deute).
+    const pobraPublica = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia, 'publica')
+    expect(pobraPublica).toBeLessThan(0)
+  })
+
+  it('la privada és molt més cara que la pública (per a qui no té suport familiar)', () => {
+    const publica = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia, 'publica')
+    const privada = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia, 'privada')
+    expect(privada).toBeLessThan(publica)
   })
 })
 

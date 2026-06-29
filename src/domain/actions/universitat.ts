@@ -10,8 +10,9 @@ export const UNIVERSITY_ACTIONS: GameAction[] = [
     labelKey: 'uni.estudis.label',
     descKey: 'uni.estudis.desc',
     // Estudiar fort estressa i no surts: no dóna benestar, però apuja el nivell acadèmic,
-    // que es paga després (millor sou i ocupabilitat en sortir).
-    effect: { benestar: -3, academicDelta: 0.22 },
+    // que es paga després (millor sou i ocupabilitat en sortir). La pujada és LENTA: dedicar-s'hi
+    // a fons els 4 anys de carrera arriba a ~0,30 (no a 0,9): el coneixement s'acumula a poc a poc.
+    effect: { benestar: -3, academicDelta: 0.07 },
   },
   {
     id: 'uni_treball',
