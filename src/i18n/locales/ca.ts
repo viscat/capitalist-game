@@ -759,17 +759,30 @@ export const ca: Record<string, string> = {
   'deriva.entorn': 'Entorn',
   'deriva.edat': 'Desgast (edat)',
   'desglos.titol': 'D’on surt el teu benestar',
+  'desglos.referencia': 'referència {ref} · ara {ara}',
   'desglos.nota':
-    'El benestar gravita cap a aquesta referència. Cada factor hi suma o resta: per això la situació d’habitatge, els vincles o el deute es noten tant.',
+    'El benestar es mou poc a poc cada any cap a aquesta referència (no salta). Cada factor la puja o la baixa: per això la situació d’habitatge, els vincles, el deute o la salut baixa es noten tant.',
   'desglos.base': 'Base vital',
   'desglos.ingres': 'Poder adquisitiu del sou',
   'desglos.patrimoni': 'Patrimoni acumulat',
   'desglos.habitatge': 'Situació d’habitatge',
   'desglos.vincles': 'Vincles i comunitat',
   'desglos.deute': 'Viure endeutat',
+  'desglos.salut': 'Salut baixa',
   'desglos.sequela': 'Seqüeles de salut',
   'desglos.petjada': 'Cost del consum',
   'desglos.precarietat': 'Precarietat d’origen',
+  // Desglossament del canvi ANUAL de salut (mecanisme subjacent de mortalitat).
+  'salut.desglos.titol': 'Com evoluciona la teva salut',
+  'salut.desglos.net': 'ara {actual} · {net}/any',
+  'salut.desglos.estable': 'Ara mateix la teva salut és estable (jove i sense precarietat).',
+  'salut.desglos.edat': 'Edat',
+  'salut.desglos.precarietat': 'Precarietat (benestar baix)',
+  'salut.desglos.recuperacio': 'Recuperació (benestar alt)',
+  'salut.desglos.sequela': 'Seqüeles cròniques',
+  'salut.desglos.cura': 'Cura de la salut',
+  'salut.desglos.nota':
+    'La salut es desgasta amb l’edat i, sobretot, amb el benestar baix (l’estrès i la precarietat maten). Amb benestar alt es recupera una mica, però la recuperació s’esvaeix amb l’edat. I al revés: la salut baixa també rebaixa el benestar.',
   'gameover.notaInversio':
     'Un {pct}% del teu patrimoni està invertit i treballant per tu. L’interès compost premia qui inverteix aviat i s’hi manté, fins i tot quan el mercat tremola.',
   'gameover.notaLlegat':

@@ -31,6 +31,7 @@ import {
   clampSalut,
   costFillsAnual,
   declividSalutAnual,
+  desglosSalut,
   fillsDependents,
   llegatPerFill,
   pagaMensual,
@@ -164,6 +165,48 @@ describe('salut i mort', () => {
     expect(benestarPerSalut(100)).toBe(0)
     expect(benestarPerSalut(10)).toBeGreaterThan(0)
     expect(benestarPerSalut(0)).toBeGreaterThanOrEqual(benestarPerSalut(30))
+  })
+})
+
+describe('desglosSalut (mecanisme subjacent de la salut)', () => {
+  const stateSalut = (over: Partial<GameState>): GameState =>
+    ({
+      familia: FAMILY_PRESETS.mitjana.familia,
+      person: { ...person, edatMesos: 40 * 12 },
+      ...over,
+    }) as GameState
+
+  it('amb benestar baix la salut perd terreny (component de precarietat negatiu)', () => {
+    const s = stateSalut({
+      person: { ...person, edatMesos: 40 * 12, stats: { benestar: 10, salut: 80, moralitat: 50 } },
+    })
+    const { comps, net } = desglosSalut(s)
+    const precarietat = comps.find((c) => c.clau === 'salut.desglos.precarietat')
+    expect(precarietat).toBeDefined()
+    expect(precarietat!.valor).toBeLessThan(0)
+    expect(net).toBeLessThan(0)
+  })
+
+  it('amb benestar alt i jove, hi ha recuperació (component positiu)', () => {
+    const s = stateSalut({
+      person: { ...person, edatMesos: 30 * 12, stats: { benestar: 90, salut: 70, moralitat: 50 } },
+    })
+    const { comps } = desglosSalut(s)
+    const rec = comps.find((c) => c.clau === 'salut.desglos.recuperacio')
+    expect(rec).toBeDefined()
+    expect(rec!.valor).toBeGreaterThan(0)
+  })
+
+  it('la vellesa domina: a 80 anys el desgast per edat és gran i el net molt negatiu', () => {
+    const jove = desglosSalut(
+      stateSalut({ person: { ...person, edatMesos: 30 * 12, stats: { benestar: 60, salut: 80, moralitat: 50 } } }),
+    )
+    const vell = desglosSalut(
+      stateSalut({ person: { ...person, edatMesos: 80 * 12, stats: { benestar: 60, salut: 80, moralitat: 50 } } }),
+    )
+    expect(vell.net).toBeLessThan(jove.net)
+    const edatVell = vell.comps.find((c) => c.clau === 'salut.desglos.edat')!
+    expect(edatVell.valor).toBeLessThan(-1)
   })
 })
 

@@ -42,10 +42,12 @@ import {
   SALARI_ADULT_BASE,
   SALARI_BASE_16,
   SALARI_MINIM_MENSUAL,
+  SALUT_INVERSIO_DELTA,
   SALUT_MAX,
   SALUT_MIN,
 } from './constants'
 import { rng } from './rng'
+import { dataActual, edatAnys } from './time'
 import type {
   Budget,
   Empresa,
@@ -596,6 +598,8 @@ export function desglosBenestarAdult(state: GameState): ComponentBenestar[] {
     { clau: 'desglos.habitatge', valor: benestarHabitatge(state.habitatge) },
     { clau: 'desglos.vincles', valor: Math.round((state.vinclesSocials ?? 0) * 18 * (1 - wealth * 0.5)) },
     { clau: 'desglos.deute', valor: -Math.round(deute) },
+    // Acoblament salut→benestar: la salut baixa (malaltia, dolor) rebaixa la referència de benestar.
+    { clau: 'desglos.salut', valor: -Math.round(benestarPerSalut(state.person.stats.salut)) },
     { clau: 'desglos.sequela', valor: -(state.salutCronica ?? 0) },
     {
       clau: 'desglos.petjada',
@@ -605,6 +609,56 @@ export function desglosBenestarAdult(state: GameState): ComponentBenestar[] {
   ]
   // Només els que pesen (no soroll de zeros, tret de la base).
   return comps.filter((c) => c.valor !== 0 || c.clau === 'desglos.base')
+}
+
+/** Un component del canvi anual de salut (rate amb un decimal; + = en guanya, − = en perd). */
+export interface ComponentSalut {
+  clau: string
+  /** Punts de salut/any (signat). */
+  valor: number
+}
+
+/**
+ * Desglossament del CANVI ANUAL de salut (mirall exacte de `declividSalutAnual` + la cura): què
+ * la desgasta (edat, precarietat per benestar baix, seqüeles) i què la recupera (benestar alt,
+ * cura de la salut). Fa explícit el mecanisme subjacent: per què la salut baixa (o puja) cada any.
+ */
+export function desglosSalut(state: GameState): {
+  net: number
+  comps: ComponentSalut[]
+} {
+  const edat = edatAnys(state.person.edatMesos)
+  const benestar = state.person.stats.benestar
+  const cronica = state.salutCronica ?? 0
+  const anyNaixement = state.dataNaixement
+    ? dataActual(state.dataNaixement, 0).any
+    : undefined
+  const factorEpoca =
+    anyNaixement !== undefined ? factorEsperancaVida(anyNaixement) : 1
+  // Mateixos termes que `declividSalutAnual` (que retorna punts PERDUTS); aquí els signem com a
+  // DELTA de salut (negatiu = en perd).
+  const edatComp =
+    (0.1 + Math.max(0, edat - 50) * 0.16 + Math.max(0, edat - 72) ** 2 * 0.04) * factorEpoca
+  const recuperacioFactor = clamp(1 - Math.max(0, edat - 55) / 30, 0, 1)
+  const benestarComp =
+    benestar < 45
+      ? Math.min((45 - benestar) * 0.09, 4)
+      : -Math.min((benestar - 45) * 0.05, 1.8) * recuperacioFactor
+  const cronicaComp = cronica * 0.08
+  const cura = state.inversioSalut ? SALUT_INVERSIO_DELTA * eficaciaCuraSalut(edat) : 0
+
+  const r1 = (v: number) => Math.round(v * 10) / 10
+  const comps: ComponentSalut[] = [
+    { clau: 'salut.desglos.edat', valor: r1(-edatComp) },
+    {
+      clau: benestar < 45 ? 'salut.desglos.precarietat' : 'salut.desglos.recuperacio',
+      valor: r1(-benestarComp),
+    },
+    { clau: 'salut.desglos.sequela', valor: r1(-cronicaComp) },
+    { clau: 'salut.desglos.cura', valor: r1(cura) },
+  ].filter((c) => Math.abs(c.valor) >= 0.05)
+  const net = r1(cura - (edatComp + benestarComp + cronicaComp))
+  return { net, comps }
 }
 
 // Primeres feines més precàries per a les classes baixes (menys contactes, feines
