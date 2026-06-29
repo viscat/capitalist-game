@@ -944,6 +944,69 @@ export const PROPIETARI_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * ATZAR: la sort i la mala sort de la vida. Esdeveniments de variància ALTA i magnitud ALEATÒRIA
+ * (l'import es sorteja amb el RNG, així que dues vides amb la mateixa classe poden divergir molt):
+ * cops de sort, imprevistos cars, herències llunyanes, estafes. Pes baix però impacte gran. Fan
+ * que el resultat no depengui NOMÉS de la classe i les decisions: la loteria de la vida també hi és.
+ * La mitjana és lleugerament negativa (la sort no et fa ric tota sola), però la DISPERSIÓ creix.
+ */
+export const ATZAR_EVENTS: GameEvent[] = [
+  {
+    id: 'cop_de_sort',
+    category: 'regal',
+    titleKey: 'event.cop_de_sort.title',
+    descKey: 'event.cop_de_sort.desc',
+    weight: () => 0.4,
+    resolve: (s: GameState) => {
+      const r = rng(s.rngState + 5501).value
+      return { inversions: Math.round((2000 + r * 13000) / 100) * 100, benestar: 4 }
+    },
+  },
+  {
+    id: 'imprevist_car',
+    category: 'economia',
+    titleKey: 'event.imprevist_car.title',
+    descKey: 'event.imprevist_car.desc',
+    weight: () => 0.5,
+    resolve: (s: GameState) => {
+      const r = rng(s.rngState + 6601).value
+      return { despesaGreu: Math.round((1500 + r * 9000) / 100) * 100, benestar: -4 }
+    },
+  },
+  {
+    id: 'herencia_llunyana',
+    category: 'regal',
+    titleKey: 'event.herencia_llunyana.title',
+    descKey: 'event.herencia_llunyana.desc',
+    weight: () => 0.22,
+    resolve: (s: GameState) => {
+      const r = rng(s.rngState + 7701).value
+      return {
+        inversions: Math.round((3000 + r * 17000) / 100) * 100,
+        benestar: 2,
+        salutDelta: -1,
+      }
+    },
+  },
+  {
+    id: 'estafa',
+    category: 'economia',
+    titleKey: 'event.estafa.title',
+    descKey: 'event.estafa.desc',
+    weight: () => 0.35,
+    resolve: (s: GameState) => {
+      // Et timen amb una inversió fraudulenta: perds una part (10-40%) dels estalvis invertits.
+      const r = rng(s.rngState + 8801).value
+      const pct = 0.1 + r * 0.3
+      return {
+        inversions: -Math.round(s.person.patrimoni.inversions * pct),
+        benestar: -6,
+      }
+    },
+  },
+]
+
+/**
  * PARELLA: conèixer algú i decidir formar una parella estable. És el requisit previ per tenir
  * fills i, a més, fa que les despeses estructurals de la llar es comparteixin. Només apareix
  * mentre no en tens (gating a `eventPool`). Pes alt perquè sigui ben visible com a opció.

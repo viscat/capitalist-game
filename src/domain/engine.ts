@@ -47,6 +47,7 @@ import { ADOLESCENCE_EVENTS } from './events/adolescencia'
 import {
   AJUT_PARES_EVENTS,
   ATUR_ADULT_EVENTS,
+  ATZAR_EVENTS,
   CARRERA_EVENTS,
   DEPREDADOR_EVENTS,
   DESCENDENCIA_EVENTS,
@@ -498,6 +499,9 @@ function eventPool(state: GameState): GameEvent[] {
           : [...ATUR_ADULT_EVENTS, ...COMMON_LIFE_EVENTS]
       const edat = edatAnys(state.person.edatMesos)
       const pool = [...base]
+      // La sort i la mala sort (cops de sort, imprevistos, herències llunyanes, estafes): variància
+      // que fa que dues vides de la mateixa classe puguin divergir. La loteria de la vida.
+      pool.push(...ATZAR_EVENTS)
       // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
       // s'afegeix al pool: el cos passa factura amb els anys.
       if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
@@ -564,8 +568,10 @@ function eventPool(state: GameState): GameEvent[] {
     }
     case 'jubilacio': {
       // Jubilació: vida tranquil·la amb risc de salut d'edat i vida quotidiana; sense feina.
-      const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS]
+      const pool = [...SALUT_EDAT_EVENTS, ...COMMON_LIFE_EVENTS, ...ATZAR_EVENTS]
       if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
+      if (state.habitatge?.tipus === 'habitacio') pool.push(...HABITACIO_EVENTS)
+      if (state.habitatge?.tipus === 'propietat') pool.push(...PROPIETARI_EVENTS)
       if (!state.parella) pool.push(...PARELLA_EVENTS)
       if (fillsDependents(state) > 0) pool.push(...FILLS_EVENTS)
       if (potHeretarEnVida(state)) pool.push(...HERENCIA_VIDA_EVENTS)
