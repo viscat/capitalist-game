@@ -454,7 +454,12 @@ export const ca: Record<string, string> = {
 
   // Pla d'inversió anual (fase de carrera)
   'pla.title': 'On poses els teus diners?',
-  'pla.income': 'Sou',
+  'pla.income': 'Ingrés',
+  'pla.income.feina': 'Feina',
+  'pla.income.empresa': 'Empresa',
+  'pla.deixarFeina': 'Deixar de treballar',
+  'pla.noTreballa': 'Has deixat de treballar. Vius de l’empresa, les inversions i els estalvis (sense sou ni prestació).',
+  'pla.buscarFeina': 'Tornar a buscar feina',
   'pla.costVida': 'Cost de vida',
   'pla.costVida.desc': 'Supermercat i subministraments. Tria’n el nivell.',
   'pla.costVida.cobreix': 'Els teus pares et cobreixen {amount}/mes del cost de vida.',
@@ -601,6 +606,12 @@ export const ca: Record<string, string> = {
   'empresa.beneficiTipic':
     'Benefici típic ~{benefici}/any (varia amb la sort; pot ser negatiu un mal any).',
   'empresa.souEmpleats': 'Sou dels empleats',
+  'empresa.historic.titol': 'Historial de l’empresa',
+  'empresa.historic.any': 'Edat',
+  'empresa.historic.benefici': 'Benefici',
+  'empresa.historic.reinvertit': 'Reinvertit',
+  'empresa.historic.sou': 'El teu sou',
+  'empresa.historic.fracas': 'L’empresa va tancar',
   'empresa.reinversio': 'Reinversió / el teu sou',
   'empresa.reinversio.desc':
     'El que reinverteixes fa créixer l’empresa (més benefici futur); la resta és el teu sou aquest any.',
@@ -1378,4 +1389,5 @@ export const ca: Record<string, string> = {
   'note.donacio': 'La família cobreix {amount}',
   'note.descobert': 'No has pogut cobrir {amount} → benestar',
   'context.atur': 'A l’atur',
+  'context.aturVoluntari': 'Sense feina (per decisió)',
 }

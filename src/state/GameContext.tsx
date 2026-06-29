@@ -7,10 +7,12 @@ import {
   applyChoice,
   applyMilestoneChoice,
   continuaGeneracio,
+  deixarFeina,
   fundarEmpresa,
   setReinversioEmpresa,
   setSouEmpleats,
   tancarEmpresa,
+  tornarABuscarFeina,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -121,6 +123,10 @@ interface GameContextValue {
   setReinversioEmpresa: (fraccio: number) => void
   /** Fixa la política de sou dels empleats de l'empresa. */
   setSouEmpleats: (nivell: NivellSouEmpleats) => void
+  /** Deixa de treballar per compte aliè (atur voluntari: sou 0, sense prestació ni cerca). */
+  deixarFeina: () => void
+  /** Torna a buscar feina després d'haver deixat de treballar. */
+  tornarABuscarFeina: () => void
   /** En morir amb descendents: continua la dinastia amb un fill (nova generació). */
   continuarGeneracio: () => void
   reset: () => void
@@ -226,6 +232,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setReinversioEmpresa: (fraccio) =>
         setState((s) => (s ? setReinversioEmpresa(s, fraccio) : s)),
       setSouEmpleats: (nivell) => setState((s) => (s ? setSouEmpleats(s, nivell) : s)),
+      deixarFeina: () => setState((s) => (s ? deixarFeina(s) : s)),
+      tornarABuscarFeina: () => setState((s) => (s ? tornarABuscarFeina(s) : s)),
       continuarGeneracio: () =>
         setState((s) => {
           if (!s) return s

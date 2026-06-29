@@ -504,10 +504,21 @@ export interface GameState {
    */
   empresa?: Empresa
   /**
+   * Historial ANUAL de l'empresa (benefici, reinversió, el teu sou, fracàs). Separa l'economia
+   * de l'empresa del sou per compte aliè (que va a `salari`). Una entrada per any operat.
+   */
+  empresaHist?: EmpresaSnapshot[]
+  /**
    * Fracció (0..1) del benefici de l'empresa que es REINVERTEIX (creix el capital → més benefici
    * futur). La resta és el teu sou (l'ingrés que t'enduus). Absent = valor per defecte.
    */
   reinversioEmpresa?: number
+  /**
+   * L'usuari ha decidit DEIXAR DE TREBALLAR per compte aliè (atur VOLUNTARI): `salari = 0` sense
+   * cap prestació ni cerca de feina automàtica. Viu de l'empresa, les inversions i els estalvis.
+   * Pot tornar a buscar feina quan vulgui. Absent/false = treballa o busca feina normalment.
+   */
+  aturVoluntari?: boolean
   /**
    * Nombre de vegades que has FUNDAT una empresa (experiència acumulada: "learning by doing").
    * Poder reintentar després d'un fracàs —cosa que demana capital— és el determinant pràctic de
@@ -573,6 +584,21 @@ export interface PatrimoniSnapshot {
    * sense rendiments). Comparada amb el valor actual fa visible quant ha crescut pel rendiment.
    */
   aportat: number
+}
+
+/** Instantània anual de l'EMPRESA pròpia (per a l'historial econòmic del negoci). */
+export interface EmpresaSnapshot {
+  edat: number
+  /** Capital de l'empresa al final de l'any (després de reinvertir). */
+  capital: number
+  /** Benefici brut de l'any (plusvàlua: valor generat − sous dels empleats; pot ser negatiu). */
+  benefici: number
+  /** Part del benefici reinvertida (creix el capital). */
+  reinvertit: number
+  /** El TEU sou de l'empresa aquest any (la part del benefici que t'enduus). */
+  sou: number
+  /** L'empresa ha TANCAT aquest any (fracàs): es perd el capital. */
+  fracas?: boolean
 }
 
 /** Instantània anual de la vida (per als gràfics d'evolució del resum final). */

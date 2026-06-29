@@ -11,7 +11,7 @@ import {
   habilitatEmprenedora,
   pFracasEmpresaAnual,
 } from '../domain/stats'
-import type { NivellSouEmpleats } from '../domain/types'
+import type { EmpresaSnapshot, NivellSouEmpleats } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
@@ -175,6 +175,8 @@ export function EmpresaPanel() {
         <p className="mt-2 text-[11px] text-gold/90">{t('empresa.saturada')}</p>
       )}
 
+      <EmpresaHistoric hist={state.empresaHist} />
+
       <button
         onClick={tancarEmpresa}
         className="mt-3 w-full rounded-xl border border-line/60 py-2 text-xs font-medium text-inksoft transition hover:bg-bg2"
@@ -182,6 +184,61 @@ export function EmpresaPanel() {
         {t('empresa.tancar', { capital: formatEuros(empresa.capital) })}
       </button>
     </div>
+  )
+}
+
+/**
+ * Historial econòmic de l'empresa: una fila per any operat (benefici de l'any, quant has
+ * reinvertit i quant t'has endut com a sou). Separa clarament l'economia del negoci del sou per
+ * compte aliè (que va al pressupost com a "sou"). Mostra els darrers anys (els més recents a dalt).
+ */
+function EmpresaHistoric({ hist }: { hist?: EmpresaSnapshot[] }) {
+  const { t } = useT()
+  if (!hist || hist.length === 0) return null
+  const darrers = hist.slice(-6).reverse()
+  return (
+    <div className="mt-3 border-t border-line/60 pt-3">
+      <h4 className="mb-1.5 text-xs font-semibold text-inksoft">{t('empresa.historic.titol')}</h4>
+      <div className="grid grid-cols-[auto_1fr_1fr_1fr] gap-x-2 gap-y-1 text-[11px] tabular-nums">
+        <span className="text-inkfaint">{t('empresa.historic.any')}</span>
+        <span className="text-right text-inkfaint">{t('empresa.historic.benefici')}</span>
+        <span className="text-right text-inkfaint">{t('empresa.historic.reinvertit')}</span>
+        <span className="text-right text-inkfaint">{t('empresa.historic.sou')}</span>
+        {darrers.map((s, i) => (
+          <Row key={i} s={s} t={t} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Row({
+  s,
+  t,
+}: {
+  s: EmpresaSnapshot
+  t: (k: string, p?: Record<string, string | number>) => string
+}) {
+  if (s.fracas) {
+    return (
+      <>
+        <span className="text-inksoft">{s.edat}</span>
+        <span className="col-span-3 text-right font-medium text-danger">
+          {t('empresa.historic.fracas')}
+        </span>
+      </>
+    )
+  }
+  return (
+    <>
+      <span className="text-inksoft">{s.edat}</span>
+      <span className={`text-right ${s.benefici >= 0 ? 'text-money' : 'text-danger'}`}>
+        {s.benefici >= 0 ? '' : '−'}
+        {formatEuros(Math.abs(s.benefici))}
+      </span>
+      <span className="text-right text-inksoft">{formatEuros(s.reinvertit)}</span>
+      <span className="text-right text-ink">{formatEuros(s.sou)}</span>
+    </>
   )
 }
 

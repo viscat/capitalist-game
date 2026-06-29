@@ -12,6 +12,8 @@ import {
   fundarEmpresa,
   setSouEmpleats,
   tancarEmpresa,
+  deixarFeina,
+  tornarABuscarFeina,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -261,6 +263,45 @@ describe('selecció d’accions recordada entre anys', () => {
     const s = { ...newGame('mitjana', 5), accionsSeleccio: { hobby: 2, sortir_amics: 1 } }
     const after = advanceTurn(s)
     expect(after.accionsSeleccio).toEqual({ hobby: 2, sortir_amics: 1 })
+  })
+})
+
+describe('empresa: historial econòmic', () => {
+  function carreraAmbCapital() {
+    const s = newGameAtCarrera('mitjana', 1)
+    return {
+      ...s,
+      person: { ...s.person, patrimoni: { ...s.person.patrimoni, inversions: 80_000 } },
+    }
+  }
+
+  it('advanceTurn registra una entrada d’historial per any operat (sobrevisqui o tanqui)', () => {
+    let s = fundarEmpresa(carreraAmbCapital(), 30_000)
+    expect(s.empresa).toBeDefined()
+    s = advanceTurn(s)
+    expect(s.empresaHist?.length ?? 0).toBeGreaterThanOrEqual(1)
+    const ultim = s.empresaHist!.at(-1)!
+    expect(typeof ultim.benefici).toBe('number')
+    expect(typeof ultim.sou).toBe('number')
+  })
+})
+
+describe('deixar de treballar (atur voluntari)', () => {
+  it('posa el sou a 0, marca l’atur voluntari i no genera ofertes de feina', () => {
+    const base = newGameAtCarrera('mitjana', 1)
+    expect(base.salari ?? 0).toBeGreaterThan(0)
+    const s = deixarFeina(base)
+    expect(s.salari).toBe(0)
+    expect(s.aturVoluntari).toBe(true)
+    expect(s.ofertesFeina).toBeUndefined()
+    // En avançar, segueix sense ofertes (no és cerca involuntària).
+    expect(advanceTurn(s).ofertesFeina).toBeUndefined()
+  })
+
+  it('tornarABuscarFeina reactiva la cerca de feina (genera ofertes)', () => {
+    const s = tornarABuscarFeina(deixarFeina(newGameAtCarrera('mitjana', 1)))
+    expect(s.aturVoluntari).toBe(false)
+    expect(s.ofertesFeina?.length ?? 0).toBeGreaterThan(0)
   })
 })
 

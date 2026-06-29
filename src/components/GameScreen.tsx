@@ -37,7 +37,9 @@ export function GameScreen() {
   const esUniversitat = lifeStage === 'universitat'
   const esCarrera = lifeStage === 'carrera'
   const esJubilacio = lifeStage === 'jubilacio'
-  const esCercaFeina = esCarrera && !salari
+  // Cerca de feina només si l'atur és INVOLUNTARI: qui ha deixat de treballar (atur voluntari)
+  // veu el panell normal de carrera (viu de l'empresa/estalvis), no la pantalla de cerca.
+  const esCercaFeina = esCarrera && !salari && !state.aturVoluntari
   const esAdult = esUniversitat || esCarrera || esJubilacio
   const esInversio = esCarrera || esJubilacio
   const esAnual = esInfancia
@@ -51,11 +53,13 @@ export function GameScreen() {
   const immobiliari = person.patrimoni.cases.reduce((a, b) => a + b, 0) - hipoteca
   const liquid = net - immobiliari
 
-  const subtitol = aLatur
-    ? t('context.atur')
-    : esAdult || !itinerari
-      ? t(`game.stage.${lifeStage}`)
-      : t(`itinerari.${itinerari}.short`)
+  const subtitol = state.aturVoluntari && esCarrera && !salari
+    ? t('context.aturVoluntari')
+    : aLatur
+      ? t('context.atur')
+      : esAdult || !itinerari
+        ? t(`game.stage.${lifeStage}`)
+        : t(`itinerari.${itinerari}.short`)
 
   const hud = (
     <GameHud
