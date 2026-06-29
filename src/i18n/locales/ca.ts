@@ -67,6 +67,8 @@ export const ca: Record<string, string> = {
   'coach.next': 'Entès',
   'coach.skip': 'Salta el tutorial',
   'coach.reset': 'Reinicia el tutorial',
+  'so.activa': 'Activa el so i la vibració',
+  'so.desactiva': 'Silencia el so i la vibració',
   'salut.perill.baixa': 'Salut baixa',
   'salut.perill.critica': 'Salut crítica — pots morir aviat',
   'salut.perill.extrema': 'A punt de morir',

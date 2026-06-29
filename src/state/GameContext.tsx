@@ -17,6 +17,7 @@ import {
 } from '../domain/engine'
 import { comprarCasa, llogar, tornarAmbPares, vendreCasa } from '../domain/housing'
 import { avuiISO } from '../domain/time'
+import { playSfx, type SfxName } from '../lib/sound'
 import type {
   ActionOption,
   Budget,
@@ -35,6 +36,23 @@ import type {
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
 // v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
 const STORAGE_KEY = 'capitalist-game/save/v15'
+
+/**
+ * So conseqüència d'una transició d'estat (mort, fita o xoc fort). Retorna null si no n'hi ha
+ * cap de destacat, perquè qui crida posi el so per defecte de l'acció (tic d'any o clic). El so
+ * és opt-in: `playSfx` no fa res si l'usuari no l'ha activat.
+ */
+function transitionSfx(prev: GameState, next: GameState): SfxName | null {
+  if (next.mort && !prev.mort) return 'death'
+  if (next.pendingMilestone && next.pendingMilestone !== prev.pendingMilestone) return 'milestone'
+  if (next.historial.length > prev.historial.length) {
+    const e = next.historial[next.historial.length - 1]?.effect
+    if (e && ((e.mercatPct ?? 0) <= -0.15 || e.despesaGreu || (e.salutDelta ?? 0) <= -20)) {
+      return 'shock'
+    }
+  }
+  return null
+}
 
 function loadSave(): GameState | null {
   try {
@@ -157,17 +175,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
         ),
       continueGame: () => setState(loadSave()),
       nextTurn: (actionIds) =>
-        setState((s) => (s ? advanceTurn(s, actionIds) : s)),
-      choose: (choiceId) => setState((s) => (s ? applyChoice(s, choiceId) : s)),
+        setState((s) => {
+          if (!s) return s
+          const n = advanceTurn(s, actionIds)
+          playSfx(transitionSfx(s, n) ?? 'tick')
+          return n
+        }),
+      choose: (choiceId) =>
+        setState((s) => {
+          if (!s) return s
+          const n = applyChoice(s, choiceId)
+          playSfx(transitionSfx(s, n) ?? 'select')
+          return n
+        }),
       chooseMilestone: (optionId) =>
-        setState((s) => (s ? applyMilestoneChoice(s, optionId) : s)),
+        setState((s) => {
+          if (!s) return s
+          const n = applyMilestoneChoice(s, optionId)
+          playSfx(transitionSfx(s, n) ?? 'select')
+          return n
+        }),
       setBudget: (budget) =>
         setState((s) => (s ? { ...s, pressupost: budget } : s)),
       setPla: (pla) => setState((s) => (s ? { ...s, plaInversio: pla } : s)),
       setAccionsSeleccio: (sel) =>
         setState((s) => (s ? { ...s, accionsSeleccio: sel } : s)),
       acceptarOferta: (ofertaId) =>
-        setState((s) => (s ? acceptarOferta(s, ofertaId) : s)),
+        setState((s) => {
+          if (!s) return s
+          const n = acceptarOferta(s, ofertaId)
+          if (n.salari) playSfx('coin')
+          return n
+        }),
       setNivellVida: (nivell) =>
         setState((s) => (s ? { ...s, nivellVida: nivell } : s)),
       setVidaSenzilla: (vidaSenzilla) =>
@@ -187,7 +226,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setReinversioEmpresa: (fraccio) =>
         setState((s) => (s ? setReinversioEmpresa(s, fraccio) : s)),
       setSouEmpleats: (nivell) => setState((s) => (s ? setSouEmpleats(s, nivell) : s)),
-      continuarGeneracio: () => setState((s) => (s ? continuaGeneracio(s) : s)),
+      continuarGeneracio: () =>
+        setState((s) => {
+          if (!s) return s
+          playSfx('triomf')
+          return continuaGeneracio(s)
+        }),
       reset: () => {
         try {
           localStorage.removeItem(STORAGE_KEY)

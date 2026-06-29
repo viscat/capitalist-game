@@ -26,6 +26,8 @@ import {
   TrendingUp,
   TriangleAlert,
   Users,
+  Volume2,
+  VolumeX,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -94,4 +96,6 @@ export {
   TrendingUp,
   TriangleAlert,
   Users,
+  Volume2,
+  VolumeX,
 }
