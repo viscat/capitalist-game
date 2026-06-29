@@ -1,6 +1,5 @@
 import {
   costVidaPropi,
-  desglosBenestarAdult,
   factorIPC,
   llegatPerFill,
   nivellMoralitat,
@@ -30,6 +29,7 @@ import {
 import { costHabitatgeAnualNet } from '../domain/housing'
 import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
+import { BenestarDesglos } from './BenestarDesglos'
 import { InvestmentChart } from './InvestmentChart'
 import { LifeCharts } from './LifeCharts'
 import type { CSSProperties } from 'react'
@@ -286,31 +286,10 @@ export function GameOver() {
           </div>
         )}
 
-        {/* Per què el teu benestar: desglossament llegible (què t'apuja i què t'esfondra). */}
+        {/* Per què el teu benestar i la teva salut: el mecanisme subjacent, llegible. */}
         {esAdult && (
-          <div className="animate-reveal-up mt-4 rounded-2xl bg-surface/40 p-4 text-left" style={reveal()}>
-            <h2 className="mb-2 text-sm font-semibold text-inksoft">
-              {t('gameover.desglosBenestar')}
-            </h2>
-            <div className="space-y-1">
-              {desglosBenestarAdult(state).map((c) => (
-                <div key={c.clau} className="flex justify-between text-sm">
-                  <span className="text-inkfaint">{t(c.clau)}</span>
-                  <span
-                    className={
-                      c.valor > 0
-                        ? 'font-medium text-money'
-                        : c.valor < 0
-                          ? 'font-medium text-danger'
-                          : 'text-inkfaint'
-                    }
-                  >
-                    {c.valor > 0 ? '+' : ''}
-                    {c.valor}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="animate-reveal-up mt-4 text-left" style={reveal()}>
+            <BenestarDesglos state={state} />
           </div>
         )}
 
