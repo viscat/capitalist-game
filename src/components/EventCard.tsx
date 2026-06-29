@@ -2,6 +2,7 @@ import type { EventCategory, GameEvent, LogEntry } from '../domain/types'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
+import { Icon, TriangleAlert, Users } from './icons'
 import { EffectList } from './EffectList'
 
 function CategoryBadge({ category }: { category: EventCategory }) {
@@ -72,13 +73,15 @@ export function EventCard({
           <EffectList effect={lastEntry.effect} />
         </div>
         {lastEntry.donacio ? (
-          <p className="mt-3 text-sm font-medium text-money">
-            👪 {t('note.donacio', { amount: formatEuros(lastEntry.donacio) })}
+          <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-money">
+            <Icon icon={Users} size={15} />
+            {t('note.donacio', { amount: formatEuros(lastEntry.donacio) })}
           </p>
         ) : null}
         {lastEntry.descobert ? (
-          <p className="mt-1 text-sm font-medium text-gold">
-            ⚠️ {t('note.descobert', { amount: formatEuros(lastEntry.descobert) })}
+          <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-gold">
+            <Icon icon={TriangleAlert} size={15} />
+            {t('note.descobert', { amount: formatEuros(lastEntry.descobert) })}
           </p>
         ) : null}
       </div>

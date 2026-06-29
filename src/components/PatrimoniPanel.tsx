@@ -16,6 +16,7 @@ import type {
 } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { Icon, Scale } from './icons'
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -170,10 +171,13 @@ export function PatrimoniPanel({
             <Row label={t('create.origen')} value={t(`origen.${identitat.origen}`)} />
           )}
           {esAdult && factorSalariPersonal(identitat) < 1 && (
-            <p className="text-xs text-gold/80">
-              ⚖️ {t('patrimoni.bretxa', {
-                pct: Math.round((1 - factorSalariPersonal(identitat)) * 100),
-              })}
+            <p className="flex items-start gap-1 text-xs text-gold/80">
+              <Icon icon={Scale} size={12} className="mt-0.5 shrink-0" />
+              <span>
+                {t('patrimoni.bretxa', {
+                  pct: Math.round((1 - factorSalariPersonal(identitat)) * 100),
+                })}
+              </span>
             </p>
           )}
           {identitat && (

@@ -15,6 +15,7 @@ import type { NivellSouEmpleats } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { Factory, Icon, Users } from './icons'
 
 const SOUS: readonly NivellSouEmpleats[] = [
   'precari',
@@ -53,7 +54,7 @@ export function EmpresaPanel() {
     const pas = 5000
     return (
       <div className="rounded-2xl bg-surface/60 p-4 ring-1 ring-line/50">
-        <h3 className="text-sm font-bold text-ink">🏭 {t('empresa.fundar.titol')}</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-ink"><Icon icon={Factory} size={16} /> {t('empresa.fundar.titol')}</h3>
         <p className="mt-1 text-xs leading-relaxed text-inksoft">
           {t('empresa.fundar.avis')}
         </p>
@@ -107,7 +108,7 @@ export function EmpresaPanel() {
   return (
     <div className="rounded-2xl bg-surface/60 p-4 ring-1 ring-line/50">
       <div className="flex items-baseline justify-between">
-        <h3 className="text-sm font-bold text-ink">🏭 {t('empresa.titol')}</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-bold text-ink"><Icon icon={Factory} size={16} /> {t('empresa.titol')}</h3>
         <span className="text-xs text-inkfaint">
           {t('empresa.anys', { anys: empresa.anys })}
         </span>
@@ -128,7 +129,7 @@ export function EmpresaPanel() {
       {/* Sou dels empleats: plusvàlua vs moralitat */}
       <div className="mt-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-medium text-inksoft">✊ {t('empresa.souEmpleats')}</span>
+          <span className="flex items-center gap-1.5 font-medium text-inksoft"><Icon icon={Users} size={14} /> {t('empresa.souEmpleats')}</span>
           <span className="text-inkfaint">
             {formatEuros(cfg.souAnual)}/{t('empresa.any')}
           </span>

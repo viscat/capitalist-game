@@ -7,6 +7,7 @@ import { nomComplet } from '../domain/identitat'
 import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
 import { BenestarDesglos } from './BenestarDesglos'
+import { BarChart3, Icon } from './icons'
 import { BudgetPanel } from './BudgetPanel'
 import { EmpresaPanel } from './EmpresaPanel'
 import { GameHud } from './GameHud'
@@ -123,9 +124,9 @@ export function GameScreen() {
       {/* Accés al detall (patrimoni + historial) en un calaix, per no competir per l'espai. */}
       <button
         onClick={() => setDetallObert(true)}
-        className="mt-4 w-full rounded-xl border border-line/60 bg-surface/50 py-2 text-xs font-medium text-inksoft transition hover:bg-surface"
+        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-line/60 bg-surface/50 py-2 text-xs font-medium text-inksoft transition hover:bg-surface"
       >
-        📊 {t('game.detalls')}
+        <Icon icon={BarChart3} size={14} /> {t('game.detalls')}
       </button>
 
       {detallObert && (
@@ -176,7 +177,9 @@ function DetallDrawer({
       />
       <div className="relative max-h-[80dvh] overflow-y-auto rounded-t-2xl border-t border-line/60 bg-bg2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-card animate-bar-up">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-ink">📊 {t('game.detalls')}</h2>
+          <h2 className="flex items-center gap-1.5 text-sm font-bold text-ink">
+            <Icon icon={BarChart3} size={16} /> {t('game.detalls')}
+          </h2>
           <button
             onClick={onClose}
             className="rounded-lg bg-surface2 px-3 py-1 text-sm text-inksoft transition hover:text-ink"

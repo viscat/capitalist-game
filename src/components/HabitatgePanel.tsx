@@ -12,6 +12,7 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
+import { HeartHandshake, Home, Icon, Lock } from './icons'
 
 type Vista = 'resum' | 'comprar' | { propietatId: string }
 
@@ -76,7 +77,9 @@ export function HabitatgePanel() {
           />
           {oferta.enParella && (
             <div className="flex justify-between">
-              <span className="text-inksoft">💑 {t('habitatge.parellaMeitat')}</span>
+              <span className="flex items-center gap-1.5 text-inksoft">
+                <Icon icon={HeartHandshake} size={14} /> {t('habitatge.parellaMeitat')}
+              </span>
               <span className="font-medium text-money">−50%</span>
             </div>
           )}
@@ -136,10 +139,14 @@ export function HabitatgePanel() {
         </div>
 
         {!oferta.teEntrada && (
-          <p className="mt-3 text-xs text-gold">🔒 {t('habitatge.noEntrada')}</p>
+          <p className="mt-3 flex items-center gap-1 text-xs text-gold">
+            <Icon icon={Lock} size={12} /> {t('habitatge.noEntrada')}
+          </p>
         )}
         {oferta.teEntrada && !oferta.bancAprova && (
-          <p className="mt-3 text-xs text-gold">🔒 {t('habitatge.bancRebutja')}</p>
+          <p className="mt-3 flex items-center gap-1 text-xs text-gold">
+            <Icon icon={Lock} size={12} /> {t('habitatge.bancRebutja')}
+          </p>
         )}
 
         <button
@@ -203,9 +210,9 @@ export function HabitatgePanel() {
         <div className="space-y-2">
           <button
             onClick={() => setVista('comprar')}
-            className="w-full rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
           >
-            🏠 {t('habitatge.comprarMes')}
+            <Icon icon={Home} size={16} /> {t('habitatge.comprarMes')}
           </button>
           <p className="pt-1 text-xs text-inkfaint">{t('habitatge.vendre.titol')}</p>
           {state.person.patrimoni.cases.map((valor, i) => {
@@ -260,9 +267,9 @@ export function HabitatgePanel() {
           })}
           <button
             onClick={() => setVista('comprar')}
-            className="w-full rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
           >
-            🏠 {t('habitatge.comprar')}
+            <Icon icon={Home} size={16} /> {t('habitatge.comprar')}
           </button>
           {!esPropietari && habitatge.tipus !== 'amb_pares' && (
             <button

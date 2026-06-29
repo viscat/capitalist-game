@@ -10,6 +10,7 @@ import type {
 } from '../domain/types'
 import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
+import { Dices, Icon } from './icons'
 
 function Segmented<T extends string>({
   label,
@@ -207,9 +208,9 @@ export function CharacterCreation({
         <div className="flex gap-3">
           <button
             onClick={() => setId(randomIdentitat())}
-            className="rounded-xl bg-surface2 px-4 py-3 font-medium text-ink transition hover:bg-line"
+            className="flex items-center gap-1.5 rounded-xl bg-surface2 px-4 py-3 font-medium text-ink transition hover:bg-line"
           >
-            🎲 {t('create.random')}
+            <Icon icon={Dices} size={16} /> {t('create.random')}
           </button>
           <button
             onClick={comencar}

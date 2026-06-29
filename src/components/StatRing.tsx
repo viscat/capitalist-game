@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { statRampHex } from '../lib/format'
 
 /** Mini-anell de progrés (SVG, sense dependències) per a stats 0..100 amb icona al centre. */
@@ -9,7 +10,7 @@ export function StatRing({
   label,
 }: {
   value: number
-  icon: string
+  icon: ReactNode
   size?: number
   label?: string
 }) {
@@ -59,7 +60,7 @@ export function StatRing({
         />
       </svg>
       <span className="absolute flex flex-col items-center leading-none">
-        <span className="text-[13px]" aria-hidden>
+        <span className="text-inksoft" aria-hidden>
           {icon}
         </span>
         <span

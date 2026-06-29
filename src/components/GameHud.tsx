@@ -3,6 +3,7 @@ import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEurosCompact } from '../lib/format'
 import { useCountUp } from '../lib/useCountUp'
+import { Baby, Banknote, HeartHandshake, Home, Icon } from './icons'
 import { SalutAvis, StatRings } from './StatRings'
 import { Tip } from './Tip'
 
@@ -71,10 +72,14 @@ export function GameHud({
         </button>
         <div className="min-w-0 flex-1">
           {nom && <div className="truncate text-sm font-semibold text-ink">{nom}</div>}
-          <div className="truncate text-[11px] text-inkfaint">
-            {subtitol}
-            {parella && ' · 💑'}
-            {fills > 0 && ` · 👶 ${fills}`}
+          <div className="flex items-center gap-1 truncate text-[11px] text-inkfaint">
+            <span className="truncate">{subtitol}</span>
+            {parella && <Icon icon={HeartHandshake} size={12} className="shrink-0" />}
+            {fills > 0 && (
+              <span className="flex shrink-0 items-center gap-0.5">
+                <Icon icon={Baby} size={12} /> {fills}
+              </span>
+            )}
           </div>
         </div>
         {generacio > 1 && (
@@ -125,8 +130,12 @@ export function GameHud({
             // Desdoblament: el net inclou la casa, que s'aprecia sola. Separa el LÍQUID
             // (el que pots gastar) de l'IMMOBILIARI perquè no sembli que tens més diners.
             <div className="mt-0.5 flex justify-end gap-2 text-[10px] tabular-nums text-inkfaint">
-              <span title={t('patrimoni.liquid')}>💶 {formatEurosCompact(liquid)}</span>
-              <span title={t('patrimoni.immobiliari')}>🏠 {formatEurosCompact(immobiliari)}</span>
+              <span title={t('patrimoni.liquid')} className="flex items-center gap-0.5">
+                <Icon icon={Banknote} size={12} /> {formatEurosCompact(liquid)}
+              </span>
+              <span title={t('patrimoni.immobiliari')} className="flex items-center gap-0.5">
+                <Icon icon={Home} size={12} /> {formatEurosCompact(immobiliari)}
+              </span>
             </div>
           )}
         </button>

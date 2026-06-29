@@ -5,6 +5,7 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
+import { Banknote, Home, Hourglass, Icon, Lock } from './icons'
 import { EffectList } from './EffectList'
 
 /**
@@ -76,16 +77,19 @@ export function ActionPanel() {
       {/* Pressupostos de l'any: temps i diners. */}
       <div className="mb-3 space-y-2 rounded-lg bg-bg/40 p-3">
         <div className="flex items-baseline justify-between text-xs">
-          <span className="text-inksoft">
-            ⏳ {t('action.temps')}: {tempsRestant}/{tempsTotal} {t('action.setmanes')}
+          <span className="flex items-center gap-1 text-inksoft">
+            <Icon icon={Hourglass} size={12} /> {t('action.temps')}: {tempsRestant}/{tempsTotal}{' '}
+            {t('action.setmanes')}
           </span>
-          <span className={`font-medium ${dinersRestants < 0 ? 'text-danger' : 'text-money'}`}>
-            💶 {formatEuros(dinersRestants)}
+          <span
+            className={`flex items-center gap-1 font-medium ${dinersRestants < 0 ? 'text-danger' : 'text-money'}`}
+          >
+            <Icon icon={Banknote} size={12} /> {formatEuros(dinersRestants)}
           </span>
         </div>
         {tempsCompromes > 0 && (
-          <p className="text-xs text-gold/80">
-            🏠 {t('action.ajudaCasa', { setmanes: tempsCompromes })}
+          <p className="flex items-center gap-1 text-xs text-gold/80">
+            <Icon icon={Home} size={12} /> {t('action.ajudaCasa', { setmanes: tempsCompromes })}
           </p>
         )}
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface2">
@@ -118,14 +122,14 @@ export function ActionPanel() {
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium text-ink">{t(action.labelKey)}</span>
                 {setmanes > 0 && (
-                  <span className="shrink-0 text-xs text-inksoft">
-                    ⏳ {setmanes} {t('action.setmanes')}
+                  <span className="flex shrink-0 items-center gap-1 text-xs text-inksoft">
+                    <Icon icon={Hourglass} size={12} /> {setmanes} {t('action.setmanes')}
                   </span>
                 )}
               </div>
               {disabled && reasonKey ? (
-                <span className="text-xs font-medium text-gold/90">
-                  🔒 {t(reasonKey)}
+                <span className="flex items-center gap-1 text-xs font-medium text-gold/90">
+                  <Icon icon={Lock} size={12} /> {t(reasonKey)}
                 </span>
               ) : (
                 <span className="text-xs text-inksoft">{t(action.descKey)}</span>
