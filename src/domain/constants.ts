@@ -214,7 +214,7 @@ export const SALUT_INVERSIO_DELTA = 5
 /** Cost anual (real, s'escala amb l'IPC) de seguir formant-se al llarg de la vida. */
 export const COST_FORMACIO_ANUAL = 2200
 /** Increment anual de nivell acadèmic (0..1) per qui inverteix en formació contínua. */
-export const FORMACIO_INVERSIO_DELTA = 0.05
+export const FORMACIO_INVERSIO_DELTA = 0.015
 
 // --- Rendiment anual de la inversió (fase de carrera) ---
 
@@ -225,7 +225,7 @@ export const FORMACIO_INVERSIO_DELTA = 0.05
  * havent-hi anys negatius (cal aguantar els sotracs), però el compost no dispara a milions.
  */
 export const INDEX_RENDIMENT_MIN = -0.09
-export const INDEX_RENDIMENT_RANG = 0.28
+export const INDEX_RENDIMENT_RANG = 0.27
 
 // --- Universitat i cost de vida adult ---
 
