@@ -1258,6 +1258,19 @@ export const ca: Record<string, string> = {
   'event.la_meva_llar.title': 'La meva llar',
   'event.la_meva_llar.desc':
     'Tens casa pròpia: ningú no et pot fer fora. La seguretat d’un sostre que és teu dóna pau.',
+  // Atzar: la sort i la mala sort de la vida (magnitud aleatòria).
+  'event.cop_de_sort.title': 'Un cop de sort',
+  'event.cop_de_sort.desc':
+    'Un premi petit, una bonificació inesperada, una venda rodona… de tant en tant la sort somriu. Cap a la cartera!',
+  'event.imprevist_car.title': 'Un imprevist car',
+  'event.imprevist_car.desc':
+    'El cotxe, una multa, una reparació urgent, un viatge no previst… la vida té sorpreses cares que toca pagar.',
+  'event.herencia_llunyana.title': 'Una herència inesperada',
+  'event.herencia_llunyana.desc':
+    'Un parent llunyà que amb prou feines coneixies t’ha deixat alguna cosa. Ni te l’esperaves.',
+  'event.estafa.title': 'T’han estafat',
+  'event.estafa.desc':
+    'Una inversió que prometia molt era un frau. Quan te n’adones, ja has perdut una part dels estalvis. Ningú no n’està exempt.',
   'event.coneixer_parella.title': 'Una relació que arrela',
   'event.coneixer_parella.desc':
     'Coneixes algú amb qui compartir la vida. Formar parella no es compra amb el sou (pesa molt al benestar) i, a més, repartiu les despeses de la llar i obre la porta a tenir fills.',
