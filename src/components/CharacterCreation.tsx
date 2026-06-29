@@ -26,7 +26,7 @@ function Segmented<T extends string>({
 }) {
   return (
     <div>
-      <span className="text-xs text-slate-400">{label}</span>
+      <span className="text-xs text-inksoft">{label}</span>
       <div className="mt-1 flex flex-wrap gap-1.5">
         {options.map((o) => (
           <button
@@ -35,8 +35,8 @@ function Segmented<T extends string>({
             onClick={() => onChange(o)}
             className={`min-h-9 flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition ${
               value === o
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-900/60 text-slate-300 ring-1 ring-slate-700 hover:bg-slate-700'
+                ? 'bg-accent text-white'
+                : 'bg-bg/60 text-inksoft ring-1 ring-line hover:bg-surface2'
             }`}
           >
             {optionLabel(o)}
@@ -62,11 +62,11 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-xs text-slate-400">{label}</span>
+      <span className="text-xs text-inksoft">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-lg bg-slate-900/60 px-3 py-2 text-slate-100 ring-1 ring-slate-700 outline-none focus:ring-indigo-500"
+        className="mt-1 w-full rounded-lg bg-bg/60 px-3 py-2 text-ink ring-1 ring-line outline-none focus:ring-accent"
       />
     </label>
   )
@@ -110,18 +110,18 @@ export function CharacterCreation({
     <div className="mx-auto max-w-lg p-6">
       <button
         onClick={onBack}
-        className="mb-4 text-sm text-slate-400 transition hover:text-slate-200"
+        className="mb-4 text-sm text-inksoft transition hover:text-ink"
       >
         ←
       </button>
-      <h2 className="text-3xl font-bold text-slate-100">{t('create.title')}</h2>
-      <p className="mt-1 text-sm text-slate-400">
+      <h2 className="text-3xl font-bold text-ink">{t('create.title')}</h2>
+      <p className="mt-1 text-sm text-inksoft">
         {t(FAMILY_PRESETS[preset].nameKey)} · {t('create.bornOn', { data: avui })}
       </p>
 
       <div className="mt-6 space-y-5">
-        <div className="rounded-xl bg-slate-800/60 p-4">
-          <div className="mb-2 text-sm font-semibold text-slate-300">
+        <div className="rounded-xl bg-surface/60 p-4">
+          <div className="mb-2 text-sm font-semibold text-inksoft">
             {t('create.person')}
           </div>
           <Field
@@ -145,16 +145,16 @@ export function CharacterCreation({
               optionLabel={(o) => t(`origen.${o}`)}
             />
           </div>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-inkfaint">
             {t('create.fullName')}:{' '}
-            <span className="text-slate-300">
+            <span className="text-inksoft">
               {id.nom} {cognoms}
             </span>
           </p>
         </div>
 
-        <div className="rounded-xl bg-slate-800/60 p-4">
-          <div className="mb-2 text-sm font-semibold text-slate-300">
+        <div className="rounded-xl bg-surface/60 p-4">
+          <div className="mb-2 text-sm font-semibold text-inksoft">
             {t('create.mon')}
           </div>
           <Segmented
@@ -164,12 +164,12 @@ export function CharacterCreation({
             onChange={setRegim}
             optionLabel={(r) => t(`regim.${r}.nom`)}
           />
-          <p className="mt-2 text-xs text-slate-500">{t(`regim.${regim}.desc`)}</p>
+          <p className="mt-2 text-xs text-inkfaint">{t(`regim.${regim}.desc`)}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl bg-slate-800/60 p-4">
-            <div className="mb-2 text-sm font-semibold text-slate-300">
+          <div className="rounded-xl bg-surface/60 p-4">
+            <div className="mb-2 text-sm font-semibold text-inksoft">
               {t('create.pare')}
             </div>
             <div className="space-y-2">
@@ -185,8 +185,8 @@ export function CharacterCreation({
               />
             </div>
           </div>
-          <div className="rounded-xl bg-slate-800/60 p-4">
-            <div className="mb-2 text-sm font-semibold text-slate-300">
+          <div className="rounded-xl bg-surface/60 p-4">
+            <div className="mb-2 text-sm font-semibold text-inksoft">
               {t('create.mare')}
             </div>
             <div className="space-y-2">
@@ -207,14 +207,14 @@ export function CharacterCreation({
         <div className="flex gap-3">
           <button
             onClick={() => setId(randomIdentitat())}
-            className="rounded-xl bg-slate-700 px-4 py-3 font-medium text-slate-100 transition hover:bg-slate-600"
+            className="rounded-xl bg-surface2 px-4 py-3 font-medium text-ink transition hover:bg-line"
           >
             🎲 {t('create.random')}
           </button>
           <button
             onClick={comencar}
             disabled={!id.nom.trim()}
-            className="flex-1 rounded-xl bg-indigo-600 px-6 py-3 font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-40"
+            className="flex-1 rounded-xl bg-accent px-6 py-3 font-semibold text-white transition hover:bg-accent2 disabled:opacity-40"
           >
             {t('create.start')}
           </button>

@@ -72,12 +72,12 @@ export function EventCard({
           <EffectList effect={lastEntry.effect} />
         </div>
         {lastEntry.donacio ? (
-          <p className="mt-3 text-sm font-medium text-sky-300">
+          <p className="mt-3 text-sm font-medium text-money">
             👪 {t('note.donacio', { amount: formatEuros(lastEntry.donacio) })}
           </p>
         ) : null}
         {lastEntry.descobert ? (
-          <p className="mt-1 text-sm font-medium text-amber-400">
+          <p className="mt-1 text-sm font-medium text-gold">
             ⚠️ {t('note.descobert', { amount: formatEuros(lastEntry.descobert) })}
           </p>
         ) : null}

@@ -16,15 +16,15 @@ export function FamiliaPanel({ state }: { state: GameState }) {
   const noms = state.fillsNoms ?? []
 
   return (
-    <div className="rounded-xl bg-slate-800/60 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-slate-300">
+    <div className="rounded-xl bg-surface/60 p-4">
+      <h3 className="mb-3 text-sm font-semibold text-inksoft">
         👨‍👩‍👧 {t('familia.title')}
       </h3>
       <div className="space-y-1.5">
         {state.parella && (
           <div className="flex justify-between text-sm">
-            <span className="text-slate-400">💑 {t('familia.parella')}</span>
-            <span className="font-medium text-slate-100">{state.parella.nom}</span>
+            <span className="text-inksoft">💑 {t('familia.parella')}</span>
+            <span className="font-medium text-ink">{state.parella.nom}</span>
           </div>
         )}
         {fills > 0 &&
@@ -32,10 +32,10 @@ export function FamiliaPanel({ state }: { state: GameState }) {
             const edat = Math.max(0, edatProgenitor - edatAnys(naixements[i] ?? 0))
             return (
               <div key={i} className="flex justify-between text-sm">
-                <span className="text-slate-400">
+                <span className="text-inksoft">
                   👶 {noms[i] ?? t('familia.fill')}
                 </span>
-                <span className="font-medium text-slate-100">
+                <span className="font-medium text-ink">
                   {t('familia.edat', { anys: edat })}
                 </span>
               </div>

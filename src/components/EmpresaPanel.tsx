@@ -171,7 +171,7 @@ export function EmpresaPanel() {
       </div>
 
       {empresa.capital >= EMPRESA_CAPITAL_MAX && (
-        <p className="mt-2 text-[11px] text-amber-300/90">{t('empresa.saturada')}</p>
+        <p className="mt-2 text-[11px] text-gold/90">{t('empresa.saturada')}</p>
       )}
 
       <button

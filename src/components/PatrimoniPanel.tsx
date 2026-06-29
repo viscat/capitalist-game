@@ -20,8 +20,8 @@ import { formatEuros } from '../lib/format'
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-medium text-slate-100">{value}</span>
+      <span className="text-inksoft">{label}</span>
+      <span className="font-medium text-ink">{value}</span>
     </div>
   )
 }
@@ -34,18 +34,18 @@ function NominaRows({ brutMensual }: { brutMensual: number }) {
     <>
       <Row label={t('nomina.brut')} value={`${formatEuros(n.brut)}/mes`} />
       <div className="flex justify-between text-sm">
-        <span className="pl-3 text-slate-500">{t('nomina.ss')}</span>
-        <span className="font-medium text-amber-400">
+        <span className="pl-3 text-inkfaint">{t('nomina.ss')}</span>
+        <span className="font-medium text-gold">
           −{formatEuros(n.seguretatSocial)}
         </span>
       </div>
       <div className="flex justify-between text-sm">
-        <span className="pl-3 text-slate-500">{t('nomina.irpf')}</span>
-        <span className="font-medium text-amber-400">−{formatEuros(n.irpf)}</span>
+        <span className="pl-3 text-inkfaint">{t('nomina.irpf')}</span>
+        <span className="font-medium text-gold">−{formatEuros(n.irpf)}</span>
       </div>
       <div className="flex justify-between text-sm">
-        <span className="font-semibold text-slate-200">{t('nomina.net')}</span>
-        <span className="font-bold text-emerald-300">{formatEuros(n.net)}/mes</span>
+        <span className="font-semibold text-ink">{t('nomina.net')}</span>
+        <span className="font-bold text-money">{formatEuros(n.net)}/mes</span>
       </div>
     </>
   )
@@ -79,8 +79,8 @@ export function PatrimoniPanel({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-slate-800/60 p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-300">
+      <div className="rounded-xl bg-surface/60 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-inksoft">
           {t('patrimoni.title')}
         </h3>
         <div className="space-y-1.5">
@@ -93,34 +93,34 @@ export function PatrimoniPanel({
           )}
           {deuteConsum > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-red-300">{t('patrimoni.deute')}</span>
-              <span className="font-medium text-red-400">
+              <span className="text-danger">{t('patrimoni.deute')}</span>
+              <span className="font-medium text-danger">
                 −{formatEuros(deuteConsum)}
               </span>
             </div>
           )}
           {deuteHipoteca > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-slate-400">{t('habitatge.deute')}</span>
-              <span className="font-medium text-amber-400">
+              <span className="text-inksoft">{t('habitatge.deute')}</span>
+              <span className="font-medium text-gold">
                 −{formatEuros(deuteHipoteca)}
               </span>
             </div>
           )}
-          <div className="my-2 border-t border-slate-700" />
+          <div className="my-2 border-t border-line" />
           <div className="flex justify-between text-sm">
-            <span className="font-semibold text-slate-200">
+            <span className="font-semibold text-ink">
               {t('patrimoni.total')}
             </span>
-            <span className={`font-bold ${net < 0 ? 'text-red-400' : 'text-emerald-300'}`}>
+            <span className={`font-bold ${net < 0 ? 'text-danger' : 'text-money'}`}>
               {formatEuros(net)}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl bg-slate-800/60 p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-300">
+      <div className="rounded-xl bg-surface/60 p-4">
+        <h3 className="mb-3 text-sm font-semibold text-inksoft">
           {t('context.title')}
         </h3>
         <div className="space-y-1.5">
@@ -170,7 +170,7 @@ export function PatrimoniPanel({
             <Row label={t('create.origen')} value={t(`origen.${identitat.origen}`)} />
           )}
           {esAdult && factorSalariPersonal(identitat) < 1 && (
-            <p className="text-xs text-amber-400/80">
+            <p className="text-xs text-gold/80">
               ⚖️ {t('patrimoni.bretxa', {
                 pct: Math.round((1 - factorSalariPersonal(identitat)) * 100),
               })}

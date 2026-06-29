@@ -38,7 +38,7 @@ export function Tip({
         className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold leading-none ring-1 transition ${
           obert
             ? 'bg-accent/30 text-ink ring-accent/50'
-            : 'bg-slate-700/70 text-slate-300 ring-slate-600 hover:bg-slate-600'
+            : 'bg-surface2/70 text-inksoft ring-line hover:bg-line'
         }`}
       >
         i

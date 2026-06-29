@@ -147,23 +147,23 @@ export function InvestmentPanel() {
   const margeAnual = Math.max(0, assignable - total)
 
   return (
-    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-slate-300">{t('pla.title')}</h3>
-        <span className="text-sm text-slate-400">
+        <h3 className="text-sm font-semibold text-inksoft">{t('pla.title')}</h3>
+        <span className="text-sm text-inksoft">
           {t('pla.income')}: {formatEuros(perMes(income))}/mes
         </span>
       </div>
 
       {deuteActual > 0 && (
-        <div ref={deuteRef} className="mb-3 rounded-lg border border-red-500/40 bg-red-950/30 p-3">
+        <div ref={deuteRef} className="mb-3 rounded-lg border border-danger/40 bg-danger/10 p-3">
           <div className="flex justify-between text-sm">
-            <span className="font-semibold text-red-300">{t('pla.deute')}</span>
-            <span className="font-mono font-bold text-red-400">
+            <span className="font-semibold text-danger">{t('pla.deute')}</span>
+            <span className="font-mono font-bold text-danger">
               −{formatEuros(deuteActual)}
             </span>
           </div>
-          <p className="mt-1 text-xs text-red-300/80">
+          <p className="mt-1 text-xs text-danger/80">
             {t('pla.deute.nota', {
               amount: formatEuros(deuteActual),
               pct: interesDeutePct,
@@ -175,32 +175,32 @@ export function InvestmentPanel() {
       <div className="space-y-2">
         {ambPares ? (
           /* Vius amb els pares: un sol cost (manutenció + ajuda a casa). No es tria nivell. */
-          <div className="rounded-lg bg-slate-700/30 p-3">
+          <div className="rounded-lg bg-surface2/30 p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-slate-200">
+                <div className="text-sm font-medium text-ink">
                   {t('pla.contribucioLlar')}
                 </div>
-                <div className="text-xs text-slate-500">{t('pla.contribucioLlar.desc')}</div>
+                <div className="text-xs text-inkfaint">{t('pla.contribucioLlar.desc')}</div>
               </div>
-              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+              <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costVida))}
               </span>
             </div>
             {(state.familia.classe === 'pobra' ||
               state.familia.classe === 'treballadora') && (
-              <p className="mt-1 text-xs text-amber-400/80">🏠 {t('pla.contribucioLlar.humil')}</p>
+              <p className="mt-1 text-xs text-gold/80">🏠 {t('pla.contribucioLlar.humil')}</p>
             )}
           </div>
         ) : (
           /* Vius sol: cost de vida sencer; tries el nivell (mínim/mig/alt). */
-          <div className="rounded-lg bg-slate-700/30 p-3">
+          <div className="rounded-lg bg-surface2/30 p-3">
             <div className="mb-2 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-slate-200">{t('pla.costVida')}</div>
-                <div className="text-xs text-slate-500">{t('pla.costVida.desc')}</div>
+                <div className="text-sm font-medium text-ink">{t('pla.costVida')}</div>
+                <div className="text-xs text-inkfaint">{t('pla.costVida.desc')}</div>
               </div>
-              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+              <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costVida))}
               </span>
             </div>
@@ -211,8 +211,8 @@ export function InvestmentPanel() {
                   onClick={() => setNivellVida(n)}
                   className={`min-h-9 flex-1 rounded-md px-2 py-2 text-xs transition ${
                     nivell === n
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      ? 'bg-accent text-white'
+                      : 'bg-surface2 text-inksoft hover:bg-line'
                   }`}
                 >
                   {t(`nivellVida.${n}`)}
@@ -225,10 +225,10 @@ export function InvestmentPanel() {
                 disabled={!potFrugal}
                 className={`mt-2 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs transition ${
                   !potFrugal
-                    ? 'cursor-not-allowed bg-slate-800 text-slate-500'
+                    ? 'cursor-not-allowed bg-surface text-inkfaint'
                     : state.vidaSenzilla
-                      ? 'bg-emerald-700/40 text-emerald-200 ring-1 ring-emerald-600/50'
-                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      ? 'bg-money/15 text-money ring-1 ring-money/50'
+                      : 'bg-surface2 text-inksoft hover:bg-line'
                 }`}
               >
                 <span>
@@ -238,7 +238,7 @@ export function InvestmentPanel() {
               </button>
             )}
             {nivell === 'minim' && !potFrugal && (
-              <p className="mt-1 text-xs text-amber-400/80">
+              <p className="mt-1 text-xs text-gold/80">
                 {t('pla.frugalitat.bloquejat', {
                   nivell: nivellFrugalitat,
                   llindar: FRUGALITAT_LLINDAR,
@@ -246,22 +246,22 @@ export function InvestmentPanel() {
               </p>
             )}
             {nivell === 'minim' && potFrugal && state.vidaSenzilla && (
-              <p className="mt-1 text-xs text-emerald-300/80">{t('pla.vidaSenzilla.nota')}</p>
+              <p className="mt-1 text-xs text-money/80">{t('pla.vidaSenzilla.nota')}</p>
             )}
             {benNivell !== 0 && (
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-inksoft">
                 {t('nivellVida.benestar')}: {benNivell > 0 ? '+' : ''}
                 {benNivell}
               </p>
             )}
             {cobertFamilia > 0 && (
-              <p className="mt-1 text-xs text-emerald-300/90">
+              <p className="mt-1 text-xs text-money/90">
                 🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
               </p>
             )}
             {(state.familia.classe === 'pobra' ||
               state.familia.classe === 'treballadora') && (
-              <p className="mt-1 text-xs text-amber-400/80">💸 {t('pla.sobrecost')}</p>
+              <p className="mt-1 text-xs text-gold/80">💸 {t('pla.sobrecost')}</p>
             )}
           </div>
         )}
@@ -270,16 +270,16 @@ export function InvestmentPanel() {
         {costHab > 0 && (
           <div className="flex items-center justify-between gap-3 opacity-90">
             <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-300">
+              <div className="text-sm font-medium text-inksoft">
                 {t('pla.costHabitatge')}
               </div>
-              <div className="text-xs text-slate-500">{t('pla.costHabitatge.desc')}</div>
+              <div className="text-xs text-inkfaint">{t('pla.costHabitatge.desc')}</div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500" aria-hidden>
+              <span className="text-inkfaint" aria-hidden>
                 🔒
               </span>
-              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+              <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costHab))}
               </span>
             </div>
@@ -290,16 +290,16 @@ export function InvestmentPanel() {
         {costFills > 0 && (
           <div className="flex items-center justify-between gap-3 opacity-90">
             <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-300">
+              <div className="text-sm font-medium text-inksoft">
                 👶 {t('pla.costFills', { fills: fillsDeps })}
               </div>
-              <div className="text-xs text-slate-500">{t('pla.costFills.desc')}</div>
+              <div className="text-xs text-inkfaint">{t('pla.costFills.desc')}</div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-slate-500" aria-hidden>
+              <span className="text-inkfaint" aria-hidden>
                 🔒
               </span>
-              <span className="w-20 text-right font-mono text-sm text-amber-300/90">
+              <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costFills))}
               </span>
             </div>
@@ -310,8 +310,8 @@ export function InvestmentPanel() {
         {CATEGORIES.map((k) => (
           <div key={k} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-100">{t(`pla.${k}`)}</div>
-              <div className="text-xs text-slate-500">{t(`pla.${k}.desc`)}</div>
+              <div className="text-sm font-medium text-ink">{t(`pla.${k}`)}</div>
+              <div className="text-xs text-inkfaint">{t(`pla.${k}.desc`)}</div>
             </div>
             <AmountStepper
               value={perMes(pla[k])}
@@ -325,7 +325,7 @@ export function InvestmentPanel() {
         ))}
 
         {/* Accions fixes: invertir en salut i en formació (cost anual, milloren els stats). */}
-        <div className="space-y-2 border-t border-slate-700/60 pt-3">
+        <div className="space-y-2 border-t border-line/60 pt-3">
           <Toggle
             on={Boolean(state.inversioSalut)}
             icon="❤️‍🩹"
@@ -345,16 +345,16 @@ export function InvestmentPanel() {
         </div>
       </div>
 
-      <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-sm">
+      <div className="mt-3 space-y-1 border-t border-line pt-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('pla.benestar')}</span>
+          <span className="text-inksoft">{t('pla.benestar')}</span>
           <span
             className={`font-semibold ${
               benestarAny > 0
-                ? 'text-emerald-300'
+                ? 'text-money'
                 : benestarAny < 0
-                  ? 'text-amber-400'
-                  : 'text-slate-300'
+                  ? 'text-gold'
+                  : 'text-inksoft'
             }`}
           >
             {benestarAny > 0 ? '+' : ''}
@@ -362,18 +362,18 @@ export function InvestmentPanel() {
           </span>
         </div>
         {benestar < 0 && (
-          <p className="text-xs text-amber-400/80">
+          <p className="text-xs text-gold/80">
             {t('pla.benestar.min', { min: formatEuros(perMes(minOci)) })}
           </p>
         )}
-        <p className="text-xs text-sky-300/90">
+        <p className="text-xs text-money/80">
           📈 {t('pla.notaIndex', { pct: INDEX_MITJANA_PCT })}
         </p>
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('pla.balanc')}</span>
+          <span className="text-inksoft">{t('pla.balanc')}</span>
           <span
             className={`font-semibold ${
-              balancMes < 0 ? 'text-amber-400' : 'text-emerald-300'
+              balancMes < 0 ? 'text-gold' : 'text-money'
             }`}
           >
             {balancMes >= 0 ? '+' : ''}
@@ -381,10 +381,10 @@ export function InvestmentPanel() {
           </span>
         </div>
         {balancMes < 0 && deficit.descobert <= 0 && (
-          <p className="text-xs text-amber-400/80">{t('pla.balanc.estalvis')}</p>
+          <p className="text-xs text-gold/80">{t('pla.balanc.estalvis')}</p>
         )}
         {deficit.descobert > 0 && (
-          <p className="text-xs text-red-400">
+          <p className="text-xs text-danger">
             {t('pla.balanc.deute', {
               amount: formatEuros(perMes(deficit.descobert)),
             })}
@@ -392,22 +392,22 @@ export function InvestmentPanel() {
         )}
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+      <div className="mt-3 flex items-center justify-between text-xs text-inkfaint">
         <span>🌍 {t('pla.petjada')}</span>
         <span
           className={
             petjada === 'alta'
-              ? 'text-amber-400/90'
+              ? 'text-gold/90'
               : petjada === 'mitjana'
-                ? 'text-slate-400'
-                : 'text-emerald-300/80'
+                ? 'text-inksoft'
+                : 'text-money/80'
           }
         >
           {t(`pla.petjada.${petjada}`)}
         </span>
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">{t('pla.nota')}</p>
+      <p className="mt-3 text-xs text-inkfaint">{t('pla.nota')}</p>
     </div>
   )
 }
@@ -431,15 +431,15 @@ function Toggle({
       onClick={onClick}
       className={`flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left text-xs transition ${
         on
-          ? 'bg-emerald-700/40 text-emerald-100 ring-1 ring-emerald-600/50'
-          : 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
+          ? 'bg-money/15 text-money ring-1 ring-money/50'
+          : 'bg-surface2/60 text-inksoft hover:bg-surface2'
       }`}
     >
       <span className="min-w-0">
         <span className="block font-medium">
           {icon} {label}
         </span>
-        <span className="block text-[11px] text-slate-400">{nota}</span>
+        <span className="block text-[11px] text-inksoft">{nota}</span>
       </span>
       <span className="shrink-0 text-base">{on ? '✓' : '+'}</span>
     </button>
