@@ -616,6 +616,10 @@ export const ca: Record<string, string> = {
   'empresa.risc': 'Risc tancar',
   'empresa.beneficiTipic':
     'Benefici típic ~{benefici}/any (varia amb la sort; pot ser negatiu un mal any).',
+  'empresa.zeroEmpleats':
+    'Sense empleats, el benefici és només el ~4% del capital: creix molt lentament. Et falten {falta} de capital (reinvertint) per contractar el PRIMER empleat i començar a generar plusvàlua.',
+  'empresa.seguentEmpleat':
+    'Et falten {falta} de capital per al {n}è empleat (cada empleat suma plusvàlua).',
   'empresa.souEmpleats': 'Sou dels empleats',
   'empresa.historic.titol': 'Historial de l’empresa',
   'empresa.historic.any': 'Edat',

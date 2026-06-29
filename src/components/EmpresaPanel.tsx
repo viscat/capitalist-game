@@ -2,6 +2,7 @@ import { useState } from 'react'
 import {
   EMPRESA_CAPITAL_MAX,
   EMPRESA_CAPITAL_MIN,
+  EMPRESA_CAPITAL_PER_EMPLEAT,
   EMPRESA_FRACAS_BASE,
   EMPRESA_SOU_EMPLEATS,
 } from '../domain/constants'
@@ -104,6 +105,14 @@ export function EmpresaPanel() {
   const beneficiTipic = beneficiEmpresaAnual(empresa, 1)
   const reinv = state.reinversioEmpresa ?? 0.5
   const cfg = EMPRESA_SOU_EMPLEATS[empresa.souEmpleats]
+  // Quant capital falta per al SEGÜENT empleat (1 empleat per cada EMPRESA_CAPITAL_PER_EMPLEAT).
+  // Amb 0 empleats el benefici és només el ~4% del capital: cal fer-ho explícit.
+  const maxEmpleats = Math.floor(EMPRESA_CAPITAL_MAX / EMPRESA_CAPITAL_PER_EMPLEAT)
+  const potCreixerPlantilla = empleats < maxEmpleats
+  const faltaSeguentEmpleat = Math.max(
+    0,
+    (empleats + 1) * EMPRESA_CAPITAL_PER_EMPLEAT - empresa.capital,
+  )
 
   return (
     <div className="rounded-2xl bg-surface/60 p-4 ring-1 ring-line/50">
@@ -125,6 +134,23 @@ export function EmpresaPanel() {
       <p className="mt-2 text-[11px] leading-relaxed text-inkfaint">
         {t('empresa.beneficiTipic', { benefici: formatEuros(Math.max(0, beneficiTipic)) })}
       </p>
+
+      {/* Plantilla: amb 0 empleats el benefici és només el ~4% del capital; avisa quant en falta
+          per al primer/següent empleat (es contracta sol en créixer el capital, reinvertint). */}
+      {empleats === 0 ? (
+        <p className="mt-2 rounded-lg bg-gold/10 p-2 text-[11px] leading-relaxed text-gold/90 ring-1 ring-gold/25">
+          {t('empresa.zeroEmpleats', { falta: formatEuros(faltaSeguentEmpleat) })}
+        </p>
+      ) : (
+        potCreixerPlantilla && (
+          <p className="mt-2 text-[11px] leading-relaxed text-inkfaint">
+            {t('empresa.seguentEmpleat', {
+              falta: formatEuros(faltaSeguentEmpleat),
+              n: empleats + 1,
+            })}
+          </p>
+        )
+      )}
 
       {/* Sou dels empleats: plusvàlua vs moralitat */}
       <div className="mt-3">
