@@ -502,6 +502,12 @@ export interface GameState {
    * (més explotació) i menys moralitat. Absent = 'mercat' (neutral) mentre tinguis negoci.
    */
   souEmpleats?: NivellSouEmpleats
+  /**
+   * Torn de l'última OFERTA de vida personal (buscar parella / tenir un fill). El motor GARANTEIX
+   * que aquestes opcions s'ofereixin de manera fiable mentre s'hi és elegible (cada pocs anys), en
+   * lloc de deixar-ho només a l'atzar dels esdeveniments. Així formar família sempre és una opció.
+   */
+  ultimaOfertaVida?: number
   /** Generació de la dinastia (1 = protagonista inicial; 2+ = descendents continuats). */
   generacio?: number
   /**
