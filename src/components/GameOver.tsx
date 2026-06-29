@@ -94,16 +94,14 @@ export function GameOver() {
   // QUÈ HA MARCAT LA VIDA: atribueix el resultat a la seva FONT (origen, política, esforç,
   // col·lectiu, explotació, herència). Llegibilitat de la causa: el gradient és ESTRUCTURA, no
   // només mèrit. Cada factor és [icona, text]; només es mostren els que han pesat de debò.
-  const explotador =
-    state.souEmpleats === 'precari' ||
-    state.souEmpleats === 'molt_baix' ||
-    state.souEmpleats === 'baix'
+  const sou = state.empresa?.souEmpleats
+  const explotador = sou === 'precari' || sou === 'molt_baix' || sou === 'baix'
   const factors: [string, string][] = [
     ['🎲', t('gameover.factor.origen', { classe: t(`family.${state.familia.classe}.name`) })],
     ['🏛️', t('gameover.factor.regim', { regim: t(`regim.${state.regimPolitic ?? 'mixt'}.nom`) })],
   ]
   if (state.teDiploma) factors.push(['🎓', t('gameover.factor.diploma')])
-  if (state.negociActiu)
+  if (state.empresa || (state.intentsEmpresa ?? 0) > 0)
     factors.push([
       '🏭',
       explotador ? t('gameover.factor.negoci_explotador') : t('gameover.factor.negoci_just'),

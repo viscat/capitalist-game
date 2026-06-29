@@ -11,9 +11,10 @@ import {
   benestarNivellVida,
   clampBenestar,
   clampMoralitat,
+  beneficiEmpresaAnual,
+  pFracasEmpresaAnual,
   cobreixVidaFamiliar,
   contribucioLlar,
-  dividendNegociAnual,
   nivellMoralitat,
   costVidaAnual,
   costVidaPropi,
@@ -637,14 +638,22 @@ describe('moralitat', () => {
     expect(bo.stats.moralitat).toBe(80)
   })
 
-  it('el dividend del negoci puja com més baix pagues els empleats', () => {
-    const base: GameState = { negociActiu: true } as GameState
-    const precari = dividendNegociAnual({ ...base, souEmpleats: 'precari' })
-    const mercat = dividendNegociAnual({ ...base, souEmpleats: 'mercat' })
-    const moltAlt = dividendNegociAnual({ ...base, souEmpleats: 'molt_alt' })
+  it('el benefici de l’empresa puja com més baix pagues els empleats (plusvàlua)', () => {
+    const emp = (souEmpleats: 'precari' | 'mercat' | 'molt_alt') => ({
+      capital: 200_000,
+      souEmpleats,
+      anys: 5,
+    })
+    const precari = beneficiEmpresaAnual(emp('precari'), 1)
+    const mercat = beneficiEmpresaAnual(emp('mercat'), 1)
+    const moltAlt = beneficiEmpresaAnual(emp('molt_alt'), 1)
     expect(precari).toBeGreaterThan(mercat)
     expect(mercat).toBeGreaterThan(moltAlt)
-    // Sense negoci, no hi ha dividend.
-    expect(dividendNegociAnual({} as GameState)).toBe(0)
+  })
+
+  it('la probabilitat de fracàs de l’empresa baixa amb els anys i mai és zero', () => {
+    const emp = (anys: number) => ({ capital: 100_000, souEmpleats: 'mercat' as const, anys })
+    expect(pFracasEmpresaAnual(emp(0), 0.3)).toBeGreaterThan(pFracasEmpresaAnual(emp(8), 0.3))
+    expect(pFracasEmpresaAnual(emp(20), 0.85)).toBeGreaterThan(0)
   })
 })

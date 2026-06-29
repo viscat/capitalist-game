@@ -191,16 +191,27 @@ Transicions (fites):
   `EventEffect.moralitatDelta` (clampada a `applyEffect`). **Explotar** la baixa (pagar precari als
   empleats, `frau_fiscal`, `desnonar_llogater`, `suborn_feina`); la **solidaritat** la puja
   (`donatiu_solidari`, `voluntariat`, ajudar la família, herència en vida). El **keystone** és el
-  **negoci propi amb empleats**: un `muntar_negoci` reeixit posa `negociActiu=true`; després, l'event
-  recurrent `sou_empleats` (pool `NEGOCI_GESTIO_EVENTS`, gating per `negociActiu`) fixa
-  `state.souEmpleats` (precari→molt_alt). Com més baix pagues, més **dividend anual**
-  (`dividendNegociAnual`, sumat a l'ingrés a `advanceTurn`) i menys moralitat: la **plusvàlua
-  extreta** feta mecànica. La moralitat **OBRE/TANCA esdeveniments**: les `DEPREDADOR_EVENTS`
+  sistema d'**EMPRESA pròpia** (vegeu sota i `DESIGN_EMPRENEDORIA.md`): la política de sou dels
+  empleats (`empresa.souEmpleats`, precari→molt_alt) determina la **plusvàlua** (pagar menys =
+  més benefici per a tu) i deriva la moralitat cada any. La moralitat **OBRE/TANCA esdeveniments**:
+  les `DEPREDADOR_EVENTS`
   (desnonar, suborn) només entren al pool si `moralitat < MORALITAT_LLINDAR_BO` (el sistema premia
   qui ja no té escrúpols). UI: anell ⚖️ al HUD (`StatRings`/`StatRing`), barra a `StatBar`, badge a
   `EffectList` i resum a `GameOver`. La moralitat NO és una palanca de supervivència econòmica (la
   corba de classe no en depèn): és l'eix d'**expressió de valors** i la crítica «el sistema premia
   la crueltat». No es transmet a la dinastia (cada generació comença neutral).
+- **Emprenedoria (`GameState.empresa`, vegeu DESIGN_EMPRENEDORIA.md).** Sistema d'empresa pròpia
+  REPETIBLE: `fundarEmpresa(state, capital)` hi posa estalvis EN RISC. Cada any de carrera
+  (`advanceTurn`) es juga la **supervivència** (`pFracasEmpresaAnual`: alta els primers anys, vall
+  de la mort; rebaixada per `habilitatEmprenedora` —capital humà + vincles + `intentsEmpresa` +
+  coixí—, mai zero). **Fracàs** → l'empresa tanca i es perd el capital. **Supervivència** →
+  `beneficiEmpresaAnual` (per empleat: valor·productivitat − sou = PLUSVÀLUA; pagar precari maximitza
+  el benefici i corca la moralitat) es reparteix entre **reinversió** (`state.reinversioEmpresa`,
+  creix `empresa.capital` fins a `EMPRESA_CAPITAL_MAX`) i el **teu sou** (s'afegeix a l'ingrés).
+  Tesi (validada al harness amb la política `emprenedor`): la majoria fracassen → l'origen humil
+  s'hi **arruïna** (no pot reintentar), el **ric** la pot jugar sense ruïna i amb cua d'èxit
+  (poder absorbir el fracàs ÉS el determinant). UI: `EmpresaPanel` a la carrera. Substitueix
+  l'antic `muntar_negoci`/`negociActiu`/`dividendNegociAnual` (sistema d'un sol cop).
 
 Flux d'un torn (`advanceTurn` a `src/domain/engine.ts`):
 1. Si hi ha `pendingEvent`, `pendingMilestone` o `acabat`, no avança.

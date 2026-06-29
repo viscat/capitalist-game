@@ -7,6 +7,7 @@ import { nomComplet } from '../domain/identitat'
 import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
 import { BudgetPanel } from './BudgetPanel'
+import { EmpresaPanel } from './EmpresaPanel'
 import { GameHud } from './GameHud'
 import { HabitatgePanel } from './HabitatgePanel'
 import { InvestmentPanel } from './InvestmentPanel'
@@ -99,6 +100,11 @@ export function GameScreen() {
       {!pendingEvent && esCercaFeina && <JobSearchPanel />}
       {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
       {!pendingEvent && esInversio && !esCercaFeina && <InvestmentPanel />}
+      {!pendingEvent && esCarrera && !esCercaFeina && (
+        <div className="mt-3">
+          <EmpresaPanel />
+        </div>
+      )}
       {esInversio && state.patrimoniHist && state.patrimoniHist.length >= 2 && (
         <div className="mt-3">
           <InvestmentChart hist={state.patrimoniHist} />

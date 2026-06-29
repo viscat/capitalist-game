@@ -13,10 +13,12 @@ import {
   applyMilestoneChoice,
   classeHereu,
   continuaGeneracio,
+  fundarEmpresa,
+  setSouEmpleats,
   newGame,
 } from '../engine'
 import type { NewGameSetup } from '../engine'
-import { LLOGUER_HABITACIO_ANUAL } from '../constants'
+import { EMPRESA_CAPITAL_MIN, LLOGUER_HABITACIO_ANUAL } from '../constants'
 import { FAMILY_PRESET_ORDER } from '../family/presets'
 import { edatAnys } from '../time'
 import {
@@ -57,6 +59,12 @@ export interface SimPolicy {
   collectiu?: boolean
   /** Si va a la universitat, quin centre tria (per defecte pública, la via realista). */
   universitat?: 'publica' | 'privada'
+  /**
+   * EMPRENEDOR: cada any de carrera, si no té empresa i té prou capital, en FUNDA una (invertint
+   * una fracció dels estalvis) i hi paga precari (màxima plusvàlua). Reintenta després de cada
+   * fracàs mentre li quedi capital → la tesi: qui es pot permetre fallar moltes vegades, triomfa.
+   */
+  emprenedor?: boolean
 }
 
 /**
@@ -149,19 +157,6 @@ function eventChoice(state: GameState, policy: SimPolicy): string {
       p.efectiu + p.inversions >= 18_000 + fillsActuals * 20_000
     return comode ? 'si' : 'no'
   }
-  // Emprenedoria: un jugador raonable munta un negoci si té coixí (capital i sense deute) i és
-  // prou jove per recuperar-se d'un fracàs. És una aposta de mobilitat (alta variància).
-  if (state.pendingEvent?.id === 'muntar_negoci') {
-    const p = state.person.patrimoni
-    // Només qui ja va prou bé (coixí gran, sense deute, benestar alt, jove) fa l'aposta: la
-    // emprenedoria és per enfilar la cua, no una jugada desesperada que arruïna el qui va just.
-    const teCoixi =
-      (p.deute ?? 0) === 0 &&
-      p.efectiu + p.inversions >= 50_000 &&
-      state.person.stats.benestar > 55 &&
-      edatAnys(state.person.edatMesos) < 50
-    return teCoixi ? 'muntar' : 'no'
-  }
   let best = choices[0]
   let bestScore = -Infinity
   for (const c of choices) {
@@ -214,6 +209,16 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
         plaInversio: defaultPlaInversio(
           Math.round(ingressosAnualsCarrera(s) * factorIPC(s)),
         ),
+      }
+    }
+    // EMPRENEDOR: cada any de carrera sense empresa, si té prou capital, en funda una (hi posa una
+    // FRACCIÓ dels estalvis per poder REINTENTAR si fracassa) i hi paga precari. Reintenta mentre
+    // li quedi capital. El que pot fallar moltes vegades acaba encertant-ne una; el pobre, no.
+    if (policy.emprenedor && s.lifeStage === 'carrera' && !s.empresa) {
+      const liquid = s.person.patrimoni.efectiu + s.person.patrimoni.inversions
+      const aposta = Math.round(liquid * 0.4)
+      if (aposta >= EMPRESA_CAPITAL_MIN) {
+        s = setSouEmpleats(fundarEmpresa(s, aposta), 'precari')
       }
     }
     s = advanceTurn(s, policy.actiu ? activeActions(s) : undefined)

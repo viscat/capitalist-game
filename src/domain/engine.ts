@@ -13,6 +13,10 @@ import {
   COST_FORMACIO_ANUAL,
   COST_SALUT_ANUAL,
   EDAT_REVISIO_50,
+  EMPRESA_CAPITAL_MAX,
+  EMPRESA_CAPITAL_MIN,
+  EMPRESA_REINVERSIO_DEFAULT,
+  EMPRESA_SOU_EMPLEATS,
   FACTOR_DESPESA_PARELLA,
   FORMACIO_INVERSIO_DELTA,
   HABITATGE_REAL_MAX,
@@ -59,8 +63,6 @@ import {
   LLOGUER_EVENTS,
   MORAL_EVENTS,
   PROPIETARI_EVENTS,
-  NEGOCI_EVENTS,
-  NEGOCI_GESTIO_EVENTS,
   PARELLA_EVENTS,
   SALUT_EDAT_EVENTS,
   SINDICAT_EVENTS,
@@ -97,7 +99,9 @@ import {
   coberturaSanitariaPublica,
   costVidaAnual,
   costVidaPropi,
-  dividendNegociAnual,
+  habilitatEmprenedora,
+  pFracasEmpresaAnual,
+  beneficiEmpresaAnual,
   eficaciaCuraSalut,
   moralitatActual,
   poderSindicalActual,
@@ -145,6 +149,7 @@ import type {
   LifeStage,
   LogEntry,
   Person,
+  NivellSouEmpleats,
   RegimPolitic,
 } from './types'
 
@@ -544,17 +549,8 @@ function eventPool(state: GameState): GameEvent[] {
       if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
       if (state.habitatge?.tipus === 'habitacio') pool.push(...HABITACIO_EVENTS)
       if (state.habitatge?.tipus === 'propietat') pool.push(...PROPIETARI_EVENTS)
-      // Amb un capital prou sòlid, pot sorgir l'oportunitat de muntar un negoci (alta variància,
-      // alt sostre). Només per a qui ja té múscul financer: és la via d'acumulació de capital.
-      if (
-        !state.negociActiu &&
-        (state.salari ?? 0) > 0 &&
-        state.person.patrimoni.efectiu + state.person.patrimoni.inversions >= 120_000
-      ) {
-        pool.push(...NEGOCI_EVENTS)
-      }
-      // Amb negoci propi: la decisió recurrent de quant pagues els empleats (explotació visible).
-      if (state.negociActiu) pool.push(...NEGOCI_GESTIO_EVENTS)
+      // (Muntar i gestionar una EMPRESA ja no és un esdeveniment a l'atzar: és un sistema propi
+      // amb decisions al `EmpresaPanel` —fundar, reinversió, sou propi, sou dels empleats—.)
       // Amb feina: acció col·lectiva (sindicar-se, vagues). Via d'ascens COMPARTIDA.
       if ((state.salari ?? 0) > 0) pool.push(...SINDICAT_EVENTS)
       // Cruïlles morals (frau/solidaritat): sempre presents a la vida adulta.
@@ -716,6 +712,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   }
   let habitatge = state.habitatge
   let patrimoniHist = state.patrimoniHist
+  // Empresa pròpia: pot tancar (fracàs) o créixer (reinversió) aquest any (vegeu el bloc de carrera).
+  let empresa = state.empresa
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -830,16 +828,54 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
           : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
-    // Dividend del negoci propi (real → nominal amb l'IPC): el que t'enduus de més pagant menys
-    // els treballadors NO és creació de valor, és plusvàlua extreta. Suma a l'ingrés de l'any.
-    const dividend = dividendNegociAnual(state) * f
+    // EMPRESA pròpia: si en tens una, aquest any es juga la SUPERVIVÈNCIA (la majoria tanquen els
+    // primers anys). Si sobreviu, genera benefici que es reparteix entre REINVERSIÓ (creix el
+    // capital) i el TEU SOU (s'afegeix a l'ingrés). El fracàs en perd el capital invertit (ja havia
+    // sortit del patrimoni en fundar/reinvertir): qui pot REINTENTAR —el ric— acaba encertant-ne una.
+    let empresaSou = 0 // el teu sou de l'empresa, real → nominal (× f)
+    let empresaBenestar = 0
+    let empresaMoralitat = 0
+    if (empresa) {
+      const rollFracas = rng(rngState)
+      rngState = rollFracas.state
+      const habilitat = habilitatEmprenedora(state)
+      if (rollFracas.value < pFracasEmpresaAnual(empresa, habilitat)) {
+        // FRACÀS: l'empresa tanca. El capital ja s'havia compromès; ara es perd del tot.
+        empresa = undefined
+        empresaBenestar = -10
+      } else {
+        const rollSort = rng(rngState)
+        rngState = rollSort.state
+        const luck = 0.7 + rollSort.value * 0.6
+        const benefici = beneficiEmpresaAnual(empresa, luck)
+        empresaMoralitat = EMPRESA_SOU_EMPLEATS[empresa.souEmpleats].moralitatAnual
+        let capital = empresa.capital
+        if (benefici > 0) {
+          const reinv = Math.max(
+            0,
+            Math.min(1, state.reinversioEmpresa ?? EMPRESA_REINVERSIO_DEFAULT),
+          )
+          // El capital se satura a EMPRESA_CAPITAL_MAX: el que es reinvertiria de més torna al
+          // teu sou (el mercat ja no absorbeix més creixement).
+          const aReinvertir = Math.min(
+            Math.round(benefici * reinv),
+            Math.max(0, EMPRESA_CAPITAL_MAX - capital),
+          )
+          capital += aReinvertir
+          empresaSou = (benefici - aReinvertir) * f
+        } else {
+          capital = Math.max(0, capital + benefici) // mal any: l'empresa minva
+        }
+        empresa = { ...empresa, capital, anys: empresa.anys + 1 }
+      }
+    }
     // Premi de CONVENI: l'acció col·lectiva arrenca millores salarials recurrents (escala amb el
     // poder sindical). Només sobre l'ingrés del TREBALL (carrera amb sou), no sobre la pensió.
     const conveni =
       stage === 'carrera' && (state.salari ?? 0) > 0
         ? incomeFeina * poderSindicalActual(state) * SINDICAT_CONVENI_BONUS
         : 0
-    const income = incomeFeina + dividend + conveni
+    const income = incomeFeina + empresaSou + conveni
     const pla = state.plaInversio ?? defaultPlaInversio(income)
     // Viure amb els pares: un SOL cost (contribució a la llar = manutenció + ajuda a casa),
     // sense pagar el cost de vida a part ni triar-ne el nivell (ells et mantenen). Viure
@@ -885,6 +921,14 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
       factorServeisPublics(state), // règim del benestar: eixampla la xarxa pública
     )
+    // Efectes de l'empresa sobre les stats: el cop de tancar (fracàs) i la deriva de moralitat
+    // segons com es paguen els empleats (l'explotació corca la moralitat any rere any).
+    if (empresaBenestar !== 0 || empresaMoralitat !== 0) {
+      person = applyEffect(person, {
+        benestar: empresaBenestar,
+        moralitatDelta: empresaMoralitat,
+      })
+    }
     // Aportació REAL d'enguany a la cartera = valor nou − valor crescut (el que ha pujat pel
     // rendiment no és aportació). Acumulada, és el «que has posat» que es compara al gràfic.
     const aportatAny = Math.max(
@@ -1046,6 +1090,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     habitatge,
     patrimoniHist,
     anysExperiencia,
+    empresa, // pot haver tancat (fracàs) o crescut (reinversió) aquest any
     ipc,
     indexHabitatge,
     // El sou es revisa cada any: (1) REVISIÓ ANUAL PARCIAL (COLA) — puja una fracció de la
@@ -1340,16 +1385,6 @@ function resolveEvent(
     poderSindical = Math.max(0, Math.min(1, poderSindical + effect.poderSindicalDelta))
   }
 
-  // Negoci propi amb empleats (mecànica d'EXPLOTACIÓ visible): muntar-lo l'activa amb la
-  // política de sou neutral (mercat); la gestió posterior la canvia (i amb ella la moralitat i
-  // el dividend anual). Pagar menys els treballadors et deixa més dividend i menys moralitat.
-  const negociActiu = effect.marcaNegoci ? true : state.negociActiu
-  const souEmpleats = effect.souEmpleats
-    ? effect.souEmpleats
-    : effect.marcaNegoci
-      ? 'mercat'
-      : state.souEmpleats
-
   // Història de vida: una instantània per any (benestar, salut, patrimoni net) per dibuixar
   // l'evolució al resum final.
   const vidaHist = [
@@ -1383,8 +1418,6 @@ function resolveEvent(
     fillsNaixement,
     fillsNoms,
     llegatEnVida,
-    negociActiu,
-    souEmpleats,
     poderSindical,
     pendingEvent: undefined,
     pendingMilestone,
@@ -1535,4 +1568,51 @@ export function acceptarOferta(state: GameState, ofertaId: string): GameState {
     ofertesFeina: undefined,
     historial: [...state.historial, entry],
   }
+}
+
+// --- Emprenedoria: accions de l'empresa pròpia (vegeu DESIGN_EMPRENEDORIA.md) ---
+
+/**
+ * Funda una empresa invertint-hi `capitalInicial` dels teus estalvis (efectiu, després inversions).
+ * El capital queda EN RISC: si l'empresa fracassa (cada any es juga), el perds. Repetible: poder
+ * tornar-ho a provar després d'un fracàs —cosa que demana capital— és la clau de l'èxit emprenedor.
+ */
+export function fundarEmpresa(state: GameState, capitalInicial: number): GameState {
+  if (state.empresa) return state
+  const p = state.person.patrimoni
+  const liquid = p.efectiu + p.inversions
+  const capital = Math.round(Math.min(Math.max(capitalInicial, 0), liquid))
+  if (capital < EMPRESA_CAPITAL_MIN) return state
+  const patrimoni = { ...p }
+  const deEfectiu = Math.min(capital, patrimoni.efectiu)
+  patrimoni.efectiu = Math.round(patrimoni.efectiu - deEfectiu)
+  patrimoni.inversions = Math.max(0, Math.round(patrimoni.inversions - (capital - deEfectiu)))
+  return {
+    ...state,
+    person: { ...state.person, patrimoni },
+    empresa: { capital, souEmpleats: 'mercat', anys: 0 },
+    intentsEmpresa: (state.intentsEmpresa ?? 0) + 1,
+    reinversioEmpresa: state.reinversioEmpresa ?? EMPRESA_REINVERSIO_DEFAULT,
+  }
+}
+
+/** Tanca voluntàriament l'empresa i en recupera el capital actual (la ven) als estalvis líquids. */
+export function tancarEmpresa(state: GameState): GameState {
+  if (!state.empresa) return state
+  const patrimoni = {
+    ...state.person.patrimoni,
+    efectiu: Math.round(state.person.patrimoni.efectiu + state.empresa.capital),
+  }
+  return { ...state, person: { ...state.person, patrimoni }, empresa: undefined }
+}
+
+/** Fixa la fracció (0..1) del benefici que es reinverteix (la resta és el teu sou). */
+export function setReinversioEmpresa(state: GameState, fraccio: number): GameState {
+  return { ...state, reinversioEmpresa: Math.max(0, Math.min(1, fraccio)) }
+}
+
+/** Fixa la política de sou dels empleats (afecta benefici, moralitat i supervivència). */
+export function setSouEmpleats(state: GameState, nivell: NivellSouEmpleats): GameState {
+  if (!state.empresa) return state
+  return { ...state, empresa: { ...state.empresa, souEmpleats: nivell } }
 }

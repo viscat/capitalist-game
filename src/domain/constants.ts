@@ -15,24 +15,42 @@ export const MORALITAT_LLINDAR_BO = 67
 
 // --- Negoci propi amb empleats (mecànica d'explotació visible) ---
 /**
- * Dividend ANUAL base d'un negoci amb empleats (en euros reals, s'escala amb l'IPC). El que
- * t'enduus de més pagant menys els treballadors NO és creació de valor: és plusvàlua extreta.
- */
-export const DIVIDEND_NEGOCI_BASE = 12_000
+// --- Emprenedoria: empresa pròpia (vegeu DESIGN_EMPRENEDORIA.md) ---
+/** Capital mínim per fundar una empresa (l'has de tenir en estalvis i el poses en risc). */
+export const EMPRESA_CAPITAL_MIN = 10_000
+/** Capital necessari per sostenir un empleat (determina la mida de la plantilla). */
+export const EMPRESA_CAPITAL_PER_EMPLEAT = 120_000
+/** Valor BRUT anual (real) que genera un empleat (abans de pagar-li el sou). */
+export const EMPRESA_VALOR_PER_EMPLEAT = 32_000
 /**
- * Per cada nivell de sou dels empleats: `dividend` = multiplicador sobre el dividend base (pagar
- * menys → t'enduus més) i `moralitatDelta` = cop a la moralitat en triar/mantenir la política.
+ * Mida MÀXIMA d'una empresa (capital): el mercat se satura i el creixement s'atura. Sense un sostre,
+ * reinvertir un retorn positiu durant dècades dispararia el capital fins a milers de milions
+ * (irreal). Un negoci consolidat dóna un bon benefici estable, no una fortuna infinita.
  */
-export const SOU_EMPLEATS: Record<
+export const EMPRESA_CAPITAL_MAX = 600_000
+/** Probabilitat de FRACÀS base (any 0) d'una empresa: la "vall de la mort". Decreix amb els anys. */
+export const EMPRESA_FRACAS_BASE = 0.3
+/** Probabilitat de fracàs MÍNIMA (mai zero: ningú té l'èxit garantit). */
+export const EMPRESA_FRACAS_MIN = 0.04
+/** Reinversió per defecte del benefici (la resta és el teu sou). */
+export const EMPRESA_REINVERSIO_DEFAULT = 0.5
+/**
+ * Per cada nivell de sou dels empleats: `souAnual` (cost per empleat), `productivitat` (factor
+ * sobre el valor que genera) i `moralitatAnual` (deriva anual de moralitat). El BENEFICI per
+ * empleat = valor·productivitat − sou: pagar PRECARI extreu la màxima PLUSVÀLUA (cost baix, valor
+ * gairebé igual) però costa moralitat i empitjora la supervivència (rotació); pagar molt ALT et fa
+ * perdre diners per empleat però puja la moralitat. La plusvàlua, feta mecànica.
+ */
+export const EMPRESA_SOU_EMPLEATS: Record<
   NivellSouEmpleats,
-  { dividend: number; moralitatDelta: number }
+  { souAnual: number; productivitat: number; moralitatAnual: number }
 > = {
-  precari: { dividend: 2.2, moralitatDelta: -16 },
-  molt_baix: { dividend: 1.8, moralitatDelta: -10 },
-  baix: { dividend: 1.4, moralitatDelta: -5 },
-  mercat: { dividend: 1.0, moralitatDelta: 0 },
-  alt: { dividend: 0.55, moralitatDelta: +8 },
-  molt_alt: { dividend: 0.2, moralitatDelta: +14 },
+  precari: { souAnual: 14_000, productivitat: 0.88, moralitatAnual: -3 },
+  molt_baix: { souAnual: 17_000, productivitat: 0.93, moralitatAnual: -2 },
+  baix: { souAnual: 20_000, productivitat: 0.97, moralitatAnual: -1 },
+  mercat: { souAnual: 24_000, productivitat: 1.0, moralitatAnual: 0 },
+  alt: { souAnual: 30_000, productivitat: 1.05, moralitatAnual: 1 },
+  molt_alt: { souAnual: 38_000, productivitat: 1.1, moralitatAnual: 2 },
 }
 
 // --- Salut (0..100): pool de mortalitat. Quan arriba a 0, la persona mor. ---

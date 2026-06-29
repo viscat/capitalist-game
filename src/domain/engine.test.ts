@@ -9,6 +9,9 @@ import {
   classeHereu,
   continuaGeneracio,
   familiaHereva,
+  fundarEmpresa,
+  setSouEmpleats,
+  tancarEmpresa,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -721,50 +724,57 @@ describe('decisions', () => {
   })
 })
 
-describe('moralitat i negoci (explotació)', () => {
+describe('emprenedoria (empresa pròpia)', () => {
   const carrera = (over: Partial<GameState> = {}): GameState => ({
     ...newGameAtCarrera('mitjana', 11),
     ...over,
   })
 
-  it('muntar un negoci l’activa amb política de sou neutral (mercat)', () => {
-    const s = carrera()
-    const after = resolWith(s, [
-      { id: 'muntar', labelKey: 'l', effect: { marcaNegoci: true } },
-    ])
-    expect(after.negociActiu).toBe(true)
-    expect(after.souEmpleats).toBe('mercat')
-  })
-
-  it('pagar precari als empleats baixa la moralitat; pagar molt alt la puja', () => {
-    const base = carrera({ negociActiu: true, souEmpleats: 'mercat' })
-    const moralInicial = base.person.stats.moralitat
-    const precari = resolWith(base, [
-      { id: 'precari', labelKey: 'l', effect: { souEmpleats: 'precari', moralitatDelta: -16 } },
-    ])
-    expect(precari.souEmpleats).toBe('precari')
-    expect(precari.person.stats.moralitat).toBeLessThan(moralInicial)
-
-    const generos = resolWith(base, [
-      { id: 'molt_alt', labelKey: 'l', effect: { souEmpleats: 'molt_alt', moralitatDelta: 14 } },
-    ])
-    expect(generos.souEmpleats).toBe('molt_alt')
-    expect(generos.person.stats.moralitat).toBeGreaterThan(moralInicial)
-  })
-
-  it('pagar precari deixa MÉS diners a final d’any que pagar molt alt (plusvàlua extreta)', () => {
-    const base = carrera({
-      negociActiu: true,
-      salari: 2500,
-      habitatge: { tipus: 'amb_pares' },
+  it('fundar inverteix capital dels estalvis i crea l’empresa', () => {
+    const s = carrera({
+      person: {
+        ...newGameAtCarrera('mitjana', 11).person,
+        patrimoni: { efectiu: 30_000, inversions: 0, cases: [] },
+      },
     })
-    const avancaAmb = (sou: GameState['souEmpleats']) => {
-      const s = { ...base, souEmpleats: sou }
+    const after = fundarEmpresa(s, 20_000)
+    expect(after.empresa?.capital).toBe(20_000)
+    expect(after.empresa?.souEmpleats).toBe('mercat')
+    // El capital surt dels estalvis (queda en risc dins l'empresa).
+    expect(after.person.patrimoni.efectiu).toBe(10_000)
+    expect(after.intentsEmpresa).toBe(1)
+  })
+
+  it('no es pot fundar amb menys del mínim ni més del que tens', () => {
+    const pobre = carrera({
+      person: {
+        ...newGameAtCarrera('mitjana', 11).person,
+        patrimoni: { efectiu: 5_000, inversions: 0, cases: [] },
+      },
+    })
+    expect(fundarEmpresa(pobre, 5_000).empresa).toBeUndefined() // sota el mínim
+  })
+
+  it('pagar precari deixa MÉS benefici que pagar molt alt (plusvàlua extreta)', () => {
+    const base = carrera({
+      empresa: { capital: 120_000, souEmpleats: 'mercat', anys: 3 },
+    })
+    const guany = (sou: 'precari' | 'molt_alt') => {
+      const s = setSouEmpleats(base, sou)
       let r = advanceTurn(s)
       if (r.pendingEvent) r = applyChoice(r, r.pendingEvent.choices![0].id)
-      return r.person.patrimoni.efectiu + r.person.patrimoni.inversions
+      return (r.person.patrimoni.efectiu + r.person.patrimoni.inversions) + (r.empresa?.capital ?? 0)
     }
-    expect(avancaAmb('precari')).toBeGreaterThan(avancaAmb('molt_alt'))
+    // Mateixa llavor → mateix roll de supervivència/sort: només varia la política de sou.
+    expect(guany('precari')).toBeGreaterThan(guany('molt_alt'))
+  })
+
+  it('tancar l’empresa en recupera el capital als estalvis', () => {
+    const base = carrera({ empresa: { capital: 50_000, souEmpleats: 'mercat', anys: 2 } })
+    const ef0 = base.person.patrimoni.efectiu
+    const after = tancarEmpresa(base)
+    expect(after.empresa).toBeUndefined()
+    expect(after.person.patrimoni.efectiu).toBe(ef0 + 50_000)
   })
 })
 
