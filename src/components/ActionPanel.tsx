@@ -137,18 +137,18 @@ export function ActionPanel() {
                     onClick={() => dec(action.id)}
                     disabled={n === 0}
                     aria-label={`− ${t(action.labelKey)}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900/60 text-lg font-bold text-slate-200 transition hover:bg-slate-900 disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg bg-bg/60 text-xl font-bold text-ink transition hover:bg-bg active:scale-95 disabled:opacity-30"
                   >
                     −
                   </button>
-                  <span className="min-w-6 text-center font-mono text-sm font-semibold text-slate-100">
+                  <span className="min-w-6 text-center font-mono text-sm font-semibold text-ink">
                     {n}
                   </span>
                   <button
                     onClick={() => inc(action.id, setmanes, cost)}
                     disabled={!canAdd}
                     aria-label={`+ ${t(action.labelKey)}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-900/60 text-lg font-bold text-slate-200 transition hover:bg-slate-900 disabled:opacity-30"
+                    className="flex h-11 w-11 items-center justify-center rounded-lg bg-bg/60 text-xl font-bold text-ink transition hover:bg-bg active:scale-95 disabled:opacity-30"
                   >
                     +
                   </button>

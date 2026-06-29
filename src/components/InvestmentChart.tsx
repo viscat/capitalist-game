@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { PatrimoniSnapshot } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEurosCompact } from '../lib/format'
@@ -43,8 +44,8 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
   const edatMax = punts[punts.length - 1].edat
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-      <h3 className="mb-3 text-sm font-semibold text-slate-300">{t('chart.title')}</h3>
+    <div className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50 shadow-card">
+      <h3 className="mb-3 text-sm font-semibold text-inksoft">{t('chart.title')}</h3>
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="w-full"
@@ -52,40 +53,43 @@ export function InvestmentChart({ hist }: { hist: PatrimoniSnapshot[] }) {
         aria-label={t('chart.title')}
       >
         {/* Eixos */}
-        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
-        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--color-line)" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="var(--color-line)" strokeWidth="1" />
         {/* Etiqueta del valor màxim */}
-        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="var(--color-inkfaint)">
           {formatEurosCompact(maxVal)}
         </text>
-        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="var(--color-inkfaint)">
           0
         </text>
         {/* Edats (extrems) */}
-        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="var(--color-inkfaint)">
           {edatMin}
         </text>
-        <text x={x(punts.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(punts.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="var(--color-inkfaint)">
           {edatMax}
         </text>
-        {/* Sèries */}
-        {SERIES.map((s) => (
+        {/* Sèries (es dibuixen esquerra→dreta: la cartera "creix" davant teu) */}
+        {SERIES.map((s, i) => (
           <polyline
             key={s.key}
             points={linia(s.key)}
+            pathLength={s.key === 'aportat' ? undefined : 1}
             fill="none"
             stroke={s.color}
             strokeWidth="2"
             strokeDasharray={s.key === 'aportat' ? '4 3' : undefined}
             strokeLinejoin="round"
             strokeLinecap="round"
+            className={s.key === 'aportat' ? undefined : 'animate-line-draw'}
+            style={s.key === 'aportat' ? undefined : ({ '--i': i } as CSSProperties)}
           />
         ))}
       </svg>
       {/* Llegenda */}
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
         {SERIES.map((s) => (
-          <span key={s.key} className="flex items-center gap-1.5 text-slate-400">
+          <span key={s.key} className="flex items-center gap-1.5 text-inkfaint">
             <span
               className="inline-block h-2 w-3 rounded-sm"
               style={{ backgroundColor: s.color }}

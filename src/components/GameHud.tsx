@@ -2,6 +2,7 @@ import { dataActual, edatAnys } from '../domain/time'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEurosCompact } from '../lib/format'
+import { useCountUp } from '../lib/useCountUp'
 import { SalutAvis, StatRings } from './StatRings'
 import { Tip } from './Tip'
 
@@ -54,6 +55,9 @@ export function GameHud({
   const anys = edatAnys(edatMesos)
   const dt = dataNaixement ? dataActual(dataNaixement, edatMesos) : null
   const dinersRef = useCoachmark<HTMLButtonElement>('diners')
+  // El patrimoni net s'anima cap al nou valor (no salta): en un joc de diners, veure la xifra
+  // MOURE'S és part de la sensació. La clau `anys` re-dispara el "pop" de l'edat cada any.
+  const netAnimat = useCountUp(net)
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/60 bg-bg2/85 px-4 pt-2 pb-2.5 backdrop-blur-xl">
@@ -79,10 +83,14 @@ export function GameHud({
           </span>
         )}
         <div className="shrink-0 text-right">
-          <div className="text-sm font-bold tabular-nums text-ink">{t('game.age', { anys })}</div>
+          <div key={anys} className="animate-stat-pop text-sm font-bold tabular-nums text-ink">
+            {t('game.age', { anys })}
+          </div>
           {dt && (
             // Salts anuals: només l'any de calendari (el mes no té sentit).
-            <div className="text-[10px] text-inkfaint">{dt.any}</div>
+            <div key={dt.any} className="text-[10px] text-inkfaint">
+              {dt.any}
+            </div>
           )}
         </div>
       </div>
@@ -106,7 +114,7 @@ export function GameHud({
           <div
             className={`text-lg font-black tabular-nums ${net < 0 ? 'text-danger' : 'text-money'}`}
           >
-            {formatEurosCompact(net)}
+            {formatEurosCompact(Math.round(netAnimat))}
           </div>
           <div className="flex justify-end text-[9px] uppercase tracking-wider text-inkfaint">
             <Tip text={t('patrimoni.total.tip')} align="right">

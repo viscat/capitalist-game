@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-
-/** Color d'un anell d'estat (0..100), amb els mateixos llindars que `benestarColor`. */
-function ringHex(v: number): string {
-  if (v < 20) return '#f6504f'
-  if (v < 40) return '#f97316'
-  if (v < 60) return '#eab308'
-  if (v < 80) return '#84cc16'
-  return '#22d39a'
-}
+import { statRampHex } from '../lib/format'
 
 /** Mini-anell de progrés (SVG, sense dependències) per a stats 0..100 amb icona al centre. */
 export function StatRing({
@@ -58,7 +50,7 @@ export function StatRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={ringHex(v)}
+          stroke={statRampHex(v)}
           strokeWidth="3.5"
           strokeLinecap="round"
           strokeDasharray={c}
@@ -82,7 +74,7 @@ export function StatRing({
       {delta != null && delta !== 0 && (
         <span
           className={`pointer-events-none absolute -top-0.5 left-1/2 animate-stat-delta text-[10px] font-black tabular-nums ${
-            delta > 0 ? 'text-emerald-300' : 'text-danger'
+            delta > 0 ? 'text-money' : 'text-danger'
           }`}
         >
           {delta > 0 ? `+${delta}` : delta}
