@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import type { RefObject } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
+import { Icon, STAT_ICON, TriangleAlert } from './icons'
 import { StatRing } from './StatRing'
 
 /** Nivell d'alerta de salut: cap / baixa (<25) / crítica (<10) / extrema (<1). */
@@ -13,10 +14,13 @@ export function salutAlerta(salut: number): 'none' | 'baixa' | 'critica' | 'extr
   return 'none'
 }
 
-/** Icona moral segons la banda (Malvat 😈 / Neutral 😐 / Bo 😇). */
-export function moralitatIcon(moralitat: number): string {
-  const n = nivellMoralitat(moralitat)
-  return n === 'bo' ? '😇' : n === 'malvat' ? '😈' : '😐'
+/**
+ * Icona de la moralitat. Abans eren cares (😈😐😇), tonalment lleugeres per a una crítica
+ * del capitalisme: ara és una BALANÇA neutra (la banda Malvat/Neutral/Bo es comunica amb el
+ * text i el valor, no moralitzant amb una carota). `size` permet ajustar-la al context.
+ */
+export function moralitatIcon(_moralitat?: number, size = 14): ReactNode {
+  return <Icon icon={STAT_ICON.moralitat} size={size} className="inline-block align-[-2px]" />
 }
 
 type StatId = 'benestar' | 'salut' | 'moralitat' | 'academic' | 'vincles'
@@ -67,9 +71,10 @@ export function StatRings({
   }, [obert])
 
   const moralBanda = nivellMoralitat(moralitat)
+  const ringIcon = (id: StatId) => <Icon icon={STAT_ICON[id]} size={17} />
   const rings: {
     id: StatId
-    icon: string
+    icon: ReactNode
     valor: number
     valorText: string
     ref: RefObject<HTMLButtonElement | null>
@@ -77,14 +82,14 @@ export function StatRings({
   }[] = [
     {
       id: 'benestar',
-      icon: '🙂',
+      icon: ringIcon('benestar'),
       valor: benestar,
       valorText: `${Math.round(benestar)}/100`,
       ref: benestarRef,
     },
     {
       id: 'salut',
-      icon: '❤️',
+      icon: ringIcon('salut'),
       valor: salut,
       valorText: `${Math.round(salut)}/100`,
       ref: salutRef,
@@ -92,21 +97,21 @@ export function StatRings({
     },
     {
       id: 'moralitat',
-      icon: moralitatIcon(moralitat),
+      icon: ringIcon('moralitat'),
       valor: moralitat,
       valorText: `${t(`moralitat.banda.${moralBanda}`)} · ${Math.round(moralitat)}/100`,
       ref: moralitatRef,
     },
     {
       id: 'academic',
-      icon: '🎓',
+      icon: ringIcon('academic'),
       valor: academic * 100,
       valorText: `${Math.round(academic * 100)}%`,
       ref: academicRef,
     },
     {
       id: 'vincles',
-      icon: '🤝',
+      icon: ringIcon('vincles'),
       valor: vincles * 100,
       valorText: `${Math.round(vincles * 100)}%`,
       ref: vinclesRef,
@@ -175,7 +180,7 @@ export function SalutAvis({ salut }: { salut: number }) {
       key={alerta}
       className={`mx-auto mt-2 flex max-w-md items-center justify-center gap-1.5 rounded-lg px-3 py-1 text-center text-[11px] font-bold uppercase tracking-wide ring-1 ${estil}`}
     >
-      ⚠️ {t(`salut.perill.${alerta}`)}
+      <Icon icon={TriangleAlert} size={13} /> {t(`salut.perill.${alerta}`)}
     </div>
   )
 }

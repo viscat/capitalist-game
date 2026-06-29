@@ -1,6 +1,7 @@
 import type { GameState } from '../domain/types'
 import { edatAnys } from '../domain/time'
 import { useT } from '../i18n'
+import { Baby, HeartHandshake, Icon } from './icons'
 
 /**
  * Bloc «Família»: mostra la parella (si n'hi ha) i cada fill amb el seu nom i l'edat actual.
@@ -23,7 +24,9 @@ export function FamiliaPanel({ state }: { state: GameState }) {
       <div className="space-y-1.5">
         {state.parella && (
           <div className="flex justify-between text-sm">
-            <span className="text-inksoft">💑 {t('familia.parella')}</span>
+            <span className="flex items-center gap-1.5 text-inksoft">
+              <Icon icon={HeartHandshake} size={14} /> {t('familia.parella')}
+            </span>
             <span className="font-medium text-ink">{state.parella.nom}</span>
           </div>
         )}
@@ -32,8 +35,8 @@ export function FamiliaPanel({ state }: { state: GameState }) {
             const edat = Math.max(0, edatProgenitor - edatAnys(naixements[i] ?? 0))
             return (
               <div key={i} className="flex justify-between text-sm">
-                <span className="text-inksoft">
-                  👶 {noms[i] ?? t('familia.fill')}
+                <span className="flex items-center gap-1.5 text-inksoft">
+                  <Icon icon={Baby} size={14} /> {noms[i] ?? t('familia.fill')}
                 </span>
                 <span className="font-medium text-ink">
                   {t('familia.edat', { anys: edat })}

@@ -1,6 +1,7 @@
 import { useGame } from '../state/GameContext'
 import { useTutorial } from '../state/tutorial'
 import { useT } from '../i18n'
+import { Icon, Landmark } from './icons'
 
 export function StartScreen({
   onNew,
@@ -18,7 +19,11 @@ export function StartScreen({
   return (
     <div className="flex min-h-[100dvh] items-center justify-center p-6">
       <div className="w-full max-w-md text-center animate-card-in">
-        <div className="mb-2 text-5xl">💸</div>
+        <div className="mb-3 flex justify-center">
+          <span className="rounded-2xl bg-accent/15 p-3 text-accent2 ring-1 ring-accent/30">
+            <Icon icon={Landmark} size={40} />
+          </span>
+        </div>
         <h1 className="bg-gradient-to-b from-ink to-inksoft bg-clip-text text-4xl font-black tracking-tight text-transparent">
           {t('app.title')}
         </h1>

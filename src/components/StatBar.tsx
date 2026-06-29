@@ -1,8 +1,14 @@
 import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { benestarColor, benestarLevelKey } from '../lib/format'
+import { Icon, STAT_ICON, type LucideIcon } from './icons'
 import { moralitatIcon } from './StatRings'
 import { Tip } from './Tip'
+
+/** Icona d'stat inline (alineada amb el text d'una etiqueta). */
+function StatLabelIcon({ icon }: { icon: LucideIcon }) {
+  return <Icon icon={icon} size={14} className="mr-0.5 inline-block align-[-2px]" />
+}
 
 export function StatBar({
   benestar,
@@ -57,7 +63,7 @@ export function StatBar({
 
       <div className="mt-3 mb-2 flex items-baseline justify-between">
         <span className="text-sm font-medium text-inksoft">
-          <Tip text={t('stat.salut.tip')}>❤️ {t('stat.salut')}</Tip>
+          <Tip text={t('stat.salut.tip')}><StatLabelIcon icon={STAT_ICON.salut} />{t("stat.salut")}</Tip>
         </span>
         <span className="text-sm text-inkfaint">{salutVal}/100</span>
       </div>
@@ -96,7 +102,7 @@ export function StatBar({
           {fills > 0 && (
             <div className="flex items-baseline justify-between text-xs">
               <span className="text-inkfaint">
-                <Tip text={t('stat.fills.tip')}>👶 {t('stat.fills')}</Tip>
+                <Tip text={t('stat.fills.tip')}><StatLabelIcon icon={STAT_ICON.fills} />{t("stat.fills")}</Tip>
               </span>
               <span className="font-medium text-ink">{fills}</span>
             </div>
@@ -105,7 +111,7 @@ export function StatBar({
             <div>
               <div className="flex items-baseline justify-between text-xs">
                 <span className="text-inkfaint">
-                  <Tip text={t('stat.vincles.tip')}>🤝 {t('stat.vincles')}</Tip>
+                  <Tip text={t('stat.vincles.tip')}><StatLabelIcon icon={STAT_ICON.vincles} />{t("stat.vincles")}</Tip>
                 </span>
                 <span className="text-inkfaint">{vinclesPct}%</span>
               </div>
@@ -121,7 +127,7 @@ export function StatBar({
             <div>
               <div className="flex items-baseline justify-between text-xs">
                 <span className="text-inkfaint">
-                  <Tip text={t('stat.academic.tip')}>🎓 {t('stat.academic')}</Tip>
+                  <Tip text={t('stat.academic.tip')}><StatLabelIcon icon={STAT_ICON.academic} />{t("stat.academic")}</Tip>
                 </span>
                 <span className="text-inkfaint">{academicPct}%</span>
               </div>
@@ -137,7 +143,7 @@ export function StatBar({
             <div>
               <div className="flex items-baseline justify-between text-xs">
                 <span className="text-inkfaint">
-                  <Tip text={t('stat.sindicat.tip')}>✊ {t('stat.sindicat')}</Tip>
+                  <Tip text={t('stat.sindicat.tip')}><StatLabelIcon icon={STAT_ICON.sindicat} />{t("stat.sindicat")}</Tip>
                 </span>
                 <span className="text-inkfaint">{sindicatPct}%</span>
               </div>
@@ -152,7 +158,7 @@ export function StatBar({
           {sequela > 0 && (
             <div className="flex items-baseline justify-between text-xs">
               <span className="text-danger">
-                <Tip text={t('stat.sequela.tip')}>🩹 {t('stat.sequela')}</Tip>
+                <Tip text={t('stat.sequela.tip')}><StatLabelIcon icon={STAT_ICON.sequela} />{t("stat.sequela")}</Tip>
               </span>
               <span className="font-medium text-danger">−{Math.round(sequela)}</span>
             </div>

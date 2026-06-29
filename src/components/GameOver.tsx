@@ -9,7 +9,24 @@ import {
   rendaPatrimoniAnual,
   veredicteJubilacio,
 } from '../domain/stats'
-import { moralitatIcon } from './StatRings'
+import {
+  Baby,
+  Bandage,
+  Dices,
+  Dna,
+  Factory,
+  GraduationCap,
+  Handshake,
+  HeartHandshake,
+  Heart,
+  Icon,
+  Landmark,
+  Megaphone,
+  Scale,
+  TrendingUp,
+  Users,
+  type LucideIcon,
+} from './icons'
 import { costHabitatgeAnualNet } from '../domain/housing'
 import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
@@ -22,10 +39,13 @@ import { useT } from '../i18n'
 import { benestarLevelKey, formatEurosCompact } from '../lib/format'
 import { useCountUp } from '../lib/useCountUp'
 
-function Line({ label, value }: { label: string; value: string }) {
+function Line({ label, value, icon }: { label: string; value: string; icon?: LucideIcon }) {
   return (
     <div className="flex justify-between text-sm">
-      <span className="text-inkfaint">{label}</span>
+      <span className="flex items-center gap-1.5 text-inkfaint">
+        {icon && <Icon icon={icon} size={14} />}
+        {label}
+      </span>
       <span className="font-medium text-ink">{value}</span>
     </div>
   )
@@ -105,22 +125,23 @@ export function GameOver() {
   // només mèrit. Cada factor és [icona, text]; només es mostren els que han pesat de debò.
   const sou = state.empresa?.souEmpleats
   const explotador = sou === 'precari' || sou === 'molt_baix' || sou === 'baix'
-  const factors: [string, string][] = [
-    ['🎲', t('gameover.factor.origen', { classe: t(`family.${state.familia.classe}.name`) })],
-    ['🏛️', t('gameover.factor.regim', { regim: t(`regim.${state.regimPolitic ?? 'mixt'}.nom`) })],
+  const factors: [LucideIcon, string][] = [
+    [Dices, t('gameover.factor.origen', { classe: t(`family.${state.familia.classe}.name`) })],
+    [Landmark, t('gameover.factor.regim', { regim: t(`regim.${state.regimPolitic ?? 'mixt'}.nom`) })],
   ]
-  if (state.teDiploma) factors.push(['🎓', t('gameover.factor.diploma')])
+  if (state.teDiploma) factors.push([GraduationCap, t('gameover.factor.diploma')])
   if (state.empresa || (state.intentsEmpresa ?? 0) > 0)
     factors.push([
-      '🏭',
+      Factory,
       explotador ? t('gameover.factor.negoci_explotador') : t('gameover.factor.negoci_just'),
     ])
-  if ((state.poderSindical ?? 0) >= 0.25) factors.push(['✊', t('gameover.factor.sindicat')])
+  if ((state.poderSindical ?? 0) >= 0.25) factors.push([Megaphone, t('gameover.factor.sindicat')])
   if (state.herenciaParesRebuda || (state.llegatEnVida ?? 0) > 0)
-    factors.push(['🧬', t('gameover.factor.herencia')])
-  if (nivellMoralitat(moralitat) === 'bo') factors.push(['😇', t('gameover.factor.moral_bo')])
+    factors.push([Dna, t('gameover.factor.herencia')])
+  if (nivellMoralitat(moralitat) === 'bo')
+    factors.push([HeartHandshake, t('gameover.factor.moral_bo')])
   if (nivellMoralitat(moralitat) === 'malvat')
-    factors.push(['😈', t('gameover.factor.moral_malvat')])
+    factors.push([Scale, t('gameover.factor.moral_malvat')])
 
   // Tractament emocional del títol segons el desenllaç: la MORT és sòbria i desaturada; el
   // TRIOMF (vida plena / jubilació daurada / sòlida) és daurat amb un halo; la resta, neutre.
@@ -188,27 +209,26 @@ export function GameOver() {
             )}
           </div>
           <div className="mt-3 space-y-1.5 border-t border-line/60 pt-3">
-            <Line label={`❤️ ${t('stat.salut')}`} value={`${salut}/100`} />
+            <Line icon={Heart} label={t('stat.salut')} value={`${salut}/100`} />
             <Line
-              label={`${moralitatIcon(moralitat)} ${t('stat.moralitat')}`}
+              icon={Scale}
+              label={t('stat.moralitat')}
               value={`${t(`moralitat.banda.${nivellMoralitat(moralitat)}`)} · ${moralitat}/100`}
             />
-            <Line
-              label={`🤝 ${t('stat.vincles')}`}
-              value={`${Math.round(vincles * 100)}%`}
-            />
-            {fills > 0 && (
-              <Line label={`👶 ${t('stat.fills')}`} value={String(fills)} />
-            )}
+            <Line icon={Handshake} label={t('stat.vincles')} value={`${Math.round(vincles * 100)}%`} />
+            {fills > 0 && <Line icon={Baby} label={t('stat.fills')} value={String(fills)} />}
             {sequela > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-danger">🩹 {t('stat.sequela')}</span>
+                <span className="flex items-center gap-1.5 text-danger">
+                  <Icon icon={Bandage} size={14} /> {t('stat.sequela')}
+                </span>
                 <span className="font-medium text-danger">−{Math.round(sequela)}</span>
               </div>
             )}
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-money/90">
-            📈 {t('gameover.notaInversio', { pct: pctInvertit })}
+          <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-money/90">
+            <Icon icon={TrendingUp} size={14} className="mt-0.5 shrink-0" />
+            <span>{t('gameover.notaInversio', { pct: pctInvertit })}</span>
           </p>
         </div>
 
@@ -220,14 +240,15 @@ export function GameOver() {
           <ul className="space-y-2">
             {factors.map(([icon, text], idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-inksoft">
-                <span aria-hidden>{icon}</span>
+                <Icon icon={icon} size={16} className="mt-0.5 shrink-0 text-inkfaint" />
                 <span>{text}</span>
               </li>
             ))}
           </ul>
           {/* Contrafàctic de règim: el terra el va moure la REGLA (la política), no tu. */}
-          <p className="mt-3 border-t border-line/60 pt-3 text-xs leading-relaxed text-gold/90">
-            🏛️ {t(`gameover.contrafactic.${state.regimPolitic ?? 'mixt'}`)}
+          <p className="mt-3 flex items-start gap-2 border-t border-line/60 pt-3 text-xs leading-relaxed text-gold/90">
+            <Icon icon={Landmark} size={14} className="mt-0.5 shrink-0" />
+            <span>{t(`gameover.contrafactic.${state.regimPolitic ?? 'mixt'}`)}</span>
           </p>
         </div>
 
@@ -313,8 +334,8 @@ export function GameOver() {
             className="animate-reveal-up mt-4 rounded-2xl bg-accent/10 p-5 text-left ring-1 ring-accent/30"
             style={reveal()}
           >
-            <h2 className="mb-2 text-sm font-bold text-accent2">
-              👨‍👩‍👧 {t('gameover.dinastia.titol')}
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-bold text-accent2">
+              <Icon icon={Users} size={16} /> {t('gameover.dinastia.titol')}
             </h2>
             <p className="text-sm text-inksoft">
               {t('gameover.dinastia.herencia', { fills, llegat: formatEurosCompact(llegat) })}

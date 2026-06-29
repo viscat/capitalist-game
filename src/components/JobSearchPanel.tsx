@@ -6,6 +6,7 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
+import { Icon, LifeBuoy, Scale } from './icons'
 
 /** Color de l'etiqueta segons la qualitat de l'oferta. */
 const COLOR_QUALITAT: Record<QualitatOferta, string> = {
@@ -46,14 +47,15 @@ export function JobSearchPanel() {
         })}
         {anys > 0 && ` · ${t('jobsearch.experiencia', { anys })}`}
       </p>
-      <p className="mt-1 text-xs text-money/80">
+      <p className="mt-1 flex items-center gap-1 text-xs text-money/80">
+        <Icon icon={LifeBuoy} size={12} />
         {prestacioMes > 0
-          ? `🛟 ${t('jobsearch.prestacio', { amount: formatEuros(prestacioMes) })}`
-          : `🛟 ${t('jobsearch.sensePrestacio')}`}
+          ? t('jobsearch.prestacio', { amount: formatEuros(prestacioMes) })
+          : t('jobsearch.sensePrestacio')}
       </p>
       {bretxa < 1 && (
-        <p className="mt-1 text-xs text-gold/80">
-          ⚖️ {t('jobsearch.bretxa', { pct: Math.round((1 - bretxa) * 100) })}
+        <p className="mt-1 flex items-center gap-1 text-xs text-gold/80">
+          <Icon icon={Scale} size={12} /> {t('jobsearch.bretxa', { pct: Math.round((1 - bretxa) * 100) })}
         </p>
       )}
 

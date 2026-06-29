@@ -2,11 +2,14 @@ import type { CSSProperties } from 'react'
 import type { EventEffect } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
+import { Icon, STAT_ICON, type LucideIcon } from './icons'
 
 interface Badge {
   label: string
   text: string
   positive: boolean
+  /** Icona de línia opcional (stats vitals). */
+  icon?: LucideIcon
   /** Magnitud destacada (xocs grans: crac de mercat, despesa greu): el badge pesa més. */
   fort?: boolean
 }
@@ -54,7 +57,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.salutDelta) {
     const v = effect.salutDelta
     badges.push({
-      label: `❤️ ${t('stat.salut')}`,
+      label: t('stat.salut'),
+      icon: STAT_ICON.salut,
       text: `${v > 0 ? '+' : ''}${v}`,
       positive: v > 0,
     })
@@ -62,7 +66,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.moralitatDelta) {
     const v = effect.moralitatDelta
     badges.push({
-      label: `⚖️ ${t('stat.moralitat')}`,
+      label: t('stat.moralitat'),
+      icon: STAT_ICON.moralitat,
       text: `${v > 0 ? '+' : ''}${v}`,
       positive: v > 0,
     })
@@ -70,7 +75,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.poderSindicalDelta) {
     const pct = Math.round(effect.poderSindicalDelta * 100)
     badges.push({
-      label: `✊ ${t('stat.sindicat')}`,
+      label: t('stat.sindicat'),
+      icon: STAT_ICON.sindicat,
       text: `${pct > 0 ? '+' : ''}${pct}%`,
       positive: pct > 0,
     })
@@ -106,7 +112,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.vinclesDelta) {
     const pct = Math.round(effect.vinclesDelta * 100)
     badges.push({
-      label: `🤝 ${t('stat.vincles')}`,
+      label: t('stat.vincles'),
+      icon: STAT_ICON.vincles,
       text: `${pct > 0 ? '+' : ''}${pct}%`,
       positive: pct > 0,
     })
@@ -114,7 +121,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.academicDelta) {
     const pct = Math.round(effect.academicDelta * 100)
     badges.push({
-      label: `🎓 ${t('stat.academic')}`,
+      label: t('stat.academic'),
+      icon: STAT_ICON.academic,
       text: `${pct > 0 ? '+' : ''}${pct}%`,
       positive: pct > 0,
     })
@@ -122,7 +130,8 @@ export function EffectList({ effect }: { effect: EventEffect }) {
   if (effect.salutCronicaDelta) {
     // És una penalització crònica de benestar (sempre dolenta).
     badges.push({
-      label: `🩹 ${t('stat.sequela')}`,
+      label: t('stat.sequela'),
+      icon: STAT_ICON.sequela,
       text: `−${Math.round(effect.salutCronicaDelta)}`,
       positive: false,
     })
@@ -144,6 +153,9 @@ export function EffectList({ effect }: { effect: EventEffect }) {
               : `bg-danger/15 text-danger ${b.fort ? 'ring-danger/40' : ''}`
           }`}
         >
+          {b.icon && (
+            <Icon icon={b.icon} size={b.fort ? 15 : 13} className="mr-1 inline-block align-[-2px]" />
+          )}
           {b.label} {b.text}
         </span>
       ))}

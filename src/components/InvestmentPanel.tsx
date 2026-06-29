@@ -38,6 +38,18 @@ import { useGame } from '../state/GameContext'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEuros } from '../lib/format'
+import {
+  Baby,
+  BookOpen,
+  Coins,
+  HeartPulse,
+  Home,
+  Icon,
+  Lock,
+  Sprout,
+  TrendingUp,
+  type LucideIcon,
+} from './icons'
 import { AmountStepper } from './AmountStepper'
 
 const CATEGORIES: (keyof PlaInversio)[] = ['oci', 'inversions']
@@ -189,7 +201,9 @@ export function InvestmentPanel() {
             </div>
             {(state.familia.classe === 'pobra' ||
               state.familia.classe === 'treballadora') && (
-              <p className="mt-1 text-xs text-gold/80">🏠 {t('pla.contribucioLlar.humil')}</p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-gold/80">
+                <Icon icon={Home} size={12} /> {t('pla.contribucioLlar.humil')}
+              </p>
             )}
           </div>
         ) : (
@@ -231,8 +245,8 @@ export function InvestmentPanel() {
                       : 'bg-surface2 text-inksoft hover:bg-line'
                 }`}
               >
-                <span>
-                  {potFrugal ? '🌱' : '🔒'} {t('pla.vidaSenzilla')}
+                <span className="flex items-center gap-1.5">
+                  <Icon icon={potFrugal ? Sprout : Lock} size={13} /> {t('pla.vidaSenzilla')}
                 </span>
                 <span>{potFrugal && state.vidaSenzilla ? '✓' : ''}</span>
               </button>
@@ -255,13 +269,16 @@ export function InvestmentPanel() {
               </p>
             )}
             {cobertFamilia > 0 && (
-              <p className="mt-1 text-xs text-money/90">
-                🏠 {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
+              <p className="mt-1 flex items-center gap-1 text-xs text-money/90">
+                <Icon icon={Home} size={12} />{' '}
+                {t('pla.costVida.cobreix', { amount: formatEuros(perMes(cobertFamilia)) })}
               </p>
             )}
             {(state.familia.classe === 'pobra' ||
               state.familia.classe === 'treballadora') && (
-              <p className="mt-1 text-xs text-gold/80">💸 {t('pla.sobrecost')}</p>
+              <p className="mt-1 flex items-center gap-1 text-xs text-gold/80">
+                <Icon icon={Coins} size={12} /> {t('pla.sobrecost')}
+              </p>
             )}
           </div>
         )}
@@ -277,7 +294,7 @@ export function InvestmentPanel() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-inkfaint" aria-hidden>
-                🔒
+                <Icon icon={Lock} size={13} />
               </span>
               <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costHab))}
@@ -290,14 +307,14 @@ export function InvestmentPanel() {
         {costFills > 0 && (
           <div className="flex items-center justify-between gap-3 opacity-90">
             <div className="min-w-0">
-              <div className="text-sm font-medium text-inksoft">
-                👶 {t('pla.costFills', { fills: fillsDeps })}
+              <div className="flex items-center gap-1.5 text-sm font-medium text-inksoft">
+                <Icon icon={Baby} size={14} /> {t('pla.costFills', { fills: fillsDeps })}
               </div>
               <div className="text-xs text-inkfaint">{t('pla.costFills.desc')}</div>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-inkfaint" aria-hidden>
-                🔒
+                <Icon icon={Lock} size={13} />
               </span>
               <span className="w-20 text-right font-mono text-sm text-gold/90">
                 {formatEuros(perMes(costFills))}
@@ -328,14 +345,14 @@ export function InvestmentPanel() {
         <div className="space-y-2 border-t border-line/60 pt-3">
           <Toggle
             on={Boolean(state.inversioSalut)}
-            icon="❤️‍🩹"
+            icon={HeartPulse}
             label={t('pla.inversioSalut')}
             nota={t('pla.inversioSalut.nota', { cost: formatEuros(perMes(costSalutNominal)) })}
             onClick={() => setInversioSalut(!state.inversioSalut)}
           />
           <Toggle
             on={Boolean(state.inversioFormacio)}
-            icon="📚"
+            icon={BookOpen}
             label={t('pla.inversioFormacio')}
             nota={t('pla.inversioFormacio.nota', {
               cost: formatEuros(perMes(costFormacioNominal)),
@@ -366,8 +383,8 @@ export function InvestmentPanel() {
             {t('pla.benestar.min', { min: formatEuros(perMes(minOci)) })}
           </p>
         )}
-        <p className="text-xs text-money/80">
-          📈 {t('pla.notaIndex', { pct: INDEX_MITJANA_PCT })}
+        <p className="flex items-center gap-1 text-xs text-money/80">
+          <Icon icon={TrendingUp} size={12} /> {t('pla.notaIndex', { pct: INDEX_MITJANA_PCT })}
         </p>
         <div className="flex justify-between">
           <span className="text-inksoft">{t('pla.balanc')}</span>
@@ -421,7 +438,7 @@ function Toggle({
   onClick,
 }: {
   on: boolean
-  icon: string
+  icon: LucideIcon
   label: string
   nota: string
   onClick: () => void
@@ -436,8 +453,8 @@ function Toggle({
       }`}
     >
       <span className="min-w-0">
-        <span className="block font-medium">
-          {icon} {label}
+        <span className="flex items-center gap-1.5 font-medium">
+          <Icon icon={icon} size={14} /> {label}
         </span>
         <span className="block text-[11px] text-inksoft">{nota}</span>
       </span>
