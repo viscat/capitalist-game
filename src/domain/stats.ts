@@ -496,8 +496,8 @@ export function benestarHabitatge(habitatge?: Habitatge): number {
 // viu bé: l'estrès crònic de l'origen humil (inestabilitat, manca de xarxa, expectatives)
 // que els indicadors d'ingrés/patrimoni no capturen. Per a la mitjana amunt és 0.
 const PRECARIETAT_BENESTAR_ADULT: Record<FamilyClass, number> = {
-  pobra: 26,
-  treballadora: 16,
+  pobra: 34,
+  treballadora: 20,
   mitjana: 0,
   alta: 0,
   rica: 0,
@@ -551,11 +551,14 @@ export function precarietatAdulta(state: GameState): number {
   // PALANCA PÚBLICA: un estat social fort erosiona la precarietat estructural per a TOTHOM, sense
   // dependre de l'estalvi privat (els serveis universals mouen el terra). És la via no-individual.
   const erosioPublica = 1 - factorServeisPublics(state) * PRECARIETAT_EROSIO_SERVEIS
-  // PALANCA PRIVADA: sortir del deute i acumular un coixí real també redueix el residu.
+  // PALANCA PRIVADA: sortir del deute i acumular un coixí redueix EN PART el residu, però MAI del
+  // tot. L'origen humil deixa una marca (xarxa, expectatives, estrès crònic, salut) que els diners
+  // no esborren: el terra de l'erosió privada és alt (0,55), així que un pobre que prospera segueix
+  // arrossegant bona part del desavantatge d'origen —no es "compra" la sortida de classe—.
   let estabilitatPrivada = 1
   if ((state.person.patrimoni.deute ?? 0) <= 0) {
     const netReal = patrimoniTotal(state.person) / factorIPC(state)
-    if (netReal > 0) estabilitatPrivada = clamp(1 - netReal / 80_000, 0.3, 1)
+    if (netReal > 0) estabilitatPrivada = clamp(1 - netReal / 80_000, 0.55, 1)
   }
   return Math.round(residu * estabilitatPrivada * erosioPublica)
 }
