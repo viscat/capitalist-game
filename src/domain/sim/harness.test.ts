@@ -186,6 +186,29 @@ describe('sim: corba d’outcomes per classe (informe)', () => {
     expect(org.patrimoniRealMediana).toBeGreaterThan(sol.patrimoniRealMediana * 1.15)
     expect(org.benestarMediana).toBeGreaterThanOrEqual(sol.benestarMediana)
   })
+
+  // EMPRENEDORIA (DESIGN_EMPRENEDORIA.md): la majoria d'empreses fracassen; qui pot ABSORBIR el
+  // fracàs i tornar-ho a provar (capital) acaba encertant-ne una, qui no, queda arruïnat. Per tant
+  // l'emprenedoria ENFONSA l'origen humil (mediana negativa, molts net-negatius) i, en canvi, el
+  // ric la pot jugar sense ruïna (mai net-negatiu) i amb cua d'èxit. És la crítica, no una drecera.
+  it('l’emprenedoria arruïna el pobre i només el ric la pot permetre', { timeout: 60_000 }, () => {
+    const emp: SimPolicy = {
+      postobligatori: 'batxillerat',
+      majoria: 'universitat',
+      actiu: true,
+      emprenedor: true,
+    }
+    const pobra = summarize(simulateClass('pobra', N, emp))
+    const rica = summarize(simulateClass('rica', N, emp))
+    console.log(
+      `\n=== Emprenedoria (joc actiu + emprenedor) ===\n` +
+        `${row('pobra', pobra)}\n${row('rica', rica)}`,
+    )
+    // El pobre emprenedor acaba MOLT pitjor que el ric (no es pot permetre fallar i reintentar).
+    expect(rica.patrimoniRealMediana).toBeGreaterThan(pobra.patrimoniRealMediana + 100_000)
+    // El pobre s'arruïna molt més sovint que el ric (que absorbeix els fracassos).
+    expect(pobra.netNegatiu).toBeGreaterThan(rica.netNegatiu + 0.2)
+  })
 })
 
 // El joc s'ha de poder jugar moltes generacions sense trencar-se: el cost de la vida i de

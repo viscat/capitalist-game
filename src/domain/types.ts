@@ -48,6 +48,16 @@ export type NivellSouEmpleats =
   | 'alt'
   | 'molt_alt'
 
+/** Empresa pròpia (sistema d'emprenedoria): mida, plantilla i política de sou. */
+export interface Empresa {
+  /** Capital de l'empresa (la seva mida/salut): determina la plantilla i el benefici potencial. */
+  capital: number
+  /** Política de sou dels empleats: més baix = més benefici per a tu i menys moralitat (plusvàlua). */
+  souEmpleats: NivellSouEmpleats
+  /** Anys que fa que opera (la mortalitat és alta els primers anys: la "vall de la mort"). */
+  anys: number
+}
+
 /** Qualitat d'una oferta de feina (determina sou i to). */
 export type QualitatOferta = 'precaria' | 'estandard' | 'bona'
 
@@ -261,10 +271,6 @@ export interface EventEffect {
    * positiu = acció solidària/justa. Es clampa a 0..100.
    */
   moralitatDelta?: number
-  /** Fixa la política de sou dels empleats del teu negoci (canvia la moralitat i el dividend). */
-  souEmpleats?: NivellSouEmpleats
-  /** Marca que muntes un negoci amb empleats a càrrec (activa la gestió i el dividend anual). */
-  marcaNegoci?: boolean
   /**
    * Variació del poder sindical (`GameState.poderSindical`, 0..1): afiliar-se i secundar vagues
    * l'apugen. És la via d'ascens COL·LECTIVA: protegeix la feina i apuja els salaris per a tothom.
@@ -492,16 +498,22 @@ export interface GameState {
    */
   poderSindical?: number
   /**
-   * Tens un NEGOCI propi amb empleats a càrrec (després d'un `muntar_negoci` reeixit). Activa
-   * la gestió del negoci: un dividend anual (`dividendNegociAnual`) que depèn de quant pagues
-   * els empleats (`souEmpleats`) i la decisió recurrent de fixar aquesta política. Absent = false.
+   * EMPRESA pròpia activa (sistema d'emprenedoria). Mentre existeix, cada any es juga la
+   * supervivència (la majoria tanquen els primers anys) i, si sobreviu, genera benefici que es
+   * reparteix entre reinversió (creix l'empresa) i el teu sou. Vegeu DESIGN_EMPRENEDORIA.md.
    */
-  negociActiu?: boolean
+  empresa?: Empresa
   /**
-   * Política de sou que pagues als empleats del teu negoci. Com més baix, més dividend per a tu
-   * (més explotació) i menys moralitat. Absent = 'mercat' (neutral) mentre tinguis negoci.
+   * Fracció (0..1) del benefici de l'empresa que es REINVERTEIX (creix el capital → més benefici
+   * futur). La resta és el teu sou (l'ingrés que t'enduus). Absent = valor per defecte.
    */
-  souEmpleats?: NivellSouEmpleats
+  reinversioEmpresa?: number
+  /**
+   * Nombre de vegades que has FUNDAT una empresa (experiència acumulada: "learning by doing").
+   * Poder reintentar després d'un fracàs —cosa que demana capital— és el determinant pràctic de
+   * l'èxit emprenedor. Absent = 0.
+   */
+  intentsEmpresa?: number
   /**
    * Torn de l'última OFERTA de vida personal (buscar parella / tenir un fill). El motor GARANTEIX
    * que aquestes opcions s'ofereixin de manera fiable mentre s'hi és elegible (cada pocs anys), en

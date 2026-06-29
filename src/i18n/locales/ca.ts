@@ -556,6 +556,37 @@ export const ca: Record<string, string> = {
   'habitatge.comprar': 'Comprar un habitatge',
   'habitatge.comprarMes': '🏠 Comprar una altra casa',
   'habitatge.tornarPares': 'Tornar a viure amb els pares',
+  // Emprenedoria (empresa pròpia)
+  'empresa.fundar.titol': 'Muntar una empresa',
+  'empresa.fundar.avis':
+    'La majoria d’empreses tanquen als pocs anys. El capital que hi posis queda EN RISC: si fracassa, el perds. Qui es pot permetre fallar moltes vegades acaba encertant-ne una; qui no, s’hi arruïna.',
+  'empresa.fundar.risc':
+    'Si l’empresa tanca (cada any es juga), perds tot aquest capital. Podràs tornar-ho a provar si et queden estalvis.',
+  'empresa.fundar.accio': 'Fundar amb {capital}',
+  'empresa.fundar.sensecapital':
+    'Et calen com a mínim {minim} d’estalvis per arriscar-te a muntar una empresa.',
+  'empresa.capitalInicial': 'Capital que hi inverteixes',
+  'empresa.titol': 'La teva empresa',
+  'empresa.anys': '{anys} anys',
+  'empresa.any': 'any',
+  'empresa.capital': 'Capital',
+  'empresa.empleats': 'Empleats',
+  'empresa.risc': 'Risc tancar',
+  'empresa.beneficiTipic':
+    'Benefici típic ~{benefici}/any (varia amb la sort; pot ser negatiu un mal any).',
+  'empresa.souEmpleats': 'Sou dels empleats',
+  'empresa.reinversio': 'Reinversió / el teu sou',
+  'empresa.reinversio.desc':
+    'El que reinverteixes fa créixer l’empresa (més benefici futur); la resta és el teu sou aquest any.',
+  'empresa.saturada':
+    'L’empresa ha arribat a la seva mida màxima: el mercat ja no absorbeix més creixement.',
+  'empresa.tancar': 'Tancar i recuperar {capital}',
+  'empresa.sou.precari': 'Precari',
+  'empresa.sou.molt_baix': 'Molt baix',
+  'empresa.sou.baix': 'Baix',
+  'empresa.sou.mercat': 'Mercat',
+  'empresa.sou.alt': 'Alt',
+  'empresa.sou.molt_alt': 'Molt alt',
   'habitatge.buscarCasa': 'Buscar casa o pis',
   'habitatge.liquid': 'Tens {amount} per a l’entrada (efectiu + estalvi)',
   'habitatge.preu': 'Preu',

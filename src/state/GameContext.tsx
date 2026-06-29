@@ -7,6 +7,10 @@ import {
   applyChoice,
   applyMilestoneChoice,
   continuaGeneracio,
+  fundarEmpresa,
+  setReinversioEmpresa,
+  setSouEmpleats,
+  tancarEmpresa,
   newGame,
   newGameAt16,
   newGameAtCarrera,
@@ -19,6 +23,7 @@ import type {
   FamilyClass,
   GameState,
   Identitat,
+  NivellSouEmpleats,
   NivellVida,
   PlaInversio,
   RegimPolitic,
@@ -29,7 +34,7 @@ import type {
 // alineades a anys sencers) ja no es poden continuar sense quedar desquadrades.
 // v6 afegeix la cerca de feina (camps nous a l'estat: ofertesFeina, anysExperiencia).
 // v7 afegeix la stat de salut (Stats.salut) i la mort: partides velles no tindrien salut.
-const STORAGE_KEY = 'capitalist-game/save/v14'
+const STORAGE_KEY = 'capitalist-game/save/v15'
 
 function loadSave(): GameState | null {
   try {
@@ -88,6 +93,14 @@ interface GameContextValue {
   comprarCasa: (propietatId: string, anys: number) => void
   /** Torna a viure amb els pares (deixa el lloguer). */
   tornarAmbPares: () => void
+  /** Funda una empresa invertint-hi capital dels estalvis (queda en risc). */
+  fundarEmpresa: (capitalInicial: number) => void
+  /** Tanca l'empresa i en recupera el capital. */
+  tancarEmpresa: () => void
+  /** Fixa la fracció (0..1) del benefici que es reinverteix. */
+  setReinversioEmpresa: (fraccio: number) => void
+  /** Fixa la política de sou dels empleats de l'empresa. */
+  setSouEmpleats: (nivell: NivellSouEmpleats) => void
   /** En morir amb descendents: continua la dinastia amb un fill (nova generació). */
   continuarGeneracio: () => void
   reset: () => void
@@ -165,6 +178,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
       tornarAmbPares: () => setState((s) => (s ? tornarAmbPares(s) : s)),
+      fundarEmpresa: (capitalInicial) =>
+        setState((s) => (s ? fundarEmpresa(s, capitalInicial) : s)),
+      tancarEmpresa: () => setState((s) => (s ? tancarEmpresa(s) : s)),
+      setReinversioEmpresa: (fraccio) =>
+        setState((s) => (s ? setReinversioEmpresa(s, fraccio) : s)),
+      setSouEmpleats: (nivell) => setState((s) => (s ? setSouEmpleats(s, nivell) : s)),
       continuarGeneracio: () => setState((s) => (s ? continuaGeneracio(s) : s)),
       reset: () => {
         try {

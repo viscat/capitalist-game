@@ -5,7 +5,11 @@ import {
   COST_FILL_ANUAL,
   COST_VIDA_NIVELLS,
   DEPENDENCIA_FILLS_ANYS,
-  DIVIDEND_NEGOCI_BASE,
+  EMPRESA_CAPITAL_PER_EMPLEAT,
+  EMPRESA_FRACAS_BASE,
+  EMPRESA_FRACAS_MIN,
+  EMPRESA_SOU_EMPLEATS,
+  EMPRESA_VALOR_PER_EMPLEAT,
   FACTOR_SERVEIS_PUBLICS,
   MORALITAT_INICIAL,
   MORALITAT_LLINDAR_BO,
@@ -15,7 +19,6 @@ import {
   PRECARIETAT_EROSIO_SERVEIS,
   SANITAT_COBERTURA_MAX,
   SINDICAT_SOU_BONUS,
-  SOU_EMPLEATS,
   NIVELL_VIDA_DEFAULT,
   FRUGALITAT_LLINDAR,
   HABITATGE_VAR_MAX,
@@ -45,6 +48,7 @@ import {
 import { rng } from './rng'
 import type {
   Budget,
+  Empresa,
   EventEffect,
   Familia,
   FamilyClass,
@@ -90,15 +94,51 @@ export function moralitatActual(state: GameState): number {
   return state.person.stats.moralitat ?? MORALITAT_INICIAL
 }
 
+// --- Emprenedoria: economia de l'empresa pròpia (vegeu DESIGN_EMPRENEDORIA.md) ---
+
+/** Plantilla de l'empresa: nombre d'empleats que el seu capital pot sostenir. */
+export function empleatsEmpresa(empresa: Empresa): number {
+  return Math.floor(empresa.capital / EMPRESA_CAPITAL_PER_EMPLEAT)
+}
+
 /**
- * Dividend ANUAL (real) del negoci propi segons la política de sou dels empleats: pagar menys
- * els treballadors et deixa MÉS dividend (plusvàlua extreta). En euros nominals si es multiplica
- * pel factor IPC a `applyCareerYear`.
+ * Habilitat emprenedora (0..0,85): capital humà + contactes + EXPERIÈNCIA (intents previs) + coixí
+ * de capital de l'empresa. Rebaixa la probabilitat de fracàs, però no l'elimina (sempre hi ha sort).
+ * El factor pràctic dominant per triomfar no és aquesta habilitat sinó poder REINTENTAR (capital).
  */
-export function dividendNegociAnual(state: GameState): number {
-  if (!state.negociActiu) return 0
-  const nivell = state.souEmpleats ?? 'mercat'
-  return Math.round(DIVIDEND_NEGOCI_BASE * SOU_EMPLEATS[nivell].dividend)
+export function habilitatEmprenedora(state: GameState): number {
+  return clamp(
+    (state.nivellAcademic ?? 0) * 0.3 +
+      (state.vinclesSocials ?? 0) * 0.25 +
+      Math.min((state.intentsEmpresa ?? 0) * 0.05, 0.25) +
+      Math.min((state.empresa?.capital ?? 0) / 250_000, 1) * 0.15,
+    0,
+    0.85,
+  )
+}
+
+/**
+ * Probabilitat de FRACÀS d'un any d'empresa: alta els primers anys (vall de la mort) i decreixent
+ * amb l'edat; rebaixada per l'habilitat i empitjorada per pagar molt precari (rotació, mala
+ * reputació). Mai zero. Calibrada perquè la majoria de projectes tanquin als pocs anys.
+ */
+export function pFracasEmpresaAnual(empresa: Empresa, habilitat: number): number {
+  const perEdat = EMPRESA_FRACAS_BASE * (1 - Math.min(empresa.anys, 12) / 16)
+  const ajustSou =
+    empresa.souEmpleats === 'precari' ? 0.04 : empresa.souEmpleats === 'molt_baix' ? 0.02 : 0
+  return clamp(perEdat - habilitat * 0.18 + ajustSou, EMPRESA_FRACAS_MIN, 0.7)
+}
+
+/**
+ * Benefici ANUAL (real) d'una empresa que SOBREVIU aquest any: per cada empleat, el valor que
+ * genera (× productivitat segons el sou) menys el seu sou —la PLUSVÀLUA—, més un petit retorn sobre
+ * el capital, tot escalat per la sort de l'any (`luckFactor`, ~0,7–1,3). Pot ser negatiu (mal any).
+ */
+export function beneficiEmpresaAnual(empresa: Empresa, luckFactor: number): number {
+  const cfg = EMPRESA_SOU_EMPLEATS[empresa.souEmpleats]
+  const n = empleatsEmpresa(empresa)
+  const perEmpleat = EMPRESA_VALOR_PER_EMPLEAT * cfg.productivitat - cfg.souAnual
+  return Math.round((n * perEmpleat + empresa.capital * 0.04) * luckFactor)
 }
 
 /**
