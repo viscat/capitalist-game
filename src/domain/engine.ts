@@ -130,6 +130,7 @@ import {
   salariAdultInicial,
   salariInicial,
   sostreSalari,
+  suportUniversitatAnual,
 } from './stats'
 import { dataActual, edatAnys } from './time'
 import type {
@@ -746,16 +747,19 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       factorServeisPublics(state),
     )
   } else if (stage === 'universitat') {
-    // Any d'universitat: suport familiar + beca − matrícula, menys habitatge i (si vius
-    // sol) un cost de vida frugal d'estudiant. El dèficit que ni els estalvis ni la xarxa
-    // cobreixen es torna DEUTE que compon (com a la carrera): estudiar sense suport
-    // familiar es paga amb anys de deute. La família pobra, a més, no et pot mantenir
-    // (suport 0) i et necessita aportant a casa: estudiar de l'origen humil és dur.
+    // Any d'universitat. La MATRÍCULA (menys beca) la pagues SEMPRE de la teva butxaca: estudiar
+    // costa diners a tothom (a la privada, molt; a la pública, menys; el pobre amb beca, encara
+    // menys, però MAI res). El suport familiar cobreix el COST DE VIDA (habitatge + manutenció si
+    // vius sol), però NO és diner sobrant a la butxaca: una família rica et paga la vida mentre
+    // estudies, no t'omple el compte. Així la uni MAI dóna diners; el dèficit es torna DEUTE.
     const ambPares = (habitatge?.tipus ?? 'amb_pares') === 'amb_pares'
     const costHab = ambPares ? 0 : costHabitatgeAnualNet(habitatge, state.familia)
     const costVidaUni = ambPares ? 0 : costVidaAnual('minim')
-    const fluxNet =
-      balancUniversitatAnual(state.familia, state.tipusUniversitat) - costHab - costVidaUni
+    const costVida = costHab + costVidaUni
+    // El suport familiar només pot cobrir despeses de vida reals (mai genera sobrant).
+    const suportVida = Math.min(suportUniversitatAnual(state.familia), costVida)
+    const matriculaNeta = balancUniversitatAnual(state.familia, state.tipusUniversitat)
+    const fluxNet = matriculaNeta + suportVida - costVida
     let efectiu = person.patrimoni.efectiu
     let inversions = person.patrimoni.inversions
     let deute = Math.round((person.patrimoni.deute ?? 0) * (1 + INTERES_DEUTE))

@@ -1194,14 +1194,18 @@ export function becaUniversitat(
   return Math.round(MATRICULA_PUBLICA_ANUAL * FACTOR_BECA[familia.classe])
 }
 
-/** Balanç econòmic d'un any d'universitat: suport familiar + beca − matrícula (segons el centre). */
+/**
+ * Cost net de la MATRÍCULA d'un any d'universitat: beca − matrícula (segons el centre). SEMPRE ≤ 0
+ * (estudiar costa diners a tothom: la beca rebaixa la pública però mai la cobreix del tot; la
+ * privada no en té). El suport familiar es comptabilitza a part (cobreix el cost de VIDA, no la
+ * matrícula, i sense generar sobrant) a `advanceTurn`, de manera que la universitat MAI dóna
+ * diners —ni al fill ric—: estudiar sempre costa.
+ */
 export function balancUniversitatAnual(
   familia: Familia,
   tipus: TipusUniversitat = 'publica',
 ): number {
-  return (
-    suportUniversitatAnual(familia) + becaUniversitat(familia, tipus) - matriculaAnual(tipus)
-  )
+  return becaUniversitat(familia, tipus) - matriculaAnual(tipus)
 }
 
 // --- Carrera adulta (inversions, 18/22 → 35) ---

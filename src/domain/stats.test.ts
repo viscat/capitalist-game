@@ -421,18 +421,22 @@ describe('salariAdultInicial', () => {
   })
 })
 
-describe('balancUniversitatAnual', () => {
-  it('és més alt com més recursos té la família', () => {
-    const pobra = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia)
-    const rica = balancUniversitatAnual(FAMILY_PRESETS.rica.familia)
-    expect(rica).toBeGreaterThan(pobra)
+describe('balancUniversitatAnual (cost net de matrícula)', () => {
+  it('la matrícula SEMPRE costa diners, a tota classe (mai dóna diners)', () => {
+    // El suport familiar ja no es compta aquí (cobreix el cost de VIDA a `advanceTurn`): aquest
+    // balanç és només beca − matrícula, sempre ≤ 0. Estudiar mai NO és un negoci, ni per al ric.
+    for (const cls of Object.keys(FAMILY_PRESETS) as (keyof typeof FAMILY_PRESETS)[]) {
+      expect(balancUniversitatAnual(FAMILY_PRESETS[cls].familia, 'publica')).toBeLessThan(0)
+      expect(balancUniversitatAnual(FAMILY_PRESETS[cls].familia, 'privada')).toBeLessThan(0)
+    }
   })
 
-  it('la universitat pública COSTA diners al pobre (la beca no la cobreix del tot)', () => {
-    // La beca cobreix la major part de la matrícula però MAI tota: estudiar no és gratis ni per
-    // a l'origen humil (material, taxes, desplaçaments) → hi entra amb un cost (sovint deute).
-    const pobraPublica = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia, 'publica')
-    expect(pobraPublica).toBeLessThan(0)
+  it('la beca abarata la matrícula pública al pobre (paga menys que el ric, que no té beca)', () => {
+    const pobra = balancUniversitatAnual(FAMILY_PRESETS.pobra.familia, 'publica')
+    const rica = balancUniversitatAnual(FAMILY_PRESETS.rica.familia, 'publica')
+    // El pobre, amb beca, paga MENYS matrícula neta que el ric (que no en té); però tots dos paguen.
+    expect(pobra).toBeGreaterThan(rica)
+    expect(pobra).toBeLessThan(0)
   })
 
   it('la privada és molt més cara que la pública (per a qui no té suport familiar)', () => {
