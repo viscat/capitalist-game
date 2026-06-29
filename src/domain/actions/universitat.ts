@@ -9,10 +9,12 @@ export const UNIVERSITY_ACTIONS: GameAction[] = [
     category: 'escola',
     labelKey: 'uni.estudis.label',
     descKey: 'uni.estudis.desc',
-    // Estudiar fort estressa i no surts: no dóna benestar, però apuja el nivell acadèmic,
-    // que es paga després (millor sou i ocupabilitat en sortir). La pujada és LENTA: dedicar-s'hi
-    // a fons els 4 anys de carrera arriba a ~0,30 (no a 0,9): el coneixement s'acumula a poc a poc.
-    effect: { benestar: -3, academicDelta: 0.07 },
+    // Estudiar a fons és un SACRIFICI de benestar: estrès, no surts, no vius la teva joventut
+    // ni socialitzes mentre els altres sí. No dóna benestar (en TREU) però apuja el nivell
+    // acadèmic, que es paga DESPRÉS (millor sou i ocupabilitat). La pujada acadèmica és LENTA
+    // (~0,30 a fons en 4 anys). Qui grinya els estudis arriba a la vida adulta amb el benestar i
+    // els vincles tocats: la inversió en futur es paga amb la vida d'ara.
+    effect: { benestar: -7, academicDelta: 0.07, vinclesDelta: -0.02 },
   },
   {
     id: 'uni_treball',

@@ -22,6 +22,7 @@ import { EMPRESA_CAPITAL_MIN, LLOGUER_HABITACIO_ANUAL } from '../constants'
 import { FAMILY_PRESET_ORDER } from '../family/presets'
 import { edatAnys } from '../time'
 import {
+  costVidaAnual,
   defaultPlaInversio,
   factorIPC,
   ingressosAnualsCarrera,
@@ -65,6 +66,10 @@ export interface SimPolicy {
    * fracàs mentre li quedi capital → la tesi: qui es pot permetre fallar moltes vegades, triomfa.
    */
   emprenedor?: boolean
+  /** Maximitza PATRIMONI: oci al mínim (no viu), tota la resta a inversió → benestar en risc. */
+  acumulador?: boolean
+  /** Viu ARA: molt oci (benestar), poca inversió (poc patrimoni). El dilema diners ↔ vida. */
+  viure?: boolean
 }
 
 /**
@@ -204,12 +209,18 @@ export function playout(initial: GameState, policy: SimPolicy): GameState {
     // l'ingrés NOMINAL d'aquell any (com qui apuja la despesa/estalvi amb la inflació), perquè
     // el seu oci/estalvi no s'erosioni amb l'IPC al llarg de dècades.
     if ((s.lifeStage === 'carrera' || s.lifeStage === 'jubilacio') && (s.salari ?? 0) > 0) {
-      s = {
-        ...s,
-        plaInversio: defaultPlaInversio(
-          Math.round(ingressosAnualsCarrera(s) * factorIPC(s)),
-        ),
+      const ingres = Math.round(ingressosAnualsCarrera(s) * factorIPC(s))
+      let pla = defaultPlaInversio(ingres)
+      const rest = Math.max(0, ingres - costVidaAnual())
+      if (policy.acumulador) {
+        // Maximitzar PATRIMONI: oci mínim (no viu), tota la resta a inversió. Enriqueix, però el
+        // benestar baix pot engegar una espiral.
+        pla = { oci: Math.round(rest * 0.08), inversions: Math.round(rest * 0.55) }
+      } else if (policy.viure) {
+        // Viure ARA: més oci (benestar), poca inversió (poc patrimoni). El dilema diners ↔ vida.
+        pla = { oci: Math.round(rest * 0.45), inversions: Math.round(rest * 0.05) }
       }
+      s = { ...s, plaInversio: pla }
     }
     // EMPRENEDOR: cada any de carrera sense empresa, si té prou capital, en funda una (hi posa una
     // FRACCIÓ dels estalvis per poder REINTENTAR si fracassa) i hi paga precari. Reintenta mentre

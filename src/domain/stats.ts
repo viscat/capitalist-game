@@ -178,9 +178,13 @@ export function declividSalutAnual(
   // com als 40 (el cos no respon igual). Per sota de 45 de benestar, en canvi, la precarietat
   // sempre erosiona (l'estrès fa mal a qualsevol edat).
   const recuperacioFactor = clamp(1 - Math.max(0, edat - 55) / 30, 0, 1)
+  // Benestar baix erosiona la salut (estrès, precarietat, depressió, abandó de la cura personal).
+  // El càstig és FORT a benestar molt baix: viure anys amb benestar ~0 (per la raó que sigui —
+  // grinyar els estudis, estalviar-ho tot sense viure, precarietat— ) engega una espiral que pot
+  // matar abans dels 50, sense necessitat de cap desgràcia. Per sobre de 45, la salut es recupera.
   const benestarComp =
     benestar < 45
-      ? Math.min((45 - benestar) * 0.06, 2.5)
+      ? Math.min((45 - benestar) * 0.09, 4)
       : -Math.min((benestar - 45) * 0.05, 1.8) * recuperacioFactor
   // Seqüela crònica: cada punt de seqüela accelera una mica el declivi.
   const cronicaComp = salutCronica * 0.08
@@ -1400,14 +1404,15 @@ export function minimOciAnual(annualIncome: number): number {
 }
 
 /**
- * Benestar anual segons la despesa discrecional (oci): per sota del mínim de
- * manteniment se'n perd (fins a −4), al mínim s'està a 0 i per sobre se'n guanya
- * amb rendiments decreixents (fins a +6).
+ * Benestar anual segons la despesa discrecional (oci/vida): per sobre del mínim se'n guanya (fins a
+ * +7, rendiments decreixents); per SOTA se'n perd MOLT (fins a −12). Estalviar-ho tot i no viure
+ * (oci a zero) enfonsa el benestar → acumular patrimoni a costa de no viure és una via real cap al
+ * benestar 0 i l'espiral. És el dilema central: DINERS ↔ VIDA. No hi ha "partida perfecta" gratuïta.
  */
 export function benestarOciAnual(oci: number, annualIncome: number): number {
   const min = minimOciAnual(annualIncome)
-  if (oci >= min) return clamp(Math.round(Math.sqrt(oci - min) / 18), 0, 6)
-  return -clamp(Math.round(((min - oci) / min) * 4), 0, 4)
+  if (oci >= min) return clamp(Math.round(Math.sqrt(oci - min) / 16), 0, 7)
+  return -clamp(Math.round(((min - oci) / min) * 8), 0, 8)
 }
 
 /** Pla anual per defecte: reparteix el marge entre oci i inversió. */
