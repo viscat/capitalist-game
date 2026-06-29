@@ -28,14 +28,14 @@ export function HabitatgePanel() {
   // Els torns són anuals, però lloguer i quota es mostren en MENSUAL (com la resta de panells).
   const perMes = (anual: number) => Math.round(anual / MESOS_PER_ANY)
 
-  const CARD = 'rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50'
+  const CARD = 'rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50'
 
   // --- Vista: navegar propietats («buscar casa/pis») ---
   if (vista === 'comprar') {
     return (
       <div className={CARD}>
         <Header title={t('habitatge.buscarCasa')} onBack={() => setVista('resum')} />
-        <p className="mb-3 text-xs text-slate-500">
+        <p className="mb-3 text-xs text-inkfaint">
           {t('habitatge.liquid', { amount: formatEuros(liquidDisponible(state)) })}
         </p>
         <div className="space-y-2">
@@ -43,10 +43,10 @@ export function HabitatgePanel() {
             <button
               key={p.id}
               onClick={() => setVista({ propietatId: p.id })}
-              className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80"
+              className="flex w-full items-center justify-between rounded-lg bg-surface2/60 p-3 text-left transition hover:bg-accent/80"
             >
-              <span className="font-medium text-slate-100">{t(`propietat.${p.id}`)}</span>
-              <span className="font-mono text-sm text-slate-300">
+              <span className="font-medium text-ink">{t(`propietat.${p.id}`)}</span>
+              <span className="font-mono text-sm text-inksoft">
                 {formatEuros(Math.round((p.preu * factorHabitatge(state)) / 100) * 100)}
               </span>
             </button>
@@ -76,23 +76,23 @@ export function HabitatgePanel() {
           />
           {oferta.enParella && (
             <div className="flex justify-between">
-              <span className="text-slate-400">💑 {t('habitatge.parellaMeitat')}</span>
-              <span className="font-medium text-emerald-300">−50%</span>
+              <span className="text-inksoft">💑 {t('habitatge.parellaMeitat')}</span>
+              <span className="font-medium text-money">−50%</span>
             </div>
           )}
           {oferta.ajutFamiliar > 0 && (
             <div className="flex justify-between">
-              <span className="text-slate-400">{t('habitatge.ajutFamiliar')}</span>
-              <span className="font-medium text-emerald-300">
+              <span className="text-inksoft">{t('habitatge.ajutFamiliar')}</span>
+              <span className="font-medium text-money">
                 +{formatEuros(oferta.ajutFamiliar)}
               </span>
             </div>
           )}
-          <div className="flex justify-between border-t border-slate-700/60 pt-1.5">
-            <span className="font-semibold text-slate-300">
+          <div className="flex justify-between border-t border-line/60 pt-1.5">
+            <span className="font-semibold text-inksoft">
               {t('habitatge.aportacioInicial')}
             </span>
-            <span className="font-bold text-amber-300">
+            <span className="font-bold text-gold">
               {formatEuros(oferta.aportacioInicial)}
             </span>
           </div>
@@ -109,15 +109,15 @@ export function HabitatgePanel() {
             })
             return ajutHip > 0 ? (
               <div className="flex justify-between">
-                <span className="text-slate-400">{t('habitatge.ajutHipoteca')}</span>
-                <span className="font-medium text-emerald-300">−{formatEuros(perMes(ajutHip))}/mes</span>
+                <span className="text-inksoft">{t('habitatge.ajutHipoteca')}</span>
+                <span className="font-medium text-money">−{formatEuros(perMes(ajutHip))}/mes</span>
               </div>
             ) : null
           })()}
         </div>
 
         <div className="mt-3">
-          <div className="mb-1 text-xs text-slate-500">{t('habitatge.termini')}</div>
+          <div className="mb-1 text-xs text-inkfaint">{t('habitatge.termini')}</div>
           <div className="flex flex-wrap gap-2">
             {[0, ...TERMINIS_HIPOTECA].map((n) => (
               <button
@@ -125,8 +125,8 @@ export function HabitatgePanel() {
                 onClick={() => setAnys(n)}
                 className={`rounded-lg px-3 py-1.5 text-sm transition ${
                   anys === n
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    ? 'bg-accent text-white'
+                    : 'bg-surface2 text-inksoft hover:bg-line'
                 }`}
               >
                 {n === 0 ? t('habitatge.comptat') : t('habitatge.anys', { anys: n })}
@@ -136,10 +136,10 @@ export function HabitatgePanel() {
         </div>
 
         {!oferta.teEntrada && (
-          <p className="mt-3 text-xs text-amber-400">🔒 {t('habitatge.noEntrada')}</p>
+          <p className="mt-3 text-xs text-gold">🔒 {t('habitatge.noEntrada')}</p>
         )}
         {oferta.teEntrada && !oferta.bancAprova && (
-          <p className="mt-3 text-xs text-amber-400">🔒 {t('habitatge.bancRebutja')}</p>
+          <p className="mt-3 text-xs text-gold">🔒 {t('habitatge.bancRebutja')}</p>
         )}
 
         <button
@@ -148,7 +148,7 @@ export function HabitatgePanel() {
             setVista('resum')
           }}
           disabled={!potComprar}
-          className="mt-4 w-full rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-40"
+          className="mt-4 w-full rounded-xl bg-money px-6 py-3 font-semibold text-bg transition hover:bg-money2 disabled:opacity-40"
         >
           {t('habitatge.confirmaCompra')}
         </button>
@@ -159,7 +159,7 @@ export function HabitatgePanel() {
   // --- Vista: resum de la situació actual ---
   return (
     <div ref={coachRef} className={CARD}>
-      <h3 className="mb-2 text-sm font-semibold text-slate-300">
+      <h3 className="mb-2 text-sm font-semibold text-inksoft">
         {t('habitatge.title')}
       </h3>
       <div className="mb-3 space-y-1 text-sm">
@@ -192,7 +192,7 @@ export function HabitatgePanel() {
                 />
               </>
             ) : (
-              <p className="text-xs text-emerald-300">{t('habitatge.sensehipoteca')}</p>
+              <p className="text-xs text-money">{t('habitatge.sensehipoteca')}</p>
             )}
           </>
         )}
@@ -203,30 +203,30 @@ export function HabitatgePanel() {
         <div className="space-y-2">
           <button
             onClick={() => setVista('comprar')}
-            className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
+            className="w-full rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
           >
             🏠 {t('habitatge.comprarMes')}
           </button>
-          <p className="pt-1 text-xs text-slate-500">{t('habitatge.vendre.titol')}</p>
+          <p className="pt-1 text-xs text-inkfaint">{t('habitatge.vendre.titol')}</p>
           {state.person.patrimoni.cases.map((valor, i) => {
             const venda = calculaVenda(state, i)
             return (
               <button
                 key={i}
                 onClick={() => vendreCasa(i)}
-                className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-rose-700/70"
+                className="flex w-full items-center justify-between rounded-lg bg-surface2/60 p-3 text-left transition hover:bg-danger/70"
               >
                 <span className="text-sm">
-                  <span className="font-medium text-slate-100">
+                  <span className="font-medium text-ink">
                     {t('habitatge.vendre.casa', { n: i + 1 })}
                   </span>
-                  <span className="block text-[11px] text-slate-400">
+                  <span className="block text-[11px] text-inksoft">
                     {t('habitatge.vendre.valor', { valor: formatEuros(valor) })}
                   </span>
                 </span>
                 <span className="text-right">
-                  <span className="block text-xs text-slate-400">{t('habitatge.vendre.reps')}</span>
-                  <span className="font-semibold text-emerald-300">
+                  <span className="block text-xs text-inksoft">{t('habitatge.vendre.reps')}</span>
+                  <span className="font-semibold text-money">
                     {formatEuros(venda ? venda.net : 0)}
                   </span>
                 </span>
@@ -238,7 +238,7 @@ export function HabitatgePanel() {
 
       {!esPropietari && (
         <div className="space-y-2">
-          <p className="text-xs text-slate-500">{t('habitatge.mercatLloguer')}</p>
+          <p className="text-xs text-inkfaint">{t('habitatge.mercatLloguer')}</p>
           {(state.ofertesLloguer ?? []).map((o) => {
             const actual =
               habitatge.tipus === o.tipus && habitatge.lloguerAnual === o.lloguerAnual
@@ -247,12 +247,12 @@ export function HabitatgePanel() {
                 key={o.id}
                 onClick={() => llogar(o.id)}
                 disabled={actual}
-                className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/80 disabled:opacity-40"
+                className="flex w-full items-center justify-between rounded-lg bg-surface2/60 p-3 text-left transition hover:bg-accent/80 disabled:opacity-40"
               >
-                <span className="font-medium text-slate-100">
+                <span className="font-medium text-ink">
                   {t(`tipusHabitatge.${o.tipus}`)}
                 </span>
-                <span className="font-mono text-sm text-slate-300">
+                <span className="font-mono text-sm text-inksoft">
                   {formatEuros(perMes(o.lloguerAnual))}/mes
                 </span>
               </button>
@@ -260,14 +260,14 @@ export function HabitatgePanel() {
           })}
           <button
             onClick={() => setVista('comprar')}
-            className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
+            className="w-full rounded-lg bg-accent p-3 font-medium text-white transition hover:bg-accent2"
           >
             🏠 {t('habitatge.comprar')}
           </button>
           {!esPropietari && habitatge.tipus !== 'amb_pares' && (
             <button
               onClick={tornarAmbPares}
-              className="w-full rounded-lg bg-slate-700/60 p-2 text-sm text-slate-300 transition hover:bg-slate-600"
+              className="w-full rounded-lg bg-surface2/60 p-2 text-sm text-inksoft transition hover:bg-line"
             >
               {t('habitatge.tornarPares')}
             </button>
@@ -281,8 +281,8 @@ export function HabitatgePanel() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-medium text-slate-100">{value}</span>
+      <span className="text-inksoft">{label}</span>
+      <span className="font-medium text-ink">{value}</span>
     </div>
   )
 }
@@ -292,11 +292,11 @@ function Header({ title, onBack }: { title: string; onBack: () => void }) {
     <div className="mb-3 flex items-center gap-2">
       <button
         onClick={onBack}
-        className="text-sm text-slate-400 transition hover:text-slate-200"
+        className="text-sm text-inksoft transition hover:text-ink"
       >
         ←
       </button>
-      <h3 className="text-sm font-semibold text-slate-300">{title}</h3>
+      <h3 className="text-sm font-semibold text-inksoft">{title}</h3>
     </div>
   )
 }

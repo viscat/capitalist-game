@@ -58,12 +58,12 @@ export function BudgetPanel() {
   const marge = Math.max(0, assignable - total)
 
   return (
-    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
+    <div ref={coachRef} className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold text-slate-300">
+        <h3 className="text-sm font-semibold text-inksoft">
           {t('budget.title')}
         </h3>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-inksoft">
           {t('budget.income')}: {formatEuros(income)}/mes
         </span>
       </div>
@@ -72,10 +72,10 @@ export function BudgetPanel() {
         {CATEGORIES.map((k) => (
           <div key={k} className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-medium text-slate-100">
+              <div className="text-sm font-medium text-ink">
                 {t(`budget.${k}`)}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-inkfaint">
                 {k === 'casa' && minCasa > 0
                   ? t('budget.casa.obligatori', { min: formatEuros(minCasa) })
                   : t(`budget.${k}.desc`)}
@@ -93,16 +93,16 @@ export function BudgetPanel() {
         ))}
       </div>
 
-      <div className="mt-3 space-y-1 border-t border-slate-700 pt-3 text-sm">
+      <div className="mt-3 space-y-1 border-t border-line pt-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('budget.benestar')}</span>
+          <span className="text-inksoft">{t('budget.benestar')}</span>
           <span
             className={`font-semibold ${
               benestar > 0
-                ? 'text-emerald-300'
+                ? 'text-money'
                 : benestar < 0
-                  ? 'text-amber-400'
-                  : 'text-slate-300'
+                  ? 'text-gold'
+                  : 'text-inksoft'
             }`}
           >
             {benestar > 0 ? '+' : ''}
@@ -110,15 +110,15 @@ export function BudgetPanel() {
           </span>
         </div>
         {benestar <= 0 && (
-          <p className="text-xs text-amber-400/80">
+          <p className="text-xs text-gold/80">
             {t('budget.benestar.min', { min: formatEuros(minOciCompres) })}
           </p>
         )}
         <div className="flex justify-between">
-          <span className="text-slate-400">{t('budget.balanc')}</span>
+          <span className="text-inksoft">{t('budget.balanc')}</span>
           <span
             className={`font-semibold ${
-              balancMes < 0 ? 'text-amber-400' : 'text-emerald-300'
+              balancMes < 0 ? 'text-gold' : 'text-money'
             }`}
           >
             {balancMes >= 0 ? '+' : ''}
@@ -126,10 +126,10 @@ export function BudgetPanel() {
           </span>
         </div>
         {balancMes < 0 && deficit.descobert <= 0 && (
-          <p className="text-xs text-amber-400/80">{t('budget.balanc.estalvis')}</p>
+          <p className="text-xs text-gold/80">{t('budget.balanc.estalvis')}</p>
         )}
         {deficit.descobert > 0 && (
-          <p className="text-xs text-red-400">
+          <p className="text-xs text-danger">
             {t('budget.balanc.descobert', {
               amount: formatEuros(Math.round(deficit.descobert / MESOS_PER_ANY)),
               punts: benestarDescobert,
@@ -138,7 +138,7 @@ export function BudgetPanel() {
         )}
       </div>
 
-      <p className="mt-4 text-xs text-slate-500">{t('budget.nota')}</p>
+      <p className="mt-4 text-xs text-inkfaint">{t('budget.nota')}</p>
     </div>
   )
 }

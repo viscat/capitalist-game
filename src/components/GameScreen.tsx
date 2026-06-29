@@ -172,7 +172,7 @@ function DetallDrawer({
       <button
         aria-label={t('game.tancar')}
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-bg/70 backdrop-blur-sm"
       />
       <div className="relative max-h-[80dvh] overflow-y-auto rounded-t-2xl border-t border-line/60 bg-bg2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-card animate-bar-up">
         <div className="mb-3 flex items-center justify-between">

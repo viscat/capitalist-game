@@ -9,9 +9,9 @@ import { formatEuros } from '../lib/format'
 
 /** Color de l'etiqueta segons la qualitat de l'oferta. */
 const COLOR_QUALITAT: Record<QualitatOferta, string> = {
-  precaria: 'text-amber-400',
-  estandard: 'text-slate-300',
-  bona: 'text-emerald-300',
+  precaria: 'text-gold',
+  estandard: 'text-inksoft',
+  bona: 'text-money',
 }
 
 /** Tram qualitatiu de l'ocupabilitat (per a la nota informativa). */
@@ -38,21 +38,21 @@ export function JobSearchPanel() {
   const bretxa = factorSalariPersonal(state.identitat)
 
   return (
-    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-      <h3 className="text-sm font-semibold text-slate-300">{t('jobsearch.title')}</h3>
-      <p className="mt-1 text-xs text-slate-500">
+    <div ref={coachRef} className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
+      <h3 className="text-sm font-semibold text-inksoft">{t('jobsearch.title')}</h3>
+      <p className="mt-1 text-xs text-inkfaint">
         {t('jobsearch.ocupabilitat', {
           tram: t(`jobsearch.ocupabilitat.${tramOcupabilitat(occ)}`),
         })}
         {anys > 0 && ` · ${t('jobsearch.experiencia', { anys })}`}
       </p>
-      <p className="mt-1 text-xs text-emerald-300/80">
+      <p className="mt-1 text-xs text-money/80">
         {prestacioMes > 0
           ? `🛟 ${t('jobsearch.prestacio', { amount: formatEuros(prestacioMes) })}`
           : `🛟 ${t('jobsearch.sensePrestacio')}`}
       </p>
       {bretxa < 1 && (
-        <p className="mt-1 text-xs text-amber-400/80">
+        <p className="mt-1 text-xs text-gold/80">
           ⚖️ {t('jobsearch.bretxa', { pct: Math.round((1 - bretxa) * 100) })}
         </p>
       )}
@@ -61,20 +61,20 @@ export function JobSearchPanel() {
         {ofertes.map((oferta) => (
           <div
             key={oferta.id}
-            className="flex items-center justify-between gap-3 rounded-lg bg-slate-700/50 p-3"
+            className="flex items-center justify-between gap-3 rounded-lg bg-surface2/50 p-3"
           >
             <div className="min-w-0">
               <div className={`text-sm font-semibold ${COLOR_QUALITAT[oferta.qualitat]}`}>
                 {t(`oferta.${oferta.qualitat}`)}
               </div>
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-inksoft">
                 {formatEuros(oferta.sou)}/mes · {t('jobsearch.net')}{' '}
                 {formatEuros(netMensual(oferta.sou))}/mes
               </div>
             </div>
             <button
               onClick={() => acceptarOferta(oferta.id)}
-              className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500"
+              className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent2"
             >
               {t('jobsearch.accept')}
             </button>
@@ -82,10 +82,10 @@ export function JobSearchPanel() {
         ))}
       </div>
 
-      <p className="mt-4 text-xs text-slate-500">{t('jobsearch.nota')}</p>
+      <p className="mt-4 text-xs text-inkfaint">{t('jobsearch.nota')}</p>
       <button
         onClick={() => nextTurn()}
-        className="mt-2 w-full rounded-xl bg-slate-700 px-6 py-3 text-base font-semibold text-slate-100 transition hover:bg-slate-600"
+        className="mt-2 w-full rounded-xl bg-surface2 px-6 py-3 text-base font-semibold text-ink transition hover:bg-line"
       >
         {t('jobsearch.seguir')}
       </button>

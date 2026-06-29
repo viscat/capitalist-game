@@ -8,12 +8,12 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
   const items = [...historial].reverse()
 
   return (
-    <div className="rounded-xl bg-slate-800/40 p-4">
-      <h3 className="mb-3 text-sm font-semibold text-slate-300">
+    <div className="rounded-xl bg-surface/40 p-4">
+      <h3 className="mb-3 text-sm font-semibold text-inksoft">
         {t('log.title')}
       </h3>
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">{t('log.empty')}</p>
+        <p className="text-sm text-inkfaint">{t('log.empty')}</p>
       ) : (
         <ul className="space-y-3">
           {items.map((entry, i) => (
@@ -21,21 +21,21 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
               key={`${entry.torn}-${i}`}
               className={`border-l-2 pl-3 ${
                 entry.kind === 'action'
-                  ? 'border-indigo-500/60'
-                  : 'border-slate-700'
+                  ? 'border-accent/60'
+                  : 'border-line'
               }`}
             >
               <div className="flex items-baseline justify-between gap-2">
-                <span className="text-sm font-medium text-slate-200">
+                <span className="text-sm font-medium text-ink">
                   {entry.kind === 'action' && '▸ '}
                   {t(entry.titleKey)}
                 </span>
-                <span className="shrink-0 text-xs text-slate-500">
+                <span className="shrink-0 text-xs text-inkfaint">
                   {t('game.age', { anys: entry.edatAnys })}
                 </span>
               </div>
               {entry.choiceLabelKey && (
-                <p className="mt-0.5 text-xs italic text-slate-500">
+                <p className="mt-0.5 text-xs italic text-inkfaint">
                   {t('log.choice', { opcio: t(entry.choiceLabelKey) })}
                 </p>
               )}
@@ -43,12 +43,12 @@ export function TurnLog({ historial }: { historial: LogEntry[] }) {
                 <EffectList effect={entry.effect} />
               </div>
               {entry.donacio ? (
-                <p className="mt-0.5 text-xs text-sky-300">
+                <p className="mt-0.5 text-xs text-money">
                   👪 {t('note.donacio', { amount: formatEuros(entry.donacio) })}
                 </p>
               ) : null}
               {entry.descobert ? (
-                <p className="mt-0.5 text-xs text-amber-400">
+                <p className="mt-0.5 text-xs text-gold">
                   ⚠️ {t('note.descobert', { amount: formatEuros(entry.descobert) })}
                 </p>
               ) : null}

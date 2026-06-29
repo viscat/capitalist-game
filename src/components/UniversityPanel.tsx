@@ -12,18 +12,18 @@ export function UniversityPanel() {
   const { actions, nextTurn } = useGame()
 
   return (
-    <div className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-      <h3 className="text-sm font-semibold text-slate-300">{t('uni.title')}</h3>
-      <p className="mb-3 text-xs text-slate-500">{t('uni.nota')}</p>
+    <div className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
+      <h3 className="text-sm font-semibold text-inksoft">{t('uni.title')}</h3>
+      <p className="mb-3 text-xs text-inkfaint">{t('uni.nota')}</p>
       <div className="grid gap-2 sm:grid-cols-3">
         {actions.map(({ action }) => (
           <button
             key={action.id}
             onClick={() => nextTurn([action.id])}
-            className="flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-indigo-600/70"
+            className="flex flex-col gap-1.5 rounded-lg bg-surface2/60 p-3 text-left transition hover:bg-accent/70"
           >
-            <span className="font-medium text-slate-100">{t(action.labelKey)}</span>
-            <span className="text-xs text-slate-400">{t(action.descKey)}</span>
+            <span className="font-medium text-ink">{t(action.labelKey)}</span>
+            <span className="text-xs text-inksoft">{t(action.descKey)}</span>
             <EffectList effect={action.effect} />
           </button>
         ))}

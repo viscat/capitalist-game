@@ -69,28 +69,28 @@ export function ActionPanel() {
   const pctTemps = tempsTotal > 0 ? Math.round((tempsUsat / tempsTotal) * 100) : 0
 
   return (
-    <div ref={coachRef} className="rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-      <h3 className="text-sm font-semibold text-slate-300">{t('action.title')}</h3>
-      <p className="mb-3 text-xs text-slate-500">{t('action.nota')}</p>
+    <div ref={coachRef} className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
+      <h3 className="text-sm font-semibold text-inksoft">{t('action.title')}</h3>
+      <p className="mb-3 text-xs text-inkfaint">{t('action.nota')}</p>
 
       {/* Pressupostos de l'any: temps i diners. */}
-      <div className="mb-3 space-y-2 rounded-lg bg-slate-900/40 p-3">
+      <div className="mb-3 space-y-2 rounded-lg bg-bg/40 p-3">
         <div className="flex items-baseline justify-between text-xs">
-          <span className="text-slate-400">
+          <span className="text-inksoft">
             ⏳ {t('action.temps')}: {tempsRestant}/{tempsTotal} {t('action.setmanes')}
           </span>
-          <span className={`font-medium ${dinersRestants < 0 ? 'text-red-400' : 'text-emerald-300'}`}>
+          <span className={`font-medium ${dinersRestants < 0 ? 'text-danger' : 'text-money'}`}>
             💶 {formatEuros(dinersRestants)}
           </span>
         </div>
         {tempsCompromes > 0 && (
-          <p className="text-xs text-amber-400/80">
+          <p className="text-xs text-gold/80">
             🏠 {t('action.ajudaCasa', { setmanes: tempsCompromes })}
           </p>
         )}
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-700">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface2">
           <div
-            className="h-full rounded-full bg-indigo-500 transition-all"
+            className="h-full rounded-full bg-accent2 transition-all"
             style={{ width: `${pctTemps}%` }}
           />
         </div>
@@ -109,26 +109,26 @@ export function ActionPanel() {
               key={action.id}
               className={
                 isSel
-                  ? 'flex flex-col gap-1.5 rounded-lg bg-indigo-600/80 p-3 text-left ring-2 ring-indigo-400'
+                  ? 'flex flex-col gap-1.5 rounded-lg bg-accent/80 p-3 text-left ring-2 ring-accent'
                   : disabled
-                    ? 'flex flex-col gap-1.5 rounded-lg bg-slate-800/40 p-3 text-left opacity-50 ring-1 ring-slate-700/50'
-                    : 'flex flex-col gap-1.5 rounded-lg bg-slate-700/60 p-3 text-left ring-1 ring-slate-700/50'
+                    ? 'flex flex-col gap-1.5 rounded-lg bg-surface/40 p-3 text-left opacity-50 ring-1 ring-line/50'
+                    : 'flex flex-col gap-1.5 rounded-lg bg-surface2/60 p-3 text-left ring-1 ring-line/50'
               }
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-slate-100">{t(action.labelKey)}</span>
+                <span className="font-medium text-ink">{t(action.labelKey)}</span>
                 {setmanes > 0 && (
-                  <span className="shrink-0 text-xs text-slate-400">
+                  <span className="shrink-0 text-xs text-inksoft">
                     ⏳ {setmanes} {t('action.setmanes')}
                   </span>
                 )}
               </div>
               {disabled && reasonKey ? (
-                <span className="text-xs font-medium text-amber-400/90">
+                <span className="text-xs font-medium text-gold/90">
                   🔒 {t(reasonKey)}
                 </span>
               ) : (
-                <span className="text-xs text-slate-400">{t(action.descKey)}</span>
+                <span className="text-xs text-inksoft">{t(action.descKey)}</span>
               )}
               <EffectList effect={effecte} />
               {!disabled && (
