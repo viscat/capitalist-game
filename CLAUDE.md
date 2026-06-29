@@ -144,7 +144,11 @@ Transicions (fites):
   es cuidi (no hi ha centenaris; validat al harness). El **progrés mèdic** (`factorEsperancaVida`)
   es fixa per l'**any de NAIXEMENT** (la medicina de la teva generació, constant tota la vida; NO
   l'any corrent, que faria immortal qui arriba a dècades futures) → les generacions posteriors,
-  nascudes més tard, viuen una mica més.
+  nascudes més tard, viuen una mica més. **L'ATZAR pesa**: l'event `desgracia_irreversible`
+  (`ATZAR_EVENTS`, pes INDEPENDENT de classe) és una catàstrofe (accident/malaltia fulminant) amb un
+  cop brutal de salut + seqüela permanent que pot engegar una **espiral de destrucció i matar abans
+  dels 50 fins i tot amb el millor joc** (el ric n'amorteix el cost econòmic, no la seqüela): ni la
+  partida perfecta n'està exempta (validat al harness: ~2-3% mor <50 i ~10% <60 fins i tot òptim).
 - **Dinastia (herència + continuació).** En morir amb fills, el `GameOver` ofereix
   **continuar amb un descendent** (`continuaGeneracio`): comença una vida nova des del
   naixement en una llar la riquesa de la qual és l'**herència per fill** (`llegatPerFill` =

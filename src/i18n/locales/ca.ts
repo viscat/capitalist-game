@@ -1302,6 +1302,9 @@ export const ca: Record<string, string> = {
   'event.estafa.title': 'T’han estafat',
   'event.estafa.desc':
     'Una inversió que prometia molt era un frau. Quan te n’adones, ja has perdut una part dels estalvis. Ningú no n’està exempt.',
+  'event.desgracia_irreversible.title': 'Una desgràcia irreversible',
+  'event.desgracia_irreversible.desc':
+    'Un accident greu, una malaltia fulminant. De cop, sense avís i sense que hi puguis fer res. Et deixa una seqüela que t’acompanyarà la resta de la vida. La sort, de vegades, és cruel amb qualsevol.',
   'event.coneixer_parella.title': 'Una relació que arrela',
   'event.coneixer_parella.desc':
     'Coneixes algú amb qui compartir la vida. Formar parella no es compra amb el sou (pesa molt al benestar) i, a més, repartiu les despeses de la llar i obre la porta a tenir fills.',
