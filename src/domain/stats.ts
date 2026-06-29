@@ -590,6 +590,10 @@ export function desglosBenestarAdult(state: GameState): ComponentBenestar[] {
     { clau: 'desglos.base', valor: 38 },
     { clau: 'desglos.ingres', valor: Math.round(econ * 30) - (incomeM === 0 ? 12 : 0) },
     { clau: 'desglos.patrimoni', valor: Math.round(wealth * 10) },
+    // L'habitatge: amb els pares (−3) i habitació compartida (−2) resten; pis de lloguer (+4) i,
+    // sobretot, casa pròpia (+9) sumen. Fa visible per què la independència/arrelament milloren
+    // el benestar (abans no es reflectia ni a la UI ni enlloc).
+    { clau: 'desglos.habitatge', valor: benestarHabitatge(state.habitatge) },
     { clau: 'desglos.vincles', valor: Math.round((state.vinclesSocials ?? 0) * 18 * (1 - wealth * 0.5)) },
     { clau: 'desglos.deute', valor: -Math.round(deute) },
     { clau: 'desglos.sequela', valor: -(state.salutCronica ?? 0) },

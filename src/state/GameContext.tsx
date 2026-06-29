@@ -15,7 +15,7 @@ import {
   newGameAt16,
   newGameAtCarrera,
 } from '../domain/engine'
-import { comprarCasa, llogar, tornarAmbPares } from '../domain/housing'
+import { comprarCasa, llogar, tornarAmbPares, vendreCasa } from '../domain/housing'
 import { avuiISO } from '../domain/time'
 import type {
   ActionOption,
@@ -91,6 +91,8 @@ interface GameContextValue {
   llogar: (ofertaId: string) => void
   /** Compra un habitatge amb hipoteca (a `anys` anys). */
   comprarCasa: (propietatId: string, anys: number) => void
+  /** Ven l'immoble en propietat de la posició `index` (rep el net, cancel·la la hipoteca). */
+  vendreCasa: (index: number) => void
   /** Torna a viure amb els pares (deixa el lloguer). */
   tornarAmbPares: () => void
   /** Funda una empresa invertint-hi capital dels estalvis (queda en risc). */
@@ -177,6 +179,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       llogar: (ofertaId) => setState((s) => (s ? llogar(s, ofertaId) : s)),
       comprarCasa: (propietatId, anys) =>
         setState((s) => (s ? comprarCasa(s, propietatId, anys) : s)),
+      vendreCasa: (index) => setState((s) => (s ? vendreCasa(s, index) : s)),
       tornarAmbPares: () => setState((s) => (s ? tornarAmbPares(s) : s)),
       fundarEmpresa: (capitalInicial) =>
         setState((s) => (s ? fundarEmpresa(s, capitalInicial) : s)),

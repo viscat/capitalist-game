@@ -172,6 +172,10 @@ export const ca: Record<string, string> = {
   'patrimoni.total': 'Patrimoni net',
   'patrimoni.total.tip':
     'Tot el que tens (efectiu + inversions + cases) menys el que deus (deute i hipoteca). Pot ser negatiu si deus més del que tens. Obre «Detalls» per veure’n el desglossament.',
+  'patrimoni.liquid': 'Líquid (efectiu + inversions − deute): el que pots gastar de debò.',
+  'patrimoni.immobiliari':
+    'Immobiliari (cases − hipoteca): valor de la propietat, no és diner disponible. S’aprecia tot sol.',
+  'patrimoni.veure.detall': 'Veure el detall del patrimoni i l’historial',
   'patrimoni.bretxa':
     'Bretxa de gènere/origen: cobres ~{pct}% menys que algú altre amb el mateix currículum.',
 
@@ -556,6 +560,26 @@ export const ca: Record<string, string> = {
   'habitatge.comprar': 'Comprar un habitatge',
   'habitatge.comprarMes': '🏠 Comprar una altra casa',
   'habitatge.tornarPares': 'Tornar a viure amb els pares',
+  'habitatge.vendre.titol': 'Vendre una propietat',
+  'habitatge.vendre.casa': 'Vendre la casa {n}',
+  'habitatge.vendre.valor': 'Valor de mercat: {valor}',
+  'habitatge.vendre.reps': 'Reps (net)',
+  // Canvis de situació d'habitatge al historial (efecte sobre la referència de benestar).
+  'hist.habitatge.amb_pares.title': 'Tornes a casa dels pares',
+  'hist.habitatge.amb_pares.desc':
+    'Deixes el lloguer i tornes amb la família: estalvies habitatge, però viure amb els pares de gran pesa sobre el benestar.',
+  'hist.habitatge.habitacio.title': 'Vius en una habitació de lloguer',
+  'hist.habitatge.habitacio.desc':
+    'Una habitació és barata però precària: compartir i no tenir espai propi rebaixa una mica el benestar.',
+  'hist.habitatge.pis_lloguer.title': 'Llogues un pis',
+  'hist.habitatge.pis_lloguer.desc':
+    'Un pis de lloguer dóna independència i espai propi: millora el benestar respecte a compartir o viure amb els pares.',
+  'hist.habitatge.propietat.title': 'Compres una casa',
+  'hist.habitatge.propietat.desc':
+    'Tenir casa pròpia dóna seguretat i arrelament: és el que més apuja la referència de benestar de l’habitatge.',
+  'hist.habitatge.venda.title': 'Véns una propietat',
+  'hist.habitatge.venda.desc':
+    'Converteixes l’immoble en diners líquids (descomptant cost de venda i hipoteca pendent). Si era l’última casa, tornes a viure de lloguer o amb els pares.',
   // Emprenedoria (empresa pròpia)
   'empresa.fundar.titol': 'Muntar una empresa',
   'empresa.fundar.avis':
@@ -705,9 +729,13 @@ export const ca: Record<string, string> = {
   'gameover.patrimoniFinal': 'Patrimoni net',
   'gameover.desglos': 'De què es compon el teu patrimoni',
   'gameover.desglosBenestar': 'Per què el teu benestar (què t’apuja i què t’esfondra)',
+  'desglos.titol': 'D’on surt el teu benestar',
+  'desglos.nota':
+    'El benestar gravita cap a aquesta referència. Cada factor hi suma o resta: per això la situació d’habitatge, els vincles o el deute es noten tant.',
   'desglos.base': 'Base vital',
   'desglos.ingres': 'Poder adquisitiu del sou',
   'desglos.patrimoni': 'Patrimoni acumulat',
+  'desglos.habitatge': 'Situació d’habitatge',
   'desglos.vincles': 'Vincles i comunitat',
   'desglos.deute': 'Viure endeutat',
   'desglos.sequela': 'Seqüeles de salut',
