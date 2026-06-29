@@ -550,7 +550,7 @@ describe('costVidaPropi (cobertura familiar mentre vius amb els pares)', () => {
   it('el cost de vida és un valor fix per nivell (no depèn de l’ingrés)', () => {
     expect(costVidaAnual('minim')).toBe(6_000)
     expect(costVidaAnual('mig')).toBe(8_400)
-    expect(costVidaAnual('alt')).toBe(9_600)
+    expect(costVidaAnual('alt')).toBe(12_000)
     expect(costVidaAnual('minim')).toBeLessThan(costVidaAnual('mig'))
     expect(costVidaAnual('mig')).toBeLessThan(costVidaAnual('alt'))
   })

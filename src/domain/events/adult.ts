@@ -876,6 +876,74 @@ export const LLOGUER_EVENTS: GameEvent[] = [
 ]
 
 /**
+ * HABITACIÓ compartida: viure en una habitació de lloguer no és com tenir un pis. Hi ha conflictes
+ * amb els companys, soroll, manca d'intimitat i més inestabilitat. Esdeveniments propis (a sobre
+ * dels de lloguer genèrics), gairebé tots benestar a la baixa: la precarietat habitacional viscuda.
+ */
+export const HABITACIO_EVENTS: GameEvent[] = [
+  {
+    id: 'conflicte_companys',
+    category: 'familia',
+    titleKey: 'event.conflicte_companys.title',
+    descKey: 'event.conflicte_companys.desc',
+    weight: () => 1.4,
+    effect: { benestar: -6, vinclesDelta: -0.04 },
+  },
+  {
+    id: 'soroll_nit',
+    category: 'salut',
+    titleKey: 'event.soroll_nit.title',
+    descKey: 'event.soroll_nit.desc',
+    weight: () => 1.2,
+    effect: { benestar: -4, salutDelta: -2 },
+  },
+  {
+    id: 'pujada_habitacio',
+    category: 'economia',
+    titleKey: 'event.pujada_habitacio.title',
+    descKey: 'event.pujada_habitacio.desc',
+    // L'habitació és el primer que apuja o et fan marxar: més inestabilitat que un pis.
+    weight: () => 0.9,
+    effect: { benestar: -7, perdHabitatge: true },
+  },
+]
+
+/**
+ * PROPIETAT: tenir casa pròpia dóna seguretat i arrelament (cap risc de desnonament), però porta
+ * despeses pròpies del propietari (derrames de la comunitat, avaries, IBI, reformes) que el llogater
+ * no paga. Gating per ser propietari a `eventPool`. La cara b de l'estabilitat: la casa també costa.
+ */
+export const PROPIETARI_EVENTS: GameEvent[] = [
+  {
+    id: 'derrama_comunitat',
+    category: 'economia',
+    titleKey: 'event.derrama_comunitat.title',
+    descKey: 'event.derrama_comunitat.desc',
+    params: { cost: 3000 },
+    weight: () => 0.8,
+    effect: { despesaGreu: 3000, benestar: -3 },
+  },
+  {
+    id: 'avaria_llar',
+    category: 'economia',
+    titleKey: 'event.avaria_llar.title',
+    descKey: 'event.avaria_llar.desc',
+    params: { cost: 1800 },
+    weight: () => 0.9,
+    effect: { despesaGreu: 1800, benestar: -2 },
+  },
+  {
+    id: 'la_meva_llar',
+    category: 'familia',
+    titleKey: 'event.la_meva_llar.title',
+    descKey: 'event.la_meva_llar.desc',
+    // L'arrelament de tenir casa pròpia: la seguretat de saber que ningú no et pot fer fora.
+    weight: () => 1,
+    effect: { benestar: 5, vinclesDelta: 0.04 },
+  },
+]
+
+/**
  * PARELLA: conèixer algú i decidir formar una parella estable. És el requisit previ per tenir
  * fills i, a més, fa que les despeses estructurals de la llar es comparteixin. Només apareix
  * mentre no en tens (gating a `eventPool`). Pes alt perquè sigui ben visible com a opció.

@@ -236,7 +236,7 @@ export const INDEX_RENDIMENT_RANG = 0.27
 export const COST_VIDA_NIVELLS: Record<NivellVida, number> = {
   minim: 6_000, // 500 €/mes
   mig: 8_400, // 700 €/mes
-  alt: 9_600, // 800 €/mes
+  alt: 12_000, // 1.000 €/mes — viure bé (millor menjar, oci, capricis) costa de debò
 }
 /** Nivell de vida per defecte en entrar a la vida adulta. */
 export const NIVELL_VIDA_DEFAULT: NivellVida = 'mig'

@@ -427,15 +427,20 @@ export function baselineBenestar(state: GameState): number {
  * Benestar de referència adult (fase de carrera): depèn del propi ingrés i del
  * patrimoni acumulat, no de la família. A l'atur, cau per la inseguretat.
  */
-/** Efecte de la situació d'habitatge sobre el benestar de referència (independència). */
+/**
+ * Efecte de la situació d'habitatge sobre el benestar de referència. No és el mateix compartir una
+ * habitació (poca intimitat, soroll, inestabilitat), tenir un pis de lloguer (independència però
+ * inseguretat: te'l poden no renovar) o una casa pròpia (arrelament i seguretat). La diferència és
+ * NOTABLE perquè es noti la millora de condicions a mesura que s'estabilitza la vida.
+ */
 export function benestarHabitatge(habitatge?: Habitatge): number {
   switch (habitatge?.tipus) {
     case 'habitacio':
-      return 1
+      return -2
     case 'pis_lloguer':
       return 4
     case 'propietat':
-      return 6
+      return 9
     case 'amb_pares':
       return -3
     default:

@@ -1238,6 +1238,26 @@ export const ca: Record<string, string> = {
   'event.desnonament.title': 'Desnonament',
   'event.desnonament.desc':
     'Les pujades de lloguer t’ofeguen i acabes fora del pis. Un cop dur: tornes a casa els pares.',
+  // Viure en una HABITACIÓ compartida (pitjor que un pis: conflictes, soroll, inestabilitat).
+  'event.conflicte_companys.title': 'Tensió amb els companys de pis',
+  'event.conflicte_companys.desc':
+    'Compartir habitació/pis no sempre és fàcil: neteja, despeses, horaris… la convivència es tensa i es fa pesada.',
+  'event.soroll_nit.title': 'Nits sense dormir',
+  'event.soroll_nit.desc':
+    'Parets primes, festes al costat, soroll del carrer. Dormir malament passa factura: estàs esgotat.',
+  'event.pujada_habitacio.title': 'Et fan deixar l’habitació',
+  'event.pujada_habitacio.desc':
+    'El propietari apuja el preu de l’habitació o la necessita: a l’habitació de lloguer hi ha encara menys estabilitat. Tornes a casa els pares.',
+  // Ser PROPIETARI: seguretat, però despeses pròpies de la casa.
+  'event.derrama_comunitat.title': 'Derrama de la comunitat',
+  'event.derrama_comunitat.desc':
+    'La comunitat de veïns aprova una derrama (façana, ascensor…). Ser propietari també té costos que el llogater no paga.',
+  'event.avaria_llar.title': 'Una avaria a casa',
+  'event.avaria_llar.desc':
+    'La caldera, una canonada, la teulada… quan ets propietari, les reparacions les pagues tu.',
+  'event.la_meva_llar.title': 'La meva llar',
+  'event.la_meva_llar.desc':
+    'Tens casa pròpia: ningú no et pot fer fora. La seguretat d’un sostre que és teu dóna pau.',
   'event.coneixer_parella.title': 'Una relació que arrela',
   'event.coneixer_parella.desc':
     'Coneixes algú amb qui compartir la vida. Formar parella no es compra amb el sou (pesa molt al benestar) i, a més, repartiu les despeses de la llar i obre la porta a tenir fills.',

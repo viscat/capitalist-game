@@ -51,11 +51,13 @@ import {
   DEPREDADOR_EVENTS,
   DESCENDENCIA_EVENTS,
   FILLS_EVENTS,
+  HABITACIO_EVENTS,
   HERENCIA_DINASTIA_EVENTS,
   HERENCIA_PARES_EVENTS,
   HERENCIA_VIDA_EVENTS,
   LLOGUER_EVENTS,
   MORAL_EVENTS,
+  PROPIETARI_EVENTS,
   NEGOCI_EVENTS,
   NEGOCI_GESTIO_EVENTS,
   PARELLA_EVENTS,
@@ -499,8 +501,12 @@ function eventPool(state: GameState): GameEvent[] {
       // A partir dels ~50, el risc de salut propi de l'edat (i la cura dels pares grans)
       // s'afegeix al pool: el cos passa factura amb els anys.
       if (edat >= EDAT_REVISIO_50) pool.push(...SALUT_EDAT_EVENTS)
-      // De lloguer: inseguretat habitacional (fi de contracte, desnonament → perds el pis).
+      // De lloguer: inseguretat habitacional (fi de contracte, desnonament → perds el pis). Una
+      // HABITACIÓ compartida hi suma conflictes i incomoditats (no és el mateix que un pis sencer);
+      // ser PROPIETARI no té risc de desnonament però porta despeses pròpies (derrames, avaries).
       if (esLloguer(state)) pool.push(...LLOGUER_EVENTS)
+      if (state.habitatge?.tipus === 'habitacio') pool.push(...HABITACIO_EVENTS)
+      if (state.habitatge?.tipus === 'propietat') pool.push(...PROPIETARI_EVENTS)
       // Amb un capital prou sòlid, pot sorgir l'oportunitat de muntar un negoci (alta variància,
       // alt sostre). Només per a qui ja té múscul financer: és la via d'acumulació de capital.
       if (
