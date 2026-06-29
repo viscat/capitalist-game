@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import type { EventEffect } from '../domain/types'
 import { nivellMoralitat } from '../domain/stats'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
@@ -41,6 +42,8 @@ export function StatRings({
   academic = 0,
   vincles = 0,
   size = 38,
+  efecte,
+  efecteKey,
 }: {
   benestar: number
   salut: number
@@ -48,6 +51,13 @@ export function StatRings({
   academic?: number
   vincles?: number
   size?: number
+  /**
+   * Efecte APLICAT pel darrer esdeveniment del torn (el mateix objecte que mostra l'historial):
+   * d'aquí surt el "+N/−N" flotant de cada anell, perquè coincideixi sempre amb l'historial.
+   */
+  efecte?: EventEffect | null
+  /** Identificador del torn (p. ex. la llargada de l'historial): dispara el "pop" un sol cop. */
+  efecteKey?: string | number
 }) {
   const { t } = useT()
   const benestarRef = useCoachmark<HTMLButtonElement>('benestar')
@@ -72,11 +82,16 @@ export function StatRings({
 
   const moralBanda = nivellMoralitat(moralitat)
   const ringIcon = (id: StatId) => <Icon icon={STAT_ICON[id]} size={17} />
+  // Variació flotant per anell = el que ha aplicat l'esdeveniment d'aquest torn (mateixa font que
+  // l'historial). Acadèmic i vincles són 0..1 al domini però es mostren en %, així que el delta
+  // també (× 100), exactament com l'EffectList.
+  const pct = (d?: number) => (d == null ? undefined : Math.round(d * 100))
   const rings: {
     id: StatId
     icon: ReactNode
     valor: number
     valorText: string
+    delta?: number
     ref: RefObject<HTMLButtonElement | null>
     wrapClass?: string
   }[] = [
@@ -85,6 +100,7 @@ export function StatRings({
       icon: ringIcon('benestar'),
       valor: benestar,
       valorText: `${Math.round(benestar)}/100`,
+      delta: efecte?.benestar,
       ref: benestarRef,
     },
     {
@@ -92,6 +108,7 @@ export function StatRings({
       icon: ringIcon('salut'),
       valor: salut,
       valorText: `${Math.round(salut)}/100`,
+      delta: efecte?.salutDelta,
       ref: salutRef,
       wrapClass: alerta !== 'none' ? `salut-alerta-${alerta}` : undefined,
     },
@@ -100,6 +117,7 @@ export function StatRings({
       icon: ringIcon('moralitat'),
       valor: moralitat,
       valorText: `${t(`moralitat.banda.${moralBanda}`)} · ${Math.round(moralitat)}/100`,
+      delta: efecte?.moralitatDelta,
       ref: moralitatRef,
     },
     {
@@ -107,6 +125,7 @@ export function StatRings({
       icon: ringIcon('academic'),
       valor: academic * 100,
       valorText: `${Math.round(academic * 100)}%`,
+      delta: pct(efecte?.academicDelta),
       ref: academicRef,
     },
     {
@@ -114,6 +133,7 @@ export function StatRings({
       icon: ringIcon('vincles'),
       valor: vincles * 100,
       valorText: `${Math.round(vincles * 100)}%`,
+      delta: pct(efecte?.vinclesDelta),
       ref: vinclesRef,
     },
   ]
@@ -135,7 +155,14 @@ export function StatRings({
               obert === r.id ? 'ring-2 ring-accent/50' : ''
             } ${r.wrapClass ?? ''}`}
           >
-            <StatRing value={r.valor} icon={r.icon} size={size} label={t(`stat.${r.id}`)} />
+            <StatRing
+              value={r.valor}
+              icon={r.icon}
+              size={size}
+              label={t(`stat.${r.id}`)}
+              delta={r.delta}
+              pulseKey={efecteKey}
+            />
           </button>
         ))}
       </div>
