@@ -82,7 +82,6 @@ import {
   ajudaCasaBenestar,
   ajutPublicMax,
   aportacioMinima,
-  applyBudgetYear,
   applyCareerYear,
   applyEffect,
   balancUniversitatAnual,
@@ -111,7 +110,6 @@ import {
   fillsDependents,
   inflacioAnual,
   variacioHabitatgeAnual,
-  defaultBudget,
   defaultPlaInversio,
   estalviAnualCriatura,
   factorSalariPersonal,
@@ -722,6 +720,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // Empresa pròpia: pot tancar (fracàs) o créixer (reinversió) aquest any (vegeu el bloc de carrera).
   let empresa = state.empresa
   let empresaHist = state.empresaHist
+  // Cost de matrícula d'aquest any d'universitat (després de beca), per registrar-lo a l'historial.
+  let matriculaUniAny = 0
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -762,17 +762,30 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       },
     }
   } else if (stage === 'laboral') {
-    // El pressupost és mensual; un torn n'aplica un any sencer (× 12).
-    const income = ingressosMensuals16(state)
-    const budget = state.pressupost ?? defaultBudget(income)
-    const minCasa =
-      state.itinerari === 'treball' ? aportacioMinima(state.familia, income) : 0
-    person = applyBudgetYear(
+    // Fase laboral 16-18: MATEIX model econòmic que la carrera (un sol panell de despeses/ingressos
+    // a tota la vida laboral). Vius amb els pares, així que l'única despesa obligatòria és
+    // l'aportació a casa (treball; el nini no aporta). La resta es reparteix entre oci i estalvi/
+    // inversió, i el dèficit es torna deute, igual que a la carrera. Sense exposició al mercat
+    // (indexReturn 0): no es consumeix RNG aquí, es manté el determinisme de la seqüència.
+    const monthly = ingressosMensuals16(state)
+    const income = monthly * MESOS_PER_ANY
+    const aportacio =
+      state.itinerari === 'treball'
+        ? aportacioMinima(state.familia, monthly) * MESOS_PER_ANY
+        : 0
+    const pla = state.plaInversio ?? defaultPlaInversio(income)
+    person = applyCareerYear(
       person,
-      budget,
+      pla,
       income,
-      minCasa,
+      0, // sense rendiment del mercat per als estalvis d'un adolescent
+      0, // cost de vida: viu amb els pares (el cobreixen ells)
+      0, // sense habitatge propi
       state.familia,
+      aportacio, // aportació obligatòria a casa (treball)
+      0, // benestarNivell
+      0, // sense fills dependents
+      factorIPC(state),
       factorServeisPublics(state),
     )
   } else if (stage === 'universitat') {
@@ -788,6 +801,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // El suport familiar només pot cobrir despeses de vida reals (mai genera sobrant).
     const suportVida = Math.min(suportUniversitatAnual(state.familia), costVida)
     const matriculaNeta = balancUniversitatAnual(state.familia, state.tipusUniversitat)
+    matriculaUniAny = Math.max(0, -matriculaNeta) // cost net de matrícula (després de beca)
     const fluxNet = matriculaNeta + suportVida - costVida
     let efectiu = person.patrimoni.efectiu
     let inversions = person.patrimoni.inversions
@@ -1039,6 +1053,21 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   }
 
   const entries: LogEntry[] = []
+  // Universitat: deixa constància ANUAL del cost de la matrícula (després de beca) a l'historial.
+  // És informatiu (el flux ja l'ha cobrat); el deute que en resulti ja es modela a part.
+  if (stage === 'universitat' && matriculaUniAny > 0) {
+    entries.push({
+      torn,
+      edatAnys: anys,
+      eventId: 'matricula_uni',
+      titleKey: 'log.matricula.title',
+      descKey: 'log.matricula.desc',
+      params: { import: matriculaUniAny },
+      category: 'escola',
+      kind: 'event',
+      effect: {},
+    })
+  }
   // Stats no monetaris que poden moure les accions (dedicació universitària, etc.).
   // applyEffect només toca patrimoni i benestar, així que els acumulem a part.
   let accAcademic = 0
@@ -1493,10 +1522,8 @@ export function applyMilestoneChoice(
     next.salari = next.salariBase = sou
   }
   if (option.lifeStage === 'laboral') {
-    const income = ingressosMensuals16(next)
-    const minCasa =
-      next.itinerari === 'treball' ? aportacioMinima(next.familia, income) : 0
-    next.pressupost = defaultBudget(income, minCasa)
+    // Mateix model que la carrera: pla d'ingressos/despeses (oci + estalvi/inversió).
+    next.plaInversio = defaultPlaInversio(ingressosMensuals16(next) * MESOS_PER_ANY)
   }
   // ENTRADA a la carrera (només quan es ve d'una altra fase): NO et regalen feina.
   // Comences a l'atur (sou 0) i has de buscar-la; les ofertes les genera `ambOfertes` al

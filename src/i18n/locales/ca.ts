@@ -525,6 +525,17 @@ export const ca: Record<string, string> = {
   // Dedicació de l'any d'universitat
   'uni.title': 'Com vius aquest curs?',
   'uni.nota': 'Tria com enfoques l’any: cada opció té els seus pros i contres.',
+  'uni.pressupost.titol': 'Despeses i ingressos del curs',
+  'uni.pressupost.suport': 'Suport familiar',
+  'uni.pressupost.matricula': 'Matrícula',
+  'uni.pressupost.matricula.beca': 'Beca aplicada: {beca}/mes',
+  'uni.pressupost.costVida': 'Cost de vida',
+  'uni.pressupost.habitatge': 'Habitatge',
+  'uni.pressupost.balanc': 'Balanç del mes',
+  'uni.pressupost.deute.nota':
+    'Estudiar sense ingressos t’endeuta: el dèficit s’acumula i el pagaràs quan treballis.',
+  'uni.pressupost.nota':
+    'La matrícula i el cost de vida són obligatoris. El suport familiar cobreix la vida (mai la matrícula ni genera sobrant): estudiar sempre costa, i el que no cobreixes es torna deute.',
   'uni.estudis.label': 'Estudiar a fons',
   'uni.estudis.desc': 'T’hi deixes la pell: poc temps per a tu, però puja el nivell acadèmic (millor sou i feina en sortir).',
   'uni.treball.label': 'Treballar i estudiar',
@@ -706,6 +717,8 @@ export const ca: Record<string, string> = {
   'log.title': 'Història',
   'log.empty': 'Encara no ha passat res.',
   'log.choice': 'Decisió: {opcio}',
+  'log.matricula.title': 'Matrícula universitària',
+  'log.matricula.desc': 'Has pagat {import} de matrícula aquest curs (després de beca).',
 
   'category.familia': 'Família',
   'category.economia': 'Economia',

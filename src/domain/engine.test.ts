@@ -159,11 +159,12 @@ describe('fork dels 16', () => {
     expect(actionOptions(s).length).toBeGreaterThan(0)
   })
 
-  it('triar treball porta a la fase laboral amb pressupost i sou inicial', () => {
+  it('triar treball porta a la fase laboral amb pla d’ingressos/despeses i sou inicial', () => {
     const s = applyMilestoneChoice(fork(), 'treball')
     expect(s.lifeStage).toBe('laboral')
     expect(s.itinerari).toBe('treball')
-    expect(s.pressupost).toBeDefined()
+    // Mateix model que la carrera: la fase laboral usa el pla d'ingressos/despeses (oci + estalvi).
+    expect(s.plaInversio).toBeDefined()
     expect(s.salari).toBe(salariInicial(s.familia))
     expect(actionOptions(s)).toHaveLength(0) // laboral no usa targetes
   })
@@ -217,27 +218,27 @@ describe('sou dinàmic i atur', () => {
 })
 
 describe('aportació obligatòria a casa', () => {
-  it('el pressupost inicial respecta el mínim obligatori segons la família', () => {
+  it('treballar a una família humil comporta una aportació obligatòria positiva', () => {
     const s = applyMilestoneChoice(newGameAt16('pobra', 7), 'treball')
-    // L'aportació es calcula sobre l'ingrés net (el que es cobra), no el brut.
+    // L'aportació es calcula sobre l'ingrés net (el que es cobra), no el brut. Ara s'aplica
+    // al motor (com a despesa obligatòria de l'any), no com a camp del pressupost.
     const min = aportacioMinima(s.familia, ingressosMensuals16(s))
     expect(min).toBeGreaterThan(0)
-    expect(s.pressupost!.casa).toBeGreaterThanOrEqual(min)
+    expect(s.plaInversio).toBeDefined()
   })
 })
 
-describe('fase laboral i pressupost', () => {
-  it('cada torn avança 1 any i el sobrant del pressupost es queda com a efectiu', () => {
+describe('fase laboral i pla d’ingressos/despeses', () => {
+  it('cada torn avança 1 any i el sobrant (oci/inversió 0) s’acumula a estalvis', () => {
     const base = applyMilestoneChoice(newGameAt16('mitjana', 7), 'treball')
-    // Pressupost frugal (oci/compres baixos): l'ingrés sobrant s'acumula a efectiu.
-    const s = {
-      ...base,
-      pressupost: { ...base.pressupost!, oci: 0, compres: 0 },
-    }
-    const efectiuAbans = s.person.patrimoni.efectiu
+    // Pla frugal (oci 0, inversió 0): l'ingrés sobrant (després de l'aportació a casa) s'acumula.
+    const s = { ...base, plaInversio: { oci: 0, inversions: 0 } }
+    const estalvisAbans = s.person.patrimoni.efectiu + s.person.patrimoni.inversions
     const after = advanceTurn(s)
     expect(after.person.edatMesos).toBe(s.person.edatMesos + MESOS_PER_ANY)
-    expect(after.person.patrimoni.efectiu).toBeGreaterThan(efectiuAbans)
+    expect(after.person.patrimoni.efectiu + after.person.patrimoni.inversions).toBeGreaterThan(
+      estalvisAbans,
+    )
   })
 
   it('treballar dóna més ingrés que no fer res', () => {
@@ -678,6 +679,16 @@ describe('universitat i carrera', () => {
     expect(ambFeina.salari).toBeGreaterThan(0)
     expect(ambFeina.plaInversio).toBeDefined()
     expect(ambFeina.ofertesFeina).toBeUndefined()
+  })
+
+  it('cada any d’universitat registra el cost de la matrícula a l’historial', () => {
+    const fork = playUntil(
+      applyMilestoneChoice(newGameAt16('mitjana', 7), 'batxillerat'),
+      (s) => s.pendingMilestone === 'majoria',
+    )
+    const uni = applyMilestoneChoice(fork, 'universitat_publica')
+    const after = advanceTurn(uni)
+    expect(after.historial.some((e) => e.eventId === 'matricula_uni')).toBe(true)
   })
 
   it('un any de carrera avança 1 any, inverteix i deixa els comptes no negatius', () => {

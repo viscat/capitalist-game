@@ -12,9 +12,11 @@ import {
 } from '../domain/constants'
 import {
   ajutPublicMax,
+  aportacioMinima,
   beneficiEmpresaAnual,
   benestarNivellVida,
   benestarOciAnual,
+  ingressosMensuals16,
   cobreixVidaFamiliar,
   contribucioLlar,
   costFillsAnual,
@@ -82,11 +84,22 @@ export function InvestmentPanel() {
   // El model treballa en anual; el panell ho presenta tot en mensual. Ni el SOU ni la PENSIÓ
   // s'indexen a l'IPC (es queden nominals), coherent amb el motor (`advanceTurn`).
   const f = factorIPC(state)
+  // Fase laboral 16-18: MATEIX panell que la carrera. Vius amb els pares, així que l'única
+  // despesa obligatòria és l'aportació a casa (treball; el nini no aporta), i no hi ha nivell de
+  // vida, habitatge, fills ni accions de salut/formació. L'ingrés és el sou net (o la paga).
+  const esLaboral = state.lifeStage === 'laboral'
+  const monthlyLaboral = esLaboral ? ingressosMensuals16(state) : 0
+  const aportacioLaboral =
+    esLaboral && state.itinerari === 'treball'
+      ? aportacioMinima(state.familia, monthlyLaboral) * MESOS_PER_ANY
+      : 0
   // Ingrés desglossat: el SOU per compte aliè (o pensió) i, A PART, el sou estimat de l'EMPRESA
   // pròpia (variable: només si sobreviu l'any). Es mostren separats per no barrejar-los.
-  const incomeFeina = state.jubilat
-    ? pensioPublicaAnual(state)
-    : ingressosAnualsCarrera(state)
+  const incomeFeina = esLaboral
+    ? monthlyLaboral * MESOS_PER_ANY
+    : state.jubilat
+      ? pensioPublicaAnual(state)
+      : ingressosAnualsCarrera(state)
   const souEmpresaAny = state.empresa
     ? Math.round(
         Math.max(
@@ -113,20 +126,23 @@ export function InvestmentPanel() {
   const costVidaBase = ambPares
     ? contribucioLlar(state.familia, net, factorAportacioLlar(state))
     : Math.round(costVidaPropi(state.familia, state.habitatge, nivell) * f)
-  const costVida = Math.round(costVidaBase * factorParella)
+  // A la fase laboral, l'única despesa obligatòria és l'aportació a casa (es mostra com a
+  // "contribució a la llar"); a la resta, el cost de vida segons on visquis.
+  const costVida = esLaboral ? aportacioLaboral : Math.round(costVidaBase * factorParella)
   const cobertFamilia = ambPares
     ? 0
     : cobreixVidaFamiliar(state.familia, state.habitatge, nivell)
-  const costHab = ambPares
-    ? 0
-    : Math.round(costHabitatgeAnualNet(state.habitatge, state.familia) * factorParella)
+  const costHab =
+    ambPares || esLaboral
+      ? 0
+      : Math.round(costHabitatgeAnualNet(state.habitatge, state.familia) * factorParella)
   // Criança dels fills dependents (cost net, ja descomptada la prestació pública): és una
-  // despesa obligatòria de l'any, com l'habitatge.
-  const costFills = costFillsAnual(state)
+  // despesa obligatòria de l'any, com l'habitatge. (No aplica a la fase laboral 16-18.)
+  const costFills = esLaboral ? 0 : costFillsAnual(state)
   const fillsDeps = fillsDependents(state)
   // Accions fixes triades (salut/formació) compten com a despesa obligatòria de l'any.
-  const costSalut = state.inversioSalut ? costSalutNominal : 0
-  const costFormacio = state.inversioFormacio ? costFormacioNominal : 0
+  const costSalut = !esLaboral && state.inversioSalut ? costSalutNominal : 0
+  const costFormacio = !esLaboral && state.inversioFormacio ? costFormacioNominal : 0
   const obligatori = costVida + costHab + costFills + costSalut + costFormacio
   const efectiu = state.person.patrimoni.efectiu
   const inversionsActuals = state.person.patrimoni.inversions
@@ -385,25 +401,28 @@ export function InvestmentPanel() {
           </div>
         ))}
 
-        {/* Accions fixes: invertir en salut i en formació (cost anual, milloren els stats). */}
-        <div className="space-y-2 border-t border-line/60 pt-3">
-          <Toggle
-            on={Boolean(state.inversioSalut)}
-            icon={HeartPulse}
-            label={t('pla.inversioSalut')}
-            nota={t('pla.inversioSalut.nota', { cost: formatEuros(perMes(costSalutNominal)) })}
-            onClick={() => setInversioSalut(!state.inversioSalut)}
-          />
-          <Toggle
-            on={Boolean(state.inversioFormacio)}
-            icon={BookOpen}
-            label={t('pla.inversioFormacio')}
-            nota={t('pla.inversioFormacio.nota', {
-              cost: formatEuros(perMes(costFormacioNominal)),
-            })}
-            onClick={() => setInversioFormacio(!state.inversioFormacio)}
-          />
-        </div>
+        {/* Accions fixes: invertir en salut i en formació (cost anual, milloren els stats).
+            No apareixen a la fase laboral 16-18. */}
+        {!esLaboral && (
+          <div className="space-y-2 border-t border-line/60 pt-3">
+            <Toggle
+              on={Boolean(state.inversioSalut)}
+              icon={HeartPulse}
+              label={t('pla.inversioSalut')}
+              nota={t('pla.inversioSalut.nota', { cost: formatEuros(perMes(costSalutNominal)) })}
+              onClick={() => setInversioSalut(!state.inversioSalut)}
+            />
+            <Toggle
+              on={Boolean(state.inversioFormacio)}
+              icon={BookOpen}
+              label={t('pla.inversioFormacio')}
+              nota={t('pla.inversioFormacio.nota', {
+                cost: formatEuros(perMes(costFormacioNominal)),
+              })}
+              onClick={() => setInversioFormacio(!state.inversioFormacio)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="mt-3 space-y-1 border-t border-line pt-3 text-sm">

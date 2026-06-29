@@ -9,7 +9,7 @@ import { AppShell } from './AppShell'
 import { BenestarDesglos } from './BenestarDesglos'
 import { BarChart3, Icon } from './icons'
 import { SoundToggle } from './SoundToggle'
-import { BudgetPanel } from './BudgetPanel'
+import { UniBudgetPanel } from './UniBudgetPanel'
 import { EmpresaPanel } from './EmpresaPanel'
 import { GameHud } from './GameHud'
 import { HabitatgePanel } from './HabitatgePanel'
@@ -112,8 +112,15 @@ export function GameScreen() {
       <EventCard pending={pendingEvent} lastEntry={lastEntry} onChoose={choose} />
 
       {!pendingEvent && esAccions && <ActionPanel />}
-      {!pendingEvent && esLaboral && <BudgetPanel />}
+      {/* Mateix panell de despeses/ingressos des que es comença a treballar (laboral) i a la carrera. */}
+      {!pendingEvent && esLaboral && <InvestmentPanel />}
       {!pendingEvent && esUniversitat && <UniversityPanel />}
+      {/* A la uni, a més de la dedicació, es mostra el panell de despeses/ingressos (matrícula, deute…). */}
+      {!pendingEvent && esUniversitat && (
+        <div className="mt-3">
+          <UniBudgetPanel />
+        </div>
+      )}
       {!pendingEvent && esCercaFeina && <JobSearchPanel />}
       {!pendingEvent && esAdult && !esCercaFeina && <HabitatgePanel />}
       {!pendingEvent && esInversio && !esCercaFeina && <InvestmentPanel />}
