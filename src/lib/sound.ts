@@ -40,7 +40,7 @@ export function setSoundEnabled(v: boolean): void {
     /* ignora (mode privat, etc.) */
   }
   if (v) {
-    getCtx() // desbloqueja l'àudio dins del gest que ha activat el so
+    unlock() // desbloqueja l'àudio dins del gest (clau a mòbil/iOS)
     startMusic()
     playSfx('select') // confirmació immediata: l'usuari sent que el so funciona
   } else {
@@ -67,9 +67,34 @@ function getCtx(): AudioContext | null {
     } catch {
       return null
     }
+    // A mòbil, `resume()` és ASÍNCRON: el context pot quedar "suspended" un instant. Quan passa a
+    // "running", si el so és actiu i la música no sona, l'engeguem (les primeres notes no es perden).
+    ctx.onstatechange = () => {
+      if (ctx && ctx.state === 'running' && enabled && !musicTimer) startMusic()
+    }
   }
   if (ctx.state === 'suspended') ctx.resume().catch(() => {})
   return ctx
+}
+
+/**
+ * Desbloqueja l'àudio DINS d'un gest de l'usuari. A iOS/Safari (i mòbils en general) no n'hi ha
+ * prou amb crear el context: cal `resume()` i reproduir un BUFFER SILENCIÓS dins del mateix gest
+ * perquè la sortida s'activi. Sense això, el context pot quedar mut tot i estar "running".
+ */
+function unlock(): void {
+  const c = getCtx()
+  if (!c) return
+  if (c.state === 'suspended') c.resume().catch(() => {})
+  try {
+    const buf = c.createBuffer(1, 1, c.sampleRate || 22050)
+    const src = c.createBufferSource()
+    src.buffer = buf
+    src.connect(c.destination)
+    src.start(0)
+  } catch {
+    /* alguns navegadors no ho necessiten */
+  }
 }
 
 // =============================== Música ambiental ===============================
@@ -257,9 +282,11 @@ export function playSfx(name: SfxName): void {
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
   const onGesture = () => {
     if (!enabled) return
-    getCtx() // crea/reprèn el context
+    unlock() // crea/reprèn el context i el desbloqueja (buffer silenciós a iOS)
     if (!musicTimer) startMusic()
   }
+  // `touchend` és el gest més fiable per desbloquejar àudio a iOS/Safari; afegim també els altres.
+  window.addEventListener('touchend', onGesture)
   window.addEventListener('pointerdown', onGesture)
   window.addEventListener('keydown', onGesture)
 }
