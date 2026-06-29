@@ -6,6 +6,7 @@ import { formatEurosCompact } from '../lib/format'
 import { useCountUp } from '../lib/useCountUp'
 import { Baby, Banknote, HeartHandshake, Home, Icon } from './icons'
 import { SalutAvis, StatRings } from './StatRings'
+import { SoundToggle } from './SoundToggle'
 import { Tip } from './Tip'
 
 /**
@@ -93,6 +94,8 @@ export function GameHud({
             {t('game.generacio', { n: generacio })}
           </span>
         )}
+        {/* So/música: sempre accessible des del HUD (per defecte OFF; en activar-lo sona una confirmació). */}
+        <SoundToggle className="shrink-0" />
         <div className="shrink-0 text-right">
           <div key={anys} className="animate-stat-pop text-sm font-bold tabular-nums text-ink">
             {t('game.age', { anys })}
