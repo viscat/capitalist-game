@@ -304,6 +304,11 @@ export const TERMINIS_HIPOTECA = [20, 30]
 export const RATI_ENDEUTAMENT_MAX = 0.4
 /** Revaloració anual mitjana de l'habitatge en propietat. */
 export const REVALORACIO_HABITATGE = 0.02
+/**
+ * Cost de VENDRE un immoble (comissió immobiliària + plusvàlua + notaria): fracció del preu de
+ * venda que NO arriba al venedor. Fa que comprar i revendre de seguida no sigui un negoci gratuït.
+ */
+export const COST_VENDA_HABITATGE = 0.06
 
 // --- IPC (inflació) ---
 

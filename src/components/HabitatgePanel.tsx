@@ -3,6 +3,7 @@ import { MESOS_PER_ANY, TERMINIS_HIPOTECA } from '../domain/constants'
 import {
   PROPIETATS,
   ajutHipotecaFamiliar,
+  calculaVenda,
   liquidDisponible,
   ofertaCompra,
 } from '../domain/housing'
@@ -16,7 +17,7 @@ type Vista = 'resum' | 'comprar' | { propietatId: string }
 
 export function HabitatgePanel() {
   const { t } = useT()
-  const { state, llogar, comprarCasa, tornarAmbPares } = useGame()
+  const { state, llogar, comprarCasa, vendreCasa, tornarAmbPares } = useGame()
   const [vista, setVista] = useState<Vista>('resum')
   const [anys, setAnys] = useState(TERMINIS_HIPOTECA[1])
   const coachRef = useCoachmark<HTMLDivElement>('habitatge')
@@ -197,14 +198,42 @@ export function HabitatgePanel() {
         )}
       </div>
 
-      {/* Propietari: pot comprar MÉS cases (inversió immobiliària). */}
+      {/* Propietari: pot comprar MÉS cases (inversió immobiliària) o VENDRE les que té. */}
       {esPropietari && (
-        <button
-          onClick={() => setVista('comprar')}
-          className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
-        >
-          🏠 {t('habitatge.comprarMes')}
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={() => setVista('comprar')}
+            className="w-full rounded-lg bg-indigo-600 p-3 font-medium text-white transition hover:bg-indigo-500"
+          >
+            🏠 {t('habitatge.comprarMes')}
+          </button>
+          <p className="pt-1 text-xs text-slate-500">{t('habitatge.vendre.titol')}</p>
+          {state.person.patrimoni.cases.map((valor, i) => {
+            const venda = calculaVenda(state, i)
+            return (
+              <button
+                key={i}
+                onClick={() => vendreCasa(i)}
+                className="flex w-full items-center justify-between rounded-lg bg-slate-700/60 p-3 text-left transition hover:bg-rose-700/70"
+              >
+                <span className="text-sm">
+                  <span className="font-medium text-slate-100">
+                    {t('habitatge.vendre.casa', { n: i + 1 })}
+                  </span>
+                  <span className="block text-[11px] text-slate-400">
+                    {t('habitatge.vendre.valor', { valor: formatEuros(valor) })}
+                  </span>
+                </span>
+                <span className="text-right">
+                  <span className="block text-xs text-slate-400">{t('habitatge.vendre.reps')}</span>
+                  <span className="font-semibold text-emerald-300">
+                    {formatEuros(venda ? venda.net : 0)}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
       )}
 
       {!esPropietari && (

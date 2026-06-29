@@ -8,9 +8,11 @@ import {
   comprarCasa,
   costHabitatgeAnual,
   entradaHipoteca,
+  calculaVenda,
   llogar,
   ofertaCompra,
   tornarAmbPares,
+  vendreCasa,
 } from './housing'
 import type { FamilyClass, GameState } from './types'
 
@@ -95,6 +97,46 @@ describe('comprarCasa', () => {
     const after = comprarCasa(pobre, 'casa', 30)
     expect(after.habitatge?.tipus).not.toBe('propietat')
     expect(after.person.patrimoni.cases.length).toBe(0)
+  })
+})
+
+describe('vendreCasa', () => {
+  it('ven l’única casa: efectiu puja amb el net, es cancel·la la hipoteca i torna amb els pares', () => {
+    const comprada = comprarCasa(ricCarrera(), 'estudi', 30)
+    const venda = calculaVenda(comprada, 0)!
+    expect(venda.net).toBeGreaterThan(0)
+    const after = vendreCasa(comprada, 0)
+    expect(after.habitatge?.tipus).toBe('amb_pares')
+    expect(after.habitatge?.hipoteca).toBeUndefined()
+    expect(after.person.patrimoni.cases.length).toBe(0)
+    expect(after.person.patrimoni.efectiu).toBe(
+      Math.round(comprada.person.patrimoni.efectiu + venda.net),
+    )
+    // Deixa constància al historial.
+    expect(after.historial.at(-1)?.eventId).toBe('habitatge_venda')
+  })
+
+  it('ven una de dues cases: en queda una i segueix sent propietari', () => {
+    let s = ricCarrera()
+    s = {
+      ...s,
+      person: {
+        ...s.person,
+        patrimoni: { ...s.person.patrimoni, efectiu: 300_000, inversions: 150_000 },
+      },
+    }
+    s = comprarCasa(s, 'estudi', 30)
+    s = comprarCasa(s, 'estudi', 30)
+    expect(s.person.patrimoni.cases.length).toBe(2)
+    const after = vendreCasa(s, 0)
+    expect(after.person.patrimoni.cases.length).toBe(1)
+    expect(after.habitatge?.tipus).toBe('propietat')
+  })
+
+  it('no fa res si no ets propietari', () => {
+    const base = ricCarrera()
+    expect(vendreCasa(base, 0)).toBe(base)
+    expect(calculaVenda(base, 0)).toBeNull()
   })
 })
 

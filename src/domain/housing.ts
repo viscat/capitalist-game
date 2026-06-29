@@ -1,4 +1,5 @@
 import {
+  COST_VENDA_HABITATGE,
   DESPESES_COMPRA,
   ENTRADA_HIPOTECA,
   FRACCIO_ENTRADA_PARELLA,
@@ -9,16 +10,43 @@ import {
   RATI_ENDEUTAMENT_MAX,
 } from './constants'
 import { rng } from './rng'
-import { factorHabitatge, netAnual } from './stats'
+import { benestarHabitatge, factorHabitatge, netAnual } from './stats'
+import { edatAnys } from './time'
 import type {
   Familia,
   FamilyClass,
   GameState,
   Habitatge,
   Hipoteca,
+  LogEntry,
   OfertaLloguer,
   TipusHabitatge,
 } from './types'
+
+/**
+ * Deixa constància al historial d'un canvi de situació d'habitatge, fent EXPLÍCIT l'efecte que
+ * té sobre la referència de benestar (viure amb els pares < habitació < lloguer < propietat). El
+ * benestar no salta de cop —gravita cap a la nova referència— però el jugador ha de poder veure
+ * al log que la decisió d'habitatge MOU el benestar (abans no es reflectia enlloc).
+ */
+function registraCanviHabitatge(
+  state: GameState,
+  next: GameState,
+  tipus: TipusHabitatge | 'venda',
+): GameState {
+  const deltaRef = benestarHabitatge(next.habitatge) - benestarHabitatge(state.habitatge)
+  const entry: LogEntry = {
+    torn: state.torn,
+    edatAnys: edatAnys(state.person.edatMesos),
+    eventId: `habitatge_${tipus}`,
+    titleKey: `hist.habitatge.${tipus}.title`,
+    descKey: `hist.habitatge.${tipus}.desc`,
+    category: 'familia',
+    kind: 'action',
+    effect: deltaRef !== 0 ? { benestar: deltaRef } : {},
+  }
+  return { ...next, historial: [...next.historial, entry] }
+}
 
 /** Opció de lloguer (habitació o pis sencer). */
 export interface OpcioLloguer {
@@ -251,24 +279,26 @@ export function amortitzaHipoteca(hip: Hipoteca): Hipoteca | undefined {
 export function llogar(state: GameState, ofertaId: string): GameState {
   const oferta = state.ofertesLloguer?.find((o) => o.id === ofertaId)
   if (oferta) {
-    return {
-      ...state,
-      habitatge: { tipus: oferta.tipus, lloguerAnual: oferta.lloguerAnual },
-    }
+    return registraCanviHabitatge(
+      state,
+      { ...state, habitatge: { tipus: oferta.tipus, lloguerAnual: oferta.lloguerAnual } },
+      oferta.tipus,
+    )
   }
   // Compatibilitat: si l'id és un tipus (sense ofertes generades), usa el preu de referència.
   const opcio = OPCIONS_LLOGUER.find((o) => o.tipus === ofertaId)
   if (!opcio) return state
-  return {
-    ...state,
-    habitatge: { tipus: opcio.tipus, lloguerAnual: opcio.lloguerAnual },
-  }
+  return registraCanviHabitatge(
+    state,
+    { ...state, habitatge: { tipus: opcio.tipus, lloguerAnual: opcio.lloguerAnual } },
+    opcio.tipus,
+  )
 }
 
 /** Torna a viure amb els pares (deixa el lloguer). */
 export function tornarAmbPares(state: GameState): GameState {
   if (state.habitatge?.tipus === 'propietat') return state // no s'abandona una propietat
-  return { ...state, habitatge: { tipus: 'amb_pares' } }
+  return registraCanviHabitatge(state, { ...state, habitatge: { tipus: 'amb_pares' } }, 'amb_pares')
 }
 
 /**
@@ -316,9 +346,100 @@ export function comprarCasa(
     hipoteca = nova ?? previa
   }
 
+  return registraCanviHabitatge(
+    state,
+    {
+      ...state,
+      person: { ...state.person, patrimoni: pat },
+      habitatge: { tipus: 'propietat' as TipusHabitatge, hipoteca },
+    },
+    'propietat',
+  )
+}
+
+/** Desglossament econòmic de vendre la casa `index`: valor de mercat, cost de venda, part
+ * d'hipoteca que cal cancel·lar i diners nets que rep el venedor. `null` si no és vàlid. */
+export function calculaVenda(
+  state: GameState,
+  index: number,
+): { valorBrut: number; costVenda: number; hipotecaCancela: number; net: number } | null {
+  const cases = state.person.patrimoni.cases
+  if (state.habitatge?.tipus !== 'propietat' || index < 0 || index >= cases.length) return null
+  const valorBrut = cases[index]
+  const total = cases.reduce((a, b) => a + b, 0)
+  const esUltima = cases.length === 1
+  const hip = state.habitatge.hipoteca
+  // L'hipoteca és combinada: en vendre l'última casa es cancel·la sencera; si en queden, se'n
+  // cancel·la la part proporcional al valor de la casa venuda.
+  const hipotecaCancela = hip
+    ? esUltima
+      ? hip.deute
+      : Math.round(hip.deute * (total > 0 ? valorBrut / total : 1))
+    : 0
+  const costVenda = Math.round(valorBrut * COST_VENDA_HABITATGE)
+  const net = valorBrut - costVenda - hipotecaCancela
+  return { valorBrut, costVenda, hipotecaCancela, net }
+}
+
+/**
+ * Ven un immoble en propietat (`index` dins de `patrimoni.cases`). El venedor rep el valor de
+ * mercat menys el cost de venda i la cancel·lació (proporcional) de la hipoteca; els diners nets
+ * van a efectiu (si són negatius —immoble sota l'aigua—, generen deute de consum). Si era l'última
+ * casa, es cancel·la tota la hipoteca i es torna a viure de lloguer/amb els pares (`amb_pares`).
+ */
+export function vendreCasa(state: GameState, index: number): GameState {
+  const venda = calculaVenda(state, index)
+  if (!venda) return state
+  const cases = state.person.patrimoni.cases
+  const esUltima = cases.length === 1
+  const hip = state.habitatge?.tipus === 'propietat' ? state.habitatge.hipoteca : undefined
+
+  const novesCases = cases.filter((_, i) => i !== index)
+  const pat = { ...state.person.patrimoni, cases: novesCases }
+  // Diners nets a caixa; si negatiu (deute superior al valor), es converteix en deute de consum.
+  if (venda.net >= 0) {
+    pat.efectiu = Math.round(pat.efectiu + venda.net)
+  } else {
+    pat.deute = Math.round((pat.deute ?? 0) - venda.net)
+  }
+
+  let novaHipoteca: Hipoteca | undefined
+  let habitatge: Habitatge
+  if (esUltima) {
+    habitatge = { tipus: 'amb_pares' }
+  } else {
+    const total = cases.reduce((a, b) => a + b, 0)
+    const fraccio = total > 0 ? venda.valorBrut / total : 0
+    novaHipoteca = hip
+      ? {
+          deute: Math.max(0, hip.deute - venda.hipotecaCancela),
+          quotaAnual: Math.round(hip.quotaAnual * (1 - fraccio)),
+          anysRestants: hip.anysRestants,
+        }
+      : undefined
+    if (novaHipoteca && novaHipoteca.deute <= 0) novaHipoteca = undefined
+    habitatge = { tipus: 'propietat', hipoteca: novaHipoteca }
+  }
+
+  const entry: LogEntry = {
+    torn: state.torn,
+    edatAnys: edatAnys(state.person.edatMesos),
+    eventId: 'habitatge_venda',
+    titleKey: 'hist.habitatge.venda.title',
+    descKey: 'hist.habitatge.venda.desc',
+    params: { import: venda.net },
+    category: 'economia',
+    kind: 'action',
+    effect: (() => {
+      const d = benestarHabitatge(habitatge) - benestarHabitatge(state.habitatge)
+      return d !== 0 ? { benestar: d } : {}
+    })(),
+  }
+
   return {
     ...state,
     person: { ...state.person, patrimoni: pat },
-    habitatge: { tipus: 'propietat' as TipusHabitatge, hipoteca },
+    habitatge,
+    historial: [...state.historial, entry],
   }
 }

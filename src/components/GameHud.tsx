@@ -19,12 +19,15 @@ export function GameHud({
   academic = 0,
   vincles = 0,
   net,
+  liquid,
+  immobiliari = 0,
   edatMesos,
   dataNaixement,
   generacio = 1,
   fills = 0,
   parella = false,
   onBack,
+  onDetalls,
 }: {
   nom?: string
   subtitol: string
@@ -34,17 +37,23 @@ export function GameHud({
   academic?: number
   vincles?: number
   net: number
+  /** Patrimoni LÍQUID (efectiu + inversions − deute de consum): el que pots gastar de debò. */
+  liquid: number
+  /** Patrimoni IMMOBILIARI net (cases − hipoteca): no és diner disponible (s'aprecia tot sol). */
+  immobiliari?: number
   edatMesos: number
   dataNaixement?: string
   generacio?: number
   fills?: number
   parella?: boolean
   onBack: () => void
+  /** Obre el calaix de detall (patrimoni + historial). */
+  onDetalls?: () => void
 }) {
   const { t } = useT()
   const anys = edatAnys(edatMesos)
   const dt = dataNaixement ? dataActual(dataNaixement, edatMesos) : null
-  const dinersRef = useCoachmark<HTMLDivElement>('diners')
+  const dinersRef = useCoachmark<HTMLButtonElement>('diners')
 
   return (
     <header className="sticky top-0 z-40 border-b border-line/60 bg-bg2/85 px-4 pt-2 pb-2.5 backdrop-blur-xl">
@@ -86,7 +95,14 @@ export function GameHud({
           academic={academic}
           vincles={vincles}
         />
-        <div ref={dinersRef} className="ml-auto text-right">
+        <button
+          ref={dinersRef}
+          type="button"
+          onClick={onDetalls}
+          disabled={!onDetalls}
+          aria-label={t('patrimoni.veure.detall')}
+          className="ml-auto rounded-lg px-2 py-1 text-right transition enabled:hover:bg-bg/40 disabled:cursor-default"
+        >
           <div
             className={`text-lg font-black tabular-nums ${net < 0 ? 'text-danger' : 'text-money'}`}
           >
@@ -97,7 +113,15 @@ export function GameHud({
               {t('patrimoni.total')}
             </Tip>
           </div>
-        </div>
+          {immobiliari > 0 && (
+            // Desdoblament: el net inclou la casa, que s'aprecia sola. Separa el LÍQUID
+            // (el que pots gastar) de l'IMMOBILIARI perquè no sembli que tens més diners.
+            <div className="mt-0.5 flex justify-end gap-2 text-[10px] tabular-nums text-inkfaint">
+              <span title={t('patrimoni.liquid')}>💶 {formatEurosCompact(liquid)}</span>
+              <span title={t('patrimoni.immobiliari')}>🏠 {formatEurosCompact(immobiliari)}</span>
+            </div>
+          )}
+        </button>
       </div>
 
       <SalutAvis salut={salut} />

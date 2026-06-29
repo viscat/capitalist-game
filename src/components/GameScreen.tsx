@@ -6,6 +6,7 @@ import { patrimoniTotal } from '../domain/stats'
 import { nomComplet } from '../domain/identitat'
 import { ActionCTA, ActionPanel } from './ActionPanel'
 import { AppShell } from './AppShell'
+import { BenestarDesglos } from './BenestarDesglos'
 import { BudgetPanel } from './BudgetPanel'
 import { EmpresaPanel } from './EmpresaPanel'
 import { GameHud } from './GameHud'
@@ -41,7 +42,12 @@ export function GameScreen() {
   const aLatur =
     (lifeStage === 'laboral' && itinerari === 'treball' && !salari) || esCercaFeina
   const nom = state.identitat ? nomComplet(state.identitat) : t(`family.${familia.classe}.name`)
-  const net = patrimoniTotal(person) - (state.habitatge?.hipoteca?.deute ?? 0)
+  const hipoteca = state.habitatge?.hipoteca?.deute ?? 0
+  const net = patrimoniTotal(person) - hipoteca
+  // Desdoblament del net: IMMOBILIARI (cases − hipoteca, no és diner gastable, s'aprecia sol)
+  // vs LÍQUID (efectiu + inversions − deute de consum, el que pots fer servir de debò).
+  const immobiliari = person.patrimoni.cases.reduce((a, b) => a + b, 0) - hipoteca
+  const liquid = net - immobiliari
 
   const subtitol = aLatur
     ? t('context.atur')
@@ -59,12 +65,15 @@ export function GameScreen() {
       academic={state.nivellAcademic}
       vincles={state.vinclesSocials}
       net={net}
+      liquid={liquid}
+      immobiliari={immobiliari}
       edatMesos={person.edatMesos}
       dataNaixement={state.dataNaixement}
       generacio={state.generacio ?? 1}
       fills={state.fills}
       parella={Boolean(state.parella)}
       onBack={reset}
+      onDetalls={() => setDetallObert(true)}
     />
   )
 
@@ -131,6 +140,7 @@ export function GameScreen() {
             academic={state.nivellAcademic}
             fills={state.fills}
           />
+          {esAdult && <BenestarDesglos state={state} />}
           <FamiliaPanel state={state} />
           <PatrimoniPanel
             person={person}
