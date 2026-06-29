@@ -885,6 +885,26 @@ export const ATZAR_EVENTS: GameEvent[] = [
       }
     },
   },
+  {
+    // CATÀSTROFE IRREVERSIBLE: un accident greu o una malaltia fulminant. Pura mala sort, INDEPENDENT
+    // de la classe i del joc (no s'escala amb l'exposició): li pot tocar a qualsevol, fins i tot a
+    // qui ho fa tot bé. Cop brutal de salut + SEQÜELA permanent enorme + despesa: pot engegar una
+    // espiral de destrucció (salut baixa → menys benestar → més declivi) i matar abans d'hora. Els
+    // diners n'amorteixen el cop econòmic, però no la seqüela: ni la millor partida n'està exempta.
+    id: 'desgracia_irreversible',
+    category: 'salut',
+    titleKey: 'event.desgracia_irreversible.title',
+    descKey: 'event.desgracia_irreversible.desc',
+    params: { cost: 9000 },
+    weight: () => 0.3,
+    effect: {
+      salutDelta: -42,
+      salutCronicaDelta: 30,
+      despesaGreu: 9000,
+      benestar: -14,
+      vinclesDelta: -0.05,
+    },
+  },
 ]
 
 /**
