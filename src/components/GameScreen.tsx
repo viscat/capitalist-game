@@ -69,6 +69,8 @@ export function GameScreen() {
       net={net}
       liquid={liquid}
       immobiliari={immobiliari}
+      efecte={lastEntry?.effect}
+      efecteKey={historial.length}
       edatMesos={person.edatMesos}
       dataNaixement={state.dataNaixement}
       generacio={state.generacio ?? 1}

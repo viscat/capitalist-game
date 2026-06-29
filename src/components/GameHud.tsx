@@ -1,4 +1,5 @@
 import { dataActual, edatAnys } from '../domain/time'
+import type { EventEffect } from '../domain/types'
 import { useT } from '../i18n'
 import { useCoachmark } from '../state/tutorial'
 import { formatEurosCompact } from '../lib/format'
@@ -30,6 +31,8 @@ export function GameHud({
   parella = false,
   onBack,
   onDetalls,
+  efecte,
+  efecteKey,
 }: {
   nom?: string
   subtitol: string
@@ -38,6 +41,9 @@ export function GameHud({
   moralitat?: number
   academic?: number
   vincles?: number
+  /** Efecte aplicat pel darrer esdeveniment (per al "+N/−N" dels anells; coincideix amb l'historial). */
+  efecte?: EventEffect | null
+  efecteKey?: string | number
   net: number
   /** Patrimoni LÍQUID (efectiu + inversions − deute de consum): el que pots gastar de debò. */
   liquid: number
@@ -107,6 +113,8 @@ export function GameHud({
           moralitat={moralitat}
           academic={academic}
           vincles={vincles}
+          efecte={efecte}
+          efecteKey={efecteKey}
         />
         <button
           ref={dinersRef}

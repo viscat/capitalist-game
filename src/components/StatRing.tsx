@@ -8,25 +8,42 @@ export function StatRing({
   icon,
   size = 44,
   label,
+  delta,
+  pulseKey,
 }: {
   value: number
   icon: ReactNode
   size?: number
   label?: string
+  /**
+   * Variació a mostrar com a "+N/−N" flotant. IMPORTANT: és el canvi APLICAT per
+   * l'esdeveniment d'aquest torn (el mateix que surt a l'historial), NO la diferència bruta del
+   * valor entre torns. Així el numeret coincideix sempre amb el que diu l'historial; la deriva
+   * d'entorn i el declivi d'edat mouen l'anell però no generen un "+N" fantasma.
+   */
+  delta?: number | null
+  /** Canvia per torn (p. ex. la llargada de l'historial): dispara el "pop" una sola vegada. */
+  pulseKey?: string | number
 }) {
   const v = Math.max(0, Math.min(100, Math.round(value)))
-  // Quan el valor canvia (típicament en passar d'any), mostrem la variació (+N/−N) animada i
-  // fem "pop" al número. El primer render no compta com a canvi.
-  const prevRef = useRef(v)
-  const [delta, setDelta] = useState<number | null>(null)
+  // Mostrem el +N/−N (i fem "pop" al número) NOMÉS quan arriba un torn nou (canvi de `pulseKey`)
+  // amb una variació no nul·la. El primer render no compta.
+  const prevKeyRef = useRef(pulseKey)
+  const [shown, setShown] = useState<number | null>(null)
+  const delta_ = delta == null ? null : Math.round(delta)
   useEffect(() => {
-    const prev = prevRef.current
-    if (v === prev) return
-    prevRef.current = v
-    setDelta(v - prev)
-    const id = setTimeout(() => setDelta(null), 1100)
-    return () => clearTimeout(id)
-  }, [v])
+    if (pulseKey === prevKeyRef.current) return
+    prevKeyRef.current = pulseKey
+    // Sense variació en aquesta stat aquest torn: no fem "pop" (un pop anterior ja s'esvaeix sol).
+    if (delta_ == null || delta_ === 0) return
+    // setState diferit (no síncron dins de l'efecte): evita la cascada de renders.
+    const show = setTimeout(() => setShown(delta_), 0)
+    const hide = setTimeout(() => setShown(null), 1100)
+    return () => {
+      clearTimeout(show)
+      clearTimeout(hide)
+    }
+  }, [pulseKey, delta_])
 
   const r = (size - 6) / 2
   const c = 2 * Math.PI * r
@@ -66,19 +83,19 @@ export function StatRing({
         <span
           key={v}
           className={`mt-0.5 text-[10px] font-bold tabular-nums text-ink ${
-            delta != null && delta !== 0 ? 'animate-stat-pop' : ''
+            shown != null && shown !== 0 ? 'animate-stat-pop' : ''
           }`}
         >
           {v}
         </span>
       </span>
-      {delta != null && delta !== 0 && (
+      {shown != null && shown !== 0 && (
         <span
           className={`pointer-events-none absolute -top-0.5 left-1/2 animate-stat-delta text-[10px] font-black tabular-nums ${
-            delta > 0 ? 'text-money' : 'text-danger'
+            shown > 0 ? 'text-money' : 'text-danger'
           }`}
         >
-          {delta > 0 ? `+${delta}` : delta}
+          {shown > 0 ? `+${shown}` : shown}
         </span>
       )}
     </span>
