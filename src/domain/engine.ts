@@ -1065,7 +1065,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       params: { import: matriculaUniAny },
       category: 'escola',
       kind: 'event',
-      effect: {},
+      // El cost es mostra com a despesa al historial (el flux ja l'ha cobrat; aquest efecte
+      // NO es torna a aplicar: és una entrada informativa, no es passa per `applyEffect`).
+      effect: { efectiu: -matriculaUniAny },
     })
   }
   // Stats no monetaris que poden moure les accions (dedicació universitària, etc.).
