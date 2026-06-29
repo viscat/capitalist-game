@@ -34,6 +34,8 @@ export const EMPRESA_FRACAS_BASE = 0.3
 export const EMPRESA_FRACAS_MIN = 0.04
 /** Reinversió per defecte del benefici (la resta és el teu sou). */
 export const EMPRESA_REINVERSIO_DEFAULT = 0.5
+/** Cop de benestar quan l'empresa TANCA (fracàs): el daltabaix de perdre el projecte i el capital. */
+export const EMPRESA_TANCA_BENESTAR = -10
 /**
  * Per cada nivell de sou dels empleats: `souAnual` (cost per empleat), `productivitat` (factor
  * sobre el valor que genera) i `moralitatAnual` (deriva anual de moralitat). El BENEFICI per

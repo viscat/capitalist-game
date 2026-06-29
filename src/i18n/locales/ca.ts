@@ -1235,6 +1235,9 @@ export const ca: Record<string, string> = {
   'event.suborn_feina.choice.denunciar': 'El denuncio',
 
   // Acció col·lectiva (sindicat, vagues).
+  'event.empresa_tanca.title': 'La teva empresa ha tancat',
+  'event.empresa_tanca.desc':
+    'No te n’has sortit: l’empresa plega i perds el capital que hi tenies invertit ({capital}). La majoria de projectes acaben així; el cop econòmic i anímic és dur, però pots tornar-ho a provar si encara tens estalvis.',
   'event.afiliar_sindicat.title': 'Sindicar-te',
   'event.afiliar_sindicat.desc':
     'Els companys de feina t’animen a afiliar-te al sindicat. Sol no pots gaire, però junts podeu negociar millors condicions i protegir-vos els uns als altres. Què fas?',
