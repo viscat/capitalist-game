@@ -301,6 +301,33 @@ describe('empresa: historial econòmic', () => {
     expect(typeof ultim.benefici).toBe('number')
     expect(typeof ultim.sou).toBe('number')
   })
+
+  it('quan l’empresa fracassa, surt l’esdeveniment de tancament amb el cop de benestar', () => {
+    let trobat = false
+    for (let seed = 1; seed <= 15 && !trobat; seed++) {
+      const base = { ...newGameAtCarrera('mitjana', seed), reinversioEmpresa: 0 }
+      const ric = {
+        ...base,
+        person: {
+          ...base.person,
+          patrimoni: { ...base.person.patrimoni, inversions: 80_000 },
+        },
+      }
+      let s = fundarEmpresa(ric, 20_000)
+      // Avança fins que l'empresa tanqui (o mori): sense reinversió, el fracàs arriba aviat.
+      for (let i = 0; i < 30 && !s.acabat && s.empresa; i++) {
+        s = advanceTurn(s)
+        if (s.pendingEvent) s = applyChoice(s, s.pendingEvent.choices![0].id)
+      }
+      const tanca = s.historial.find((e) => e.eventId === 'empresa_tanca')
+      if (tanca) {
+        trobat = true
+        expect(s.empresa).toBeUndefined()
+        expect(tanca.effect.benestar).toBeLessThan(0) // conseqüència de benestar visible
+      }
+    }
+    expect(trobat).toBe(true)
+  })
 })
 
 describe('deixar de treballar (atur voluntari)', () => {

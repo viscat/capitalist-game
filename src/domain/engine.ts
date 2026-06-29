@@ -16,6 +16,7 @@ import {
   EMPRESA_CAPITAL_MAX,
   EMPRESA_CAPITAL_MIN,
   EMPRESA_REINVERSIO_DEFAULT,
+  EMPRESA_TANCA_BENESTAR,
   EMPRESA_SOU_EMPLEATS,
   FACTOR_DESPESA_PARELLA,
   FORMACIO_INVERSIO_DELTA,
@@ -720,6 +721,9 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   // Empresa pròpia: pot tancar (fracàs) o créixer (reinversió) aquest any (vegeu el bloc de carrera).
   let empresa = state.empresa
   let empresaHist = state.empresaHist
+  // Si l'empresa TANCA aquest any (fracàs), es força aquest esdeveniment perquè surti a la pantalla
+  // (EventCard) amb les conseqüències econòmiques i de benestar, en lloc de desaparèixer en silenci.
+  let empresaTancaEvent: GameEvent | null = null
   // Cost de matrícula d'aquest any d'universitat (després de beca), per registrar-lo a l'historial.
   let matriculaUniAny = 0
 
@@ -859,20 +863,30 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     // capital) i el TEU SOU (s'afegeix a l'ingrés). El fracàs en perd el capital invertit (ja havia
     // sortit del patrimoni en fundar/reinvertir): qui pot REINTENTAR —el ric— acaba encertant-ne una.
     let empresaSou = 0 // el teu sou de l'empresa, real → nominal (× f)
-    let empresaBenestar = 0
     let empresaMoralitat = 0
     if (empresa) {
       const rollFracas = rng(rngState)
       rngState = rollFracas.state
       const habilitat = habilitatEmprenedora(state)
       if (rollFracas.value < pFracasEmpresaAnual(empresa, habilitat)) {
-        // FRACÀS: l'empresa tanca. El capital ja s'havia compromès; ara es perd del tot.
+        // FRACÀS: l'empresa tanca. El capital ja s'havia compromès; ara es perd del tot. Es força
+        // un esdeveniment (amb el capital perdut i el cop de benestar) perquè el jugador ho VEGI;
+        // el benestar l'aplica `resolveEvent` via l'efecte de l'esdeveniment (no inline).
+        const capitalPerdut = empresa.capital
         empresaHist = [
           ...(empresaHist ?? []),
           { edat: anys, capital: 0, benefici: 0, reinvertit: 0, sou: 0, fracas: true },
         ]
         empresa = undefined
-        empresaBenestar = -10
+        empresaTancaEvent = {
+          id: 'empresa_tanca',
+          category: 'economia',
+          titleKey: 'event.empresa_tanca.title',
+          descKey: 'event.empresa_tanca.desc',
+          params: { capital: capitalPerdut },
+          weight: () => 0,
+          effect: { benestar: EMPRESA_TANCA_BENESTAR },
+        }
       } else {
         const rollSort = rng(rngState)
         rngState = rollSort.state
@@ -958,13 +972,11 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       f, // factor IPC: desinfla el benestar (oci/descobert) i les xarxes d'ajut
       factorServeisPublics(state), // règim del benestar: eixampla la xarxa pública
     )
-    // Efectes de l'empresa sobre les stats: el cop de tancar (fracàs) i la deriva de moralitat
-    // segons com es paguen els empleats (l'explotació corca la moralitat any rere any).
-    if (empresaBenestar !== 0 || empresaMoralitat !== 0) {
-      person = applyEffect(person, {
-        benestar: empresaBenestar,
-        moralitatDelta: empresaMoralitat,
-      })
+    // Deriva de moralitat de l'empresa que SOBREVIU, segons com es paguen els empleats
+    // (l'explotació corca la moralitat any rere any). El cop de benestar del TANCAMENT s'aplica
+    // a `resolveEvent` via l'esdeveniment forçat `empresa_tanca`.
+    if (empresaMoralitat !== 0) {
+      person = applyEffect(person, { moralitatDelta: empresaMoralitat })
     }
     // Aportació REAL d'enguany a la cartera = valor nou − valor crescut (el que ha pujat pel
     // rendiment no és aportació). Acumulada, és el «que has posat» que es compara al gràfic.
@@ -1112,9 +1124,15 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   let event: GameEvent
   let nextRng: number
   let ultimaOfertaVida = state.ultimaOfertaVida
-  const vidaForcada = herenciaDue ? null : vidaPersonalForcada(state, anys, torn)
+  const vidaForcada =
+    herenciaDue || empresaTancaEvent ? null : vidaPersonalForcada(state, anys, torn)
   if (herenciaDue) {
     event = HERENCIA_DINASTIA_EVENTS[0]
+    nextRng = rngState
+  } else if (empresaTancaEvent) {
+    // El tancament de l'empresa és l'esdeveniment de l'any (no consumeix RNG: el fracàs ja
+    // s'ha sortejat al bloc d'ingressos). Preval sobre les ofertes de vida forçades.
+    event = empresaTancaEvent
     nextRng = rngState
   } else if (vidaForcada) {
     // Oferta garantida de parella/fill: no consumeix el RNG (no altera la seqüència d'events).
