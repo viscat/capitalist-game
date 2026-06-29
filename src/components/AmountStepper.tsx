@@ -39,7 +39,7 @@ export function AmountStepper({
         onClick={() => commit(value - step)}
         disabled={value <= min}
         aria-label="−"
-        className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+        className="flex h-11 w-11 items-center justify-center rounded-lg bg-surface2 text-xl text-ink transition hover:bg-line active:scale-95 disabled:opacity-40"
       >
         −
       </button>
@@ -54,14 +54,14 @@ export function AmountStepper({
           if (digits !== '') commit(Number(digits))
         }}
         onBlur={() => commit(text === '' ? min : Number(text))}
-        className="w-20 rounded-md bg-slate-900/60 px-2 py-1.5 text-right font-mono text-sm text-slate-100 ring-1 ring-slate-700 outline-none focus:ring-indigo-500"
+        className="h-11 w-20 rounded-lg bg-bg/60 px-2 text-right font-mono text-sm text-ink ring-1 ring-line outline-none focus:ring-2 focus:ring-accent"
       />
       <button
         type="button"
         onClick={() => commit(value + step)}
         disabled={value >= max}
         aria-label="+"
-        className="flex h-9 w-9 items-center justify-center rounded-md bg-slate-700 text-lg text-slate-200 transition hover:bg-slate-600 disabled:opacity-40"
+        className="flex h-11 w-11 items-center justify-center rounded-lg bg-surface2 text-xl text-ink transition hover:bg-line active:scale-95 disabled:opacity-40"
       >
         +
       </button>

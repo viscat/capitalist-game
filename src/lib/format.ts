@@ -31,11 +31,29 @@ export function benestarLevelKey(benestar: number): string {
   return 'benestar.molt_alt'
 }
 
-/** Color (classes Tailwind) de la barra de benestar segons el valor. */
+/**
+ * Rampa ÚNICA de color per a stats 0..100 (crit → baix → mig → alt → cim). És la font de
+ * veritat compartida: els anells (`StatRing`) en fan servir els hexos directes i les barres
+ * les classes Tailwind dels MATEIXOS tokens (`--color-stat-*` a `index.css`).
+ */
+export const STAT_RAMP = ['#f6504f', '#f97316', '#eab308', '#84cc16', '#22d39a'] as const
+
+function statRampIndex(v: number): number {
+  if (v < 20) return 0
+  if (v < 40) return 1
+  if (v < 60) return 2
+  if (v < 80) return 3
+  return 4
+}
+
+/** Hex de la rampa d'stats per a un valor 0..100 (per a SVG, p. ex. els anells). */
+export function statRampHex(v: number): string {
+  return STAT_RAMP[statRampIndex(v)]
+}
+
+/** Classe Tailwind de fons de la rampa d'stats (barres). */
 export function benestarColor(benestar: number): string {
-  if (benestar < 20) return 'bg-red-600'
-  if (benestar < 40) return 'bg-orange-500'
-  if (benestar < 60) return 'bg-yellow-500'
-  if (benestar < 80) return 'bg-lime-500'
-  return 'bg-emerald-500'
+  return ['bg-stat-crit', 'bg-stat-low', 'bg-stat-mid', 'bg-stat-high', 'bg-stat-peak'][
+    statRampIndex(benestar)
+  ]
 }

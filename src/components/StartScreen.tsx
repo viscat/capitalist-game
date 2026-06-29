@@ -33,20 +33,24 @@ export function StartScreen({
               {t('start.continue')}
             </button>
           )}
-          <div className="mt-3 flex flex-col gap-2">
-            <button
-              onClick={onNewAt16}
-              className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
-            >
-              🧪 {t('start.newAt16')}
-            </button>
-            <button
-              onClick={onNewAtCarrera}
-              className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
-            >
-              🧪 {t('start.newAtCarrera')}
-            </button>
-          </div>
+          {/* Dreceres de PROVES: només en desenvolupament, perquè la primera pantalla de
+              producció no sembli una build de dev. */}
+          {import.meta.env.DEV && (
+            <div className="mt-3 flex flex-col gap-2">
+              <button
+                onClick={onNewAt16}
+                className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
+              >
+                🧪 {t('start.newAt16')}
+              </button>
+              <button
+                onClick={onNewAtCarrera}
+                className="rounded-xl border border-dashed border-line px-6 py-2 text-sm font-medium text-inkfaint transition hover:border-inkfaint hover:text-inksoft"
+              >
+                🧪 {t('start.newAtCarrera')}
+              </button>
+            </div>
+          )}
           <button
             onClick={resetTutorial}
             className="mt-2 text-xs text-inkfaint underline-offset-2 transition hover:text-inksoft hover:underline"

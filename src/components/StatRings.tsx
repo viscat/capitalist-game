@@ -117,7 +117,7 @@ export function StatRings({
 
   return (
     <div ref={arrelRef} className="relative">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {rings.map((r) => (
           <button
             key={r.id}
@@ -126,7 +126,7 @@ export function StatRings({
             onClick={() => setObert((prev) => (prev === r.id ? null : r.id))}
             aria-label={`${t(`stat.${r.id}`)}: ${r.valorText}`}
             aria-expanded={obert === r.id}
-            className={`rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent/60 ${
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-accent/60 ${
               obert === r.id ? 'ring-2 ring-accent/50' : ''
             } ${r.wrapClass ?? ''}`}
           >

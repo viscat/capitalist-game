@@ -22,6 +22,14 @@
   --color-ink: #eef1fb;
   --color-inksoft: #aab4d4;
   --color-inkfaint: #6b769c;
+
+  /* Rampa única d'stats 0..100 (crit → baix → mig → alt → cim). Font de veritat compartida
+     amb `lib/format.ts` (STAT_RAMP): els mateixos hexos per a barres i anells. */
+  --color-stat-crit: #f6504f;
+  --color-stat-low: #f97316;
+  --color-stat-mid: #eab308;
+  --color-stat-high: #84cc16;
+  --color-stat-peak: #22d39a;
 }
 
 :root {
@@ -59,6 +67,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   width: 100%;
+  min-height: 3.25rem; /* ≥52px: garanteix el target tàctil de l'acció principal */
   border-radius: 1rem;
   padding: 0.9rem 1.5rem;
   color: #fff;
@@ -110,6 +119,7 @@ body {
   justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
+  min-height: 3.5rem; /* ≥56px: target tàctil còmode per a les decisions */
   border-radius: 0.9rem;
   padding: 0.9rem 1rem;
   text-align: left;
@@ -120,12 +130,20 @@ body {
     border-color 160ms,
     background 160ms;
 }
-.option-card:hover {
+.option-card:hover,
+.option-card:active {
   border-color: var(--color-accent);
   background: color-mix(in srgb, var(--color-accent) 14%, var(--color-surface2));
 }
 .option-card:active {
   transform: scale(0.985);
+}
+/* En tàctil (sense hover) l'afordança de color ha d'aparèixer igualment en prémer. */
+@media (hover: none) {
+  .option-card:active {
+    border-color: var(--color-accent2);
+    background: color-mix(in srgb, var(--color-accent) 20%, var(--color-surface2));
+  }
 }
 
 /* === Animacions === */
@@ -239,6 +257,91 @@ body {
 }
 .animate-stat-delta {
   animation: stat-delta 1.1s ease-out forwards;
+}
+
+/* Aparició escalonada dels badges d'efecte: cada delta "arriba" un rere l'altre (drumroll de
+   causa→efecte). El retard el fixa cada element amb --i via style inline. */
+@keyframes badge-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-badge-in {
+  animation: badge-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* Revelació seqüenciada de blocs (GameOver, fites): cada secció puja amb un petit retard,
+   així el jugador LLEGEIX la vida en lloc de rebre un mur de dades. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-reveal-up {
+  animation: reveal-up 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+
+/* Títol de fita / final: entra una mica més gran i s'assenta (gravetat del moment). */
+@keyframes title-settle {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(1.04);
+    letter-spacing: 0.04em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    letter-spacing: normal;
+  }
+}
+.animate-title-settle {
+  animation: title-settle 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Halo d'una sola pulsació darrere un títol important (es desperta i s'esvaeix). */
+@keyframes halo-once {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+.animate-halo-once {
+  animation: halo-once 1.4s ease-out both;
+}
+
+/* Traçat de línia de gràfic (esquerra→dreta): el patrimoni/la vida es "dibuixa" mentre creix. */
+@keyframes line-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.animate-line-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: line-draw 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 260ms);
 }
 
 @media (prefers-reduced-motion: reduce) {

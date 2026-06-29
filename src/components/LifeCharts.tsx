@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { VidaSnapshot } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEurosCompact } from '../lib/format'
@@ -43,40 +44,43 @@ function LineChart({
     <div className="rounded-2xl bg-surface/80 p-4 ring-1 ring-line/60">
       <h3 className="mb-2 text-sm font-semibold text-inksoft">{title}</h3>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={title}>
-        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#475569" strokeWidth="1" />
-        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="#475569" strokeWidth="1" />
+        <line x1={PAD_L} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--color-line)" strokeWidth="1" />
+        <line x1={PAD_L} y1={PAD} x2={PAD_L} y2={H - PAD} stroke="var(--color-line)" strokeWidth="1" />
         {zeroY !== null && (
           <line
             x1={PAD_L}
             y1={zeroY}
             x2={W - PAD}
             y2={zeroY}
-            stroke="#64748b"
+            stroke="var(--color-inkfaint)"
             strokeWidth="1"
             strokeDasharray="3 3"
           />
         )}
-        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={PAD + 4} textAnchor="end" fontSize="8" fill="var(--color-inkfaint)">
           {fmt(max)}
         </text>
-        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="#94a3b8">
+        <text x={PAD_L - 5} y={H - PAD} textAnchor="end" fontSize="8" fill="var(--color-inkfaint)">
           {fmt(min)}
         </text>
-        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(0)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="var(--color-inkfaint)">
           {edatMin}
         </text>
-        <text x={x(hist.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="#94a3b8">
+        <text x={x(hist.length - 1)} y={H - PAD + 12} textAnchor="middle" fontSize="8" fill="var(--color-inkfaint)">
           {edatMax}
         </text>
-        {series.map((s) => (
+        {series.map((s, i) => (
           <polyline
             key={s.label}
             points={linia(s)}
+            pathLength={1}
             fill="none"
             stroke={s.color}
             strokeWidth="2"
             strokeLinejoin="round"
             strokeLinecap="round"
+            className="animate-line-draw"
+            style={{ '--i': i } as CSSProperties}
           />
         ))}
       </svg>

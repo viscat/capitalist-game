@@ -1,9 +1,11 @@
+import type { CSSProperties } from 'react'
 import { MILESTONES } from '../domain/milestones'
 import { patrimoniTotal } from '../domain/stats'
 import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { formatEurosCompact } from '../lib/format'
+import { useCountUp } from '../lib/useCountUp'
 import { LifeCharts } from './LifeCharts'
 import { SalutAvis, StatRings } from './StatRings'
 
@@ -20,10 +22,13 @@ export function MilestoneScreen() {
   const { state, chooseMilestone } = useGame()
   const esJubilacio = state?.pendingMilestone === 'jubilacio'
   const coachRef = useCoachmark<HTMLDivElement>(esJubilacio ? 'jubilacio' : 'milestone')
+  // Hooks abans de qualsevol return condicional (regles dels hooks): valors segurs si no hi ha estat.
+  const benestar = Math.round(state?.person.stats.benestar ?? 0)
+  const benestarAnimat = Math.round(useCountUp(benestar))
+  const patrimoniAnimat = Math.round(useCountUp(state ? patrimoniTotal(state.person) : 0))
   if (!state?.pendingMilestone) return null
 
   const def = MILESTONES[state.pendingMilestone]
-  const benestar = Math.round(state.person.stats.benestar)
   const bucket = benestarBucket(benestar)
   const unaOpcio = def.options.length === 1
 
@@ -41,39 +46,58 @@ export function MilestoneScreen() {
         <SalutAvis salut={state.person.stats.salut} />
       </div>
 
-      <div className="m-auto w-full max-w-md py-6 animate-card-in">
-        <p ref={coachRef} className="text-xs font-bold uppercase tracking-[0.18em] text-accent2">
-          {t(def.kickerKey)}
-        </p>
-        <h1 className="mt-1 text-3xl font-black text-ink">{t(def.titleKey)}</h1>
+      <div className="m-auto w-full max-w-md py-6">
+        <div className="relative">
+          {/* Halo d'una pulsació darrere el títol: el moment "respira" en obrir-se. */}
+          <div
+            aria-hidden
+            className={`animate-halo-once pointer-events-none absolute -inset-x-6 -top-4 -bottom-2 -z-10 rounded-full blur-2xl ${
+              esJubilacio ? 'bg-gold/20' : 'bg-accent/20'
+            }`}
+          />
+          <p
+            ref={coachRef}
+            className={`text-xs font-bold uppercase tracking-[0.18em] ${
+              esJubilacio ? 'text-gold' : 'text-accent2'
+            }`}
+          >
+            {t(def.kickerKey)}
+          </p>
+          <h1 className="animate-title-settle mt-1 text-3xl font-black text-ink">
+            {t(def.titleKey)}
+          </h1>
+        </div>
 
         {/* Resum de l'etapa */}
-        <div className="mt-6 rounded-2xl bg-slate-800/70 p-5 ring-1 ring-slate-700/50">
-          <h2 className="text-sm font-semibold text-slate-300">
+        <div
+          className="animate-reveal-up mt-6 rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50 shadow-card"
+          style={{ '--i': 1 } as CSSProperties}
+        >
+          <h2 className="text-sm font-semibold text-inksoft">
             {t(def.summaryTitleKey)}
           </h2>
-          <p className="mt-2 text-slate-300">
+          <p className="mt-2 text-inksoft">
             {t(`${def.summaryPrefix}.${bucket}`)}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-inkfaint">
                 {t('transition.benestar')}
               </div>
-              <div className="text-2xl font-bold text-emerald-300">
-                {benestar}
-                <span className="text-base font-normal text-slate-500">/100</span>
+              <div className="text-2xl font-bold tabular-nums text-money">
+                {benestarAnimat}
+                <span className="text-base font-normal text-inkfaint">/100</span>
               </div>
-              <div className="text-xs text-slate-500">{t(`benestar.${bucket}`)}</div>
+              <div className="text-xs text-inkfaint">{t(`benestar.${bucket}`)}</div>
             </div>
             <div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-inkfaint">
                 {t('transition.estalvi')}
               </div>
-              <div className="text-2xl font-bold text-emerald-300">
-                {formatEurosCompact(patrimoniTotal(state.person))}
+              <div className="text-2xl font-bold tabular-nums text-money">
+                {formatEurosCompact(patrimoniAnimat)}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-inkfaint">
                 {t(`family.${state.familia.classe}.name`)}
               </div>
             </div>
@@ -81,12 +105,15 @@ export function MilestoneScreen() {
         </div>
 
         {/* Lore */}
-        <div className="mt-4 rounded-2xl bg-slate-800/40 p-5">
-          <h2 className="text-sm font-semibold text-slate-300">
+        <div
+          className="animate-reveal-up mt-4 rounded-2xl bg-surface/40 p-5"
+          style={{ '--i': 2 } as CSSProperties}
+        >
+          <h2 className="text-sm font-semibold text-inksoft">
             {t(def.loreTitleKey)}
           </h2>
           {def.loreKeys.map((k) => (
-            <p key={k} className="mt-2 leading-relaxed text-slate-300">
+            <p key={k} className="mt-2 leading-relaxed text-inksoft">
               {t(k)}
             </p>
           ))}
@@ -94,7 +121,7 @@ export function MilestoneScreen() {
 
         {/* Evolució fins ara: stats, patrimoni net i IPC (inflació) */}
         {state.vidaHist && state.vidaHist.length >= 2 && (
-          <div className="mt-4">
+          <div className="animate-reveal-up mt-4" style={{ '--i': 3 } as CSSProperties}>
             <LifeCharts hist={state.vidaHist} />
           </div>
         )}

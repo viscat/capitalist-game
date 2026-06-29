@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { EventEffect } from '../domain/types'
 import { useT } from '../i18n'
 import { formatEuros } from '../lib/format'
@@ -6,6 +7,8 @@ interface Badge {
   label: string
   text: string
   positive: boolean
+  /** Magnitud destacada (xocs grans: crac de mercat, despesa greu): el badge pesa més. */
+  fort?: boolean
 }
 
 const MONEY_FIELDS: (keyof EventEffect)[] = ['efectiu', 'inversions']
@@ -37,6 +40,7 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       label: t('effect.despesaGreu'),
       text: `−${formatEuros(effect.despesaGreu)}`,
       positive: false,
+      fort: true,
     })
   }
   // Herència en vida: surt del teu patrimoni líquid ARA (es transfereix als fills).
@@ -77,6 +81,7 @@ export function EffectList({ effect }: { effect: EventEffect }) {
       label: t('effect.mercat'),
       text: `${pct > 0 ? '+' : ''}${pct}%`,
       positive: pct > 0,
+      fort: Math.abs(pct) >= 15,
     })
   }
   if (effect.salariNou !== undefined) {
@@ -127,13 +132,16 @@ export function EffectList({ effect }: { effect: EventEffect }) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {badges.map((b) => (
+      {badges.map((b, i) => (
         <span
           key={b.label}
-          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+          style={{ '--i': i } as CSSProperties}
+          className={`animate-badge-in rounded-full font-medium ${
+            b.fort ? 'px-3 py-1 text-sm font-bold ring-1' : 'px-2.5 py-0.5 text-xs'
+          } ${
             b.positive
-              ? 'bg-emerald-500/15 text-emerald-300'
-              : 'bg-red-500/15 text-red-300'
+              ? `bg-money/15 text-money ${b.fort ? 'ring-money/40' : ''}`
+              : `bg-danger/15 text-danger ${b.fort ? 'ring-danger/40' : ''}`
           }`}
         >
           {b.label} {b.text}

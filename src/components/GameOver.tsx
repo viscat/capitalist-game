@@ -15,16 +15,18 @@ import { MESOS_PER_ANY } from '../domain/constants'
 import { edatAnys } from '../domain/time'
 import { InvestmentChart } from './InvestmentChart'
 import { LifeCharts } from './LifeCharts'
+import type { CSSProperties } from 'react'
 import { useGame } from '../state/GameContext'
 import { useCoachmark } from '../state/tutorial'
 import { useT } from '../i18n'
 import { benestarLevelKey, formatEurosCompact } from '../lib/format'
+import { useCountUp } from '../lib/useCountUp'
 
 function Line({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-medium text-slate-100">{value}</span>
+      <span className="text-inkfaint">{label}</span>
+      <span className="font-medium text-ink">{value}</span>
     </div>
   )
 }
@@ -33,6 +35,13 @@ export function GameOver() {
   const { t } = useT()
   const { state, reset, continuarGeneracio } = useGame()
   const dinastiaRef = useCoachmark<HTMLDivElement>('dinastia')
+  // Hooks abans de qualsevol return condicional. Els números heroi s'animen (compten amunt).
+  const benestarAnim = Math.round(useCountUp(Math.round(state?.person.stats.benestar ?? 0)))
+  const totalAnim = Math.round(
+    useCountUp(
+      state ? patrimoniTotal(state.person) - (state.habitatge?.hipoteca?.deute ?? 0) : 0,
+    ),
+  )
   if (!state) return null
 
   const generacio = state.generacio ?? 1
@@ -113,38 +122,54 @@ export function GameOver() {
   if (nivellMoralitat(moralitat) === 'malvat')
     factors.push(['😈', t('gameover.factor.moral_malvat')])
 
+  // Tractament emocional del títol segons el desenllaç: la MORT és sòbria i desaturada; el
+  // TRIOMF (vida plena / jubilació daurada / sòlida) és daurat amb un halo; la resta, neutre.
+  const esMort = finalTipus === 'mort'
+  const esTriomf = finalTipus === 'plena' || finalTipus === 'jub_daurada' || finalTipus === 'solid'
+  const haloClass = esMort ? 'bg-danger/15' : esTriomf ? 'bg-gold/25' : 'bg-accent/15'
+  const titleClass = esMort ? 'text-inksoft' : esTriomf ? 'text-gold2' : 'text-ink'
+  // Comptador d'índex per escalonar la revelació (cada bloc puja un rere l'altre).
+  let i = 0
+  const reveal = () => ({ '--i': i++ }) as CSSProperties
+
   return (
     <div className="flex min-h-full items-center justify-center p-6">
       <div className="max-w-md text-center">
-        <h1 className="text-4xl font-black text-slate-100">
-          {t(`gameover.final.${finalTipus}.title`)}
-        </h1>
-        <p className="mt-3 text-slate-400">
+        <div className="relative">
+          <div
+            aria-hidden
+            className={`animate-halo-once pointer-events-none absolute -inset-x-8 -top-6 -bottom-4 -z-10 rounded-full blur-3xl ${haloClass}`}
+          />
+          <h1 className={`animate-title-settle text-4xl font-black ${titleClass}`}>
+            {t(`gameover.final.${finalTipus}.title`)}
+          </h1>
+        </div>
+        <p className="animate-reveal-up mt-3 text-inksoft" style={reveal()}>
           {finalTipus === 'mort'
             ? t('gameover.final.mort.desc', { edat: edatAnys(state.person.edatMesos) })
             : t(`gameover.final.${finalTipus}.desc`)}
         </p>
 
-        <div className="mt-8 grid grid-cols-2 gap-4">
-          <div className="rounded-xl bg-slate-800/70 p-5">
-            <div className="text-sm text-slate-400">{t('gameover.benestarFinal')}</div>
-            <div className="mt-1 text-3xl font-bold text-emerald-300">{benestar}</div>
-            <div className="text-xs text-slate-500">{t(benestarLevelKey(benestar))}</div>
+        <div className="animate-reveal-up mt-8 grid grid-cols-2 gap-4" style={reveal()}>
+          <div className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50 shadow-card">
+            <div className="text-sm text-inkfaint">{t('gameover.benestarFinal')}</div>
+            <div className="mt-1 text-3xl font-bold tabular-nums text-money">{benestarAnim}</div>
+            <div className="text-xs text-inkfaint">{t(benestarLevelKey(benestar))}</div>
           </div>
-          <div className="rounded-xl bg-slate-800/70 p-5">
-            <div className="text-sm text-slate-400">{t('gameover.patrimoniFinal')}</div>
+          <div className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50 shadow-card">
+            <div className="text-sm text-inkfaint">{t('gameover.patrimoniFinal')}</div>
             <div
-              className={`mt-1 text-3xl font-bold ${
-                total < 0 ? 'text-red-400' : 'text-emerald-300'
+              className={`mt-1 text-3xl font-bold tabular-nums ${
+                total < 0 ? 'text-danger' : 'text-money'
               }`}
             >
-              {formatEurosCompact(total)}
+              {formatEurosCompact(totalAnim)}
             </div>
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl bg-slate-800/60 p-5 text-left">
-          <h2 className="mb-3 text-sm font-semibold text-slate-300">
+        <div className="animate-reveal-up mt-4 rounded-2xl bg-surface/60 p-5 text-left" style={reveal()}>
+          <h2 className="mb-3 text-sm font-semibold text-inksoft">
             {t('gameover.desglos')}
           </h2>
           <div className="space-y-1.5">
@@ -155,14 +180,14 @@ export function GameOver() {
             )}
             {deuteConsum > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-red-300">{t('patrimoni.deute')}</span>
-                <span className="font-medium text-red-400">
+                <span className="text-danger">{t('patrimoni.deute')}</span>
+                <span className="font-medium text-danger">
                   −{formatEurosCompact(deuteConsum)}
                 </span>
               </div>
             )}
           </div>
-          <div className="mt-3 space-y-1.5 border-t border-slate-700/60 pt-3">
+          <div className="mt-3 space-y-1.5 border-t border-line/60 pt-3">
             <Line label={`❤️ ${t('stat.salut')}`} value={`${salut}/100`} />
             <Line
               label={`${moralitatIcon(moralitat)} ${t('stat.moralitat')}`}
@@ -177,39 +202,39 @@ export function GameOver() {
             )}
             {sequela > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-red-300">🩹 {t('stat.sequela')}</span>
-                <span className="font-medium text-red-400">−{Math.round(sequela)}</span>
+                <span className="text-danger">🩹 {t('stat.sequela')}</span>
+                <span className="font-medium text-danger">−{Math.round(sequela)}</span>
               </div>
             )}
           </div>
-          <p className="mt-3 text-xs leading-relaxed text-sky-300/90">
+          <p className="mt-3 text-xs leading-relaxed text-money/90">
             📈 {t('gameover.notaInversio', { pct: pctInvertit })}
           </p>
         </div>
 
         {/* Què ha marcat la vida: atribució del resultat a la seva font (estructura vs esforç). */}
-        <div className="mt-4 rounded-xl bg-slate-800/60 p-5 text-left">
-          <h2 className="mb-3 text-sm font-semibold text-slate-300">
+        <div className="animate-reveal-up mt-4 rounded-2xl bg-surface/60 p-5 text-left" style={reveal()}>
+          <h2 className="mb-3 text-sm font-semibold text-inksoft">
             {t('gameover.factors.titol')}
           </h2>
           <ul className="space-y-2">
-            {factors.map(([icon, text], i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+            {factors.map(([icon, text], idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-inksoft">
                 <span aria-hidden>{icon}</span>
                 <span>{text}</span>
               </li>
             ))}
           </ul>
           {/* Contrafàctic de règim: el terra el va moure la REGLA (la política), no tu. */}
-          <p className="mt-3 border-t border-slate-700/60 pt-3 text-xs leading-relaxed text-amber-300/90">
+          <p className="mt-3 border-t border-line/60 pt-3 text-xs leading-relaxed text-gold/90">
             🏛️ {t(`gameover.contrafactic.${state.regimPolitic ?? 'mixt'}`)}
           </p>
         </div>
 
         {/* Balanç de jubilació: d'on viuràs ara que has plegat. */}
         {state.jubilat && (
-          <div className="mt-4 rounded-xl bg-slate-800/60 p-5 text-left">
-            <h2 className="mb-3 text-sm font-semibold text-slate-300">
+          <div className="animate-reveal-up mt-4 rounded-2xl bg-surface/60 p-5 text-left" style={reveal()}>
+            <h2 className="mb-3 text-sm font-semibold text-inksoft">
               {t('gameover.jubilacio.titol')}
             </h2>
             <div className="space-y-1.5">
@@ -221,11 +246,11 @@ export function GameOver() {
                 label={t('gameover.jubilacio.rendaPatrimoni')}
                 value={`${formatEurosCompact(Math.round(rendaPatrimoni / MESOS_PER_ANY))}/mes`}
               />
-              <div className="flex justify-between border-t border-slate-700/60 pt-1.5 text-sm">
-                <span className="font-semibold text-slate-200">
+              <div className="flex justify-between border-t border-line/60 pt-1.5 text-sm">
+                <span className="font-semibold text-ink">
                   {t('gameover.jubilacio.total')}
                 </span>
-                <span className="font-bold text-emerald-300">
+                <span className="font-bold text-money">
                   {formatEurosCompact(Math.round(rendaAnual / MESOS_PER_ANY))}/mes
                 </span>
               </div>
@@ -234,7 +259,7 @@ export function GameOver() {
                 value={`${formatEurosCompact(Math.round(necessitatsAnual / MESOS_PER_ANY))}/mes`}
               />
             </div>
-            <p className="mt-3 text-xs leading-relaxed text-amber-300/90">
+            <p className="mt-3 text-xs leading-relaxed text-gold/90">
               {t(`gameover.jubilacio.${veredicte}`)}
             </p>
           </div>
@@ -242,21 +267,21 @@ export function GameOver() {
 
         {/* Per què el teu benestar: desglossament llegible (què t'apuja i què t'esfondra). */}
         {esAdult && (
-          <div className="mt-4 rounded-2xl bg-slate-800/40 p-4 text-left">
-            <h2 className="mb-2 text-sm font-semibold text-slate-300">
+          <div className="animate-reveal-up mt-4 rounded-2xl bg-surface/40 p-4 text-left" style={reveal()}>
+            <h2 className="mb-2 text-sm font-semibold text-inksoft">
               {t('gameover.desglosBenestar')}
             </h2>
             <div className="space-y-1">
               {desglosBenestarAdult(state).map((c) => (
                 <div key={c.clau} className="flex justify-between text-sm">
-                  <span className="text-slate-400">{t(c.clau)}</span>
+                  <span className="text-inkfaint">{t(c.clau)}</span>
                   <span
                     className={
                       c.valor > 0
-                        ? 'font-medium text-emerald-300'
+                        ? 'font-medium text-money'
                         : c.valor < 0
-                          ? 'font-medium text-red-300'
-                          : 'text-slate-400'
+                          ? 'font-medium text-danger'
+                          : 'text-inkfaint'
                     }
                   >
                     {c.valor > 0 ? '+' : ''}
@@ -270,13 +295,13 @@ export function GameOver() {
 
         {/* Evolució de la vida: salut+benestar i patrimoni net, al llarg de tots els anys. */}
         {state.vidaHist && state.vidaHist.length >= 2 && (
-          <div className="mt-4 text-left">
+          <div className="animate-reveal-up mt-4 text-left" style={reveal()}>
             <LifeCharts hist={state.vidaHist} />
           </div>
         )}
 
         {state.patrimoniHist && state.patrimoniHist.length >= 2 && (
-          <div className="mt-3 text-left">
+          <div className="animate-reveal-up mt-3 text-left" style={reveal()}>
             <InvestmentChart hist={state.patrimoniHist} />
           </div>
         )}
@@ -285,7 +310,8 @@ export function GameOver() {
         {fills > 0 && (
           <div
             ref={dinastiaRef}
-            className="mt-4 rounded-2xl bg-accent/10 p-5 text-left ring-1 ring-accent/30"
+            className="animate-reveal-up mt-4 rounded-2xl bg-accent/10 p-5 text-left ring-1 ring-accent/30"
+            style={reveal()}
           >
             <h2 className="mb-2 text-sm font-bold text-accent2">
               👨‍👩‍👧 {t('gameover.dinastia.titol')}
