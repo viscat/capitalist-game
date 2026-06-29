@@ -12,6 +12,7 @@ import {
 } from '../domain/constants'
 import {
   ajutPublicMax,
+  beneficiEmpresaAnual,
   benestarNivellVida,
   benestarOciAnual,
   cobreixVidaFamiliar,
@@ -71,6 +72,8 @@ export function InvestmentPanel() {
     setVidaSenzilla,
     setInversioSalut,
     setInversioFormacio,
+    deixarFeina,
+    tornarABuscarFeina,
   } = useGame()
   const coachRef = useCoachmark<HTMLDivElement>('pla_inversio')
   const deuteRef = useCoachmark<HTMLDivElement>('deute')
@@ -79,9 +82,20 @@ export function InvestmentPanel() {
   // El model treballa en anual; el panell ho presenta tot en mensual. Ni el SOU ni la PENSIÓ
   // s'indexen a l'IPC (es queden nominals), coherent amb el motor (`advanceTurn`).
   const f = factorIPC(state)
-  const income = state.jubilat
+  // Ingrés desglossat: el SOU per compte aliè (o pensió) i, A PART, el sou estimat de l'EMPRESA
+  // pròpia (variable: només si sobreviu l'any). Es mostren separats per no barrejar-los.
+  const incomeFeina = state.jubilat
     ? pensioPublicaAnual(state)
     : ingressosAnualsCarrera(state)
+  const souEmpresaAny = state.empresa
+    ? Math.round(
+        Math.max(
+          0,
+          beneficiEmpresaAnual(state.empresa, 1) * (1 - (state.reinversioEmpresa ?? 0.5)),
+        ) * f,
+      )
+    : 0
+  const income = incomeFeina + souEmpresaAny
   // Cost nominal de les accions fixes de salut i formació (s'encareixen amb l'IPC, com el motor).
   const costSalutNominal = Math.round(COST_SALUT_ANUAL * f)
   const costFormacioNominal = Math.round(COST_FORMACIO_ANUAL * f)
@@ -162,10 +176,40 @@ export function InvestmentPanel() {
     <div ref={coachRef} className="rounded-2xl bg-surface/70 p-5 ring-1 ring-line/50">
       <div className="mb-3 flex items-baseline justify-between">
         <h3 className="text-sm font-semibold text-inksoft">{t('pla.title')}</h3>
-        <span className="text-sm text-inksoft">
-          {t('pla.income')}: {formatEuros(perMes(income))}/mes
-        </span>
+        <div className="text-right">
+          <div className="text-sm text-inksoft">
+            {t('pla.income')}: {formatEuros(perMes(income))}/mes
+          </div>
+          {souEmpresaAny > 0 && !state.jubilat && (
+            // Desglossament: sou per compte aliè vs sou (estimat) de l'empresa pròpia.
+            <div className="text-[11px] text-inkfaint">
+              {t('pla.income.feina')} {formatEuros(perMes(incomeFeina))} ·{' '}
+              {t('pla.income.empresa')} ~{formatEuros(perMes(souEmpresaAny))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Deixar de treballar / tornar a buscar feina (atur voluntari). */}
+      {state.lifeStage === 'carrera' && (state.salari ?? 0) > 0 && (
+        <button
+          onClick={deixarFeina}
+          className="mb-3 w-full rounded-lg border border-line/60 py-2 text-xs font-medium text-inksoft transition hover:bg-bg2"
+        >
+          {t('pla.deixarFeina')}
+        </button>
+      )}
+      {state.aturVoluntari && (
+        <div className="mb-3 rounded-lg bg-surface2/40 p-3">
+          <p className="text-xs text-inksoft">{t('pla.noTreballa')}</p>
+          <button
+            onClick={tornarABuscarFeina}
+            className="mt-2 w-full rounded-lg bg-accent py-2 text-xs font-semibold text-white transition hover:bg-accent2"
+          >
+            {t('pla.buscarFeina')}
+          </button>
+        </div>
+      )}
 
       {deuteActual > 0 && (
         <div ref={deuteRef} className="mb-3 rounded-lg border border-danger/40 bg-danger/10 p-3">

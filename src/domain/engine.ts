@@ -447,8 +447,9 @@ function stageActions(state: GameState): GameAction[] {
  */
 function ambOfertes(state: GameState): GameState {
   let next = state
-  // Feina: a l'atur (carrera, sou 0) hi ha cerca de feina; amb sou, s'esborren les ofertes.
-  if (next.lifeStage === 'carrera' && (next.salari ?? 0) === 0) {
+  // Feina: a l'atur (carrera, sou 0) hi ha cerca de feina; amb sou, s'esborren les ofertes. Si
+  // l'atur és VOLUNTARI (has deixat la feina), NO es generen ofertes: vius de l'empresa/estalvis.
+  if (next.lifeStage === 'carrera' && (next.salari ?? 0) === 0 && !next.aturVoluntari) {
     const { ofertes, rngState } = generaOfertes(next, next.rngState)
     next = { ...next, ofertesFeina: ofertes, rngState }
   } else if (next.ofertesFeina) {
@@ -714,6 +715,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
   let patrimoniHist = state.patrimoniHist
   // Empresa pròpia: pot tancar (fracàs) o créixer (reinversió) aquest any (vegeu el bloc de carrera).
   let empresa = state.empresa
+  let empresaHist = state.empresaHist
 
   // Estat del RNG d'aquest torn (pot avançar abans de seleccionar l'esdeveniment,
   // p. ex. per sortejar el rendiment anual del fons indexat).
@@ -827,7 +829,11 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         ? pensioPublicaAnual(state)
         : (state.salari ?? 0) > 0
           ? ingressosAnualsCarrera(state)
-          : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
+          : // Sense sou: prestació d'atur només si l'atur és INVOLUNTARI. Qui deixa la feina per
+            // decisió pròpia (atur voluntari) no cobra res: viu de l'empresa, inversions i estalvis.
+            state.aturVoluntari
+            ? 0
+            : prestacioAturAnual(state.salariBase ?? 0, state.anysExperiencia ?? 0)
     // EMPRESA pròpia: si en tens una, aquest any es juga la SUPERVIVÈNCIA (la majoria tanquen els
     // primers anys). Si sobreviu, genera benefici que es reparteix entre REINVERSIÓ (creix el
     // capital) i el TEU SOU (s'afegeix a l'ingrés). El fracàs en perd el capital invertit (ja havia
@@ -841,6 +847,10 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
       const habilitat = habilitatEmprenedora(state)
       if (rollFracas.value < pFracasEmpresaAnual(empresa, habilitat)) {
         // FRACÀS: l'empresa tanca. El capital ja s'havia compromès; ara es perd del tot.
+        empresaHist = [
+          ...(empresaHist ?? []),
+          { edat: anys, capital: 0, benefici: 0, reinvertit: 0, sou: 0, fracas: true },
+        ]
         empresa = undefined
         empresaBenestar = -10
       } else {
@@ -850,6 +860,8 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
         const benefici = beneficiEmpresaAnual(empresa, luck)
         empresaMoralitat = EMPRESA_SOU_EMPLEATS[empresa.souEmpleats].moralitatAnual
         let capital = empresa.capital
+        let reinvertit = 0
+        let souTeu = 0
         if (benefici > 0) {
           const reinv = Math.max(
             0,
@@ -857,16 +869,21 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
           )
           // El capital se satura a EMPRESA_CAPITAL_MAX: el que es reinvertiria de més torna al
           // teu sou (el mercat ja no absorbeix més creixement).
-          const aReinvertir = Math.min(
+          reinvertit = Math.min(
             Math.round(benefici * reinv),
             Math.max(0, EMPRESA_CAPITAL_MAX - capital),
           )
-          capital += aReinvertir
-          empresaSou = (benefici - aReinvertir) * f
+          capital += reinvertit
+          souTeu = benefici - reinvertit
+          empresaSou = souTeu * f
         } else {
           capital = Math.max(0, capital + benefici) // mal any: l'empresa minva
         }
         empresa = { ...empresa, capital, anys: empresa.anys + 1 }
+        empresaHist = [
+          ...(empresaHist ?? []),
+          { edat: anys, capital, benefici, reinvertit, sou: souTeu },
+        ]
       }
     }
     // Premi de CONVENI: l'acció col·lectiva arrenca millores salarials recurrents (escala amb el
@@ -1091,6 +1108,7 @@ export function advanceTurn(state: GameState, actionIds?: string[]): GameState {
     patrimoniHist,
     anysExperiencia,
     empresa, // pot haver tancat (fracàs) o crescut (reinversió) aquest any
+    empresaHist,
     ipc,
     indexHabitatge,
     // El sou es revisa cada any: (1) REVISIÓ ANUAL PARCIAL (COLA) — puja una fracció de la
@@ -1615,4 +1633,20 @@ export function setReinversioEmpresa(state: GameState, fraccio: number): GameSta
 export function setSouEmpleats(state: GameState, nivell: NivellSouEmpleats): GameState {
   if (!state.empresa) return state
   return { ...state, empresa: { ...state.empresa, souEmpleats: nivell } }
+}
+
+/**
+ * Deixa de treballar per compte aliè (atur VOLUNTARI): el sou passa a 0, sense prestació ni cerca
+ * de feina automàtica. Es viu de l'empresa, les inversions i els estalvis. Només té sentit a la
+ * carrera amb sou; reversible amb `tornarABuscarFeina`.
+ */
+export function deixarFeina(state: GameState): GameState {
+  if (state.lifeStage !== 'carrera' || (state.salari ?? 0) <= 0) return state
+  return { ...state, salari: 0, aturVoluntari: true, ofertesFeina: undefined }
+}
+
+/** Torna a buscar feina després d'haver deixat de treballar: reactiva la cerca (genera ofertes). */
+export function tornarABuscarFeina(state: GameState): GameState {
+  if (!state.aturVoluntari) return state
+  return ambOfertes({ ...state, aturVoluntari: false })
 }
