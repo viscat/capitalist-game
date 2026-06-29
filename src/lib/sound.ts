@@ -1,14 +1,14 @@
 /**
- * Capa de SO (música ambiental + efectes) i VIBRACIÓ, OPT-IN (desactivada per defecte). El to és
- * seriós: música de fons lenta i melancòlica (pads sintetitzats, sense fitxers) i efectes curts
- * (un tic en passar l'any, un clic en decidir, una nota greu en morir). Tot amb un sol botó.
+ * Capa de SO (música ambiental + efectes) i VIBRACIÓ, OPT-IN (desactivada per defecte). Música de
+ * fons melòdica i lenta (pads + arpegi sintetitzats, sense fitxers) i efectes curts. Un sol botó.
  *
  * Disseny:
  * - Sense dependències ni assets: tot és Web Audio (oscil·ladors + envolupants).
- * - L'AudioContext es crea i es desbloqueja dins d'un GEST de l'usuari (en activar el so, o a la
- *   primera interacció si ja estava activat), com exigeixen les polítiques d'autoplay.
- * - La preferència es desa a localStorage; per defecte OFF. En jsdom (tests) no hi ha
- *   AudioContext ni vibrate: tot són no-ops segurs.
+ * - L'AudioContext es crea i es desbloqueja dins d'un GEST de l'usuari (en activar el so) i, per
+ *   robustesa, es REPRÈN a cada interacció mentre el so és actiu (els navegadors el suspenen sols).
+ * - En activar el so sona una confirmació immediata, perquè l'usuari sàpiga que funciona.
+ * - La preferència es desa a localStorage; per defecte OFF. En jsdom (tests) sense AudioContext
+ *   tot són no-ops segurs.
  */
 
 const KEY = 'capitalist-game/sound/v1'
@@ -42,6 +42,7 @@ export function setSoundEnabled(v: boolean): void {
   if (v) {
     getCtx() // desbloqueja l'àudio dins del gest que ha activat el so
     startMusic()
+    playSfx('select') // confirmació immediata: l'usuari sent que el so funciona
   } else {
     stopMusic()
   }
@@ -72,38 +73,61 @@ function getCtx(): AudioContext | null {
 }
 
 // =============================== Música ambiental ===============================
-// Progressió lenta i melancòlica (La menor: i – VI – III – VII), pads suaus en bucle. Volum
-// baix perquè acompanyi sense distreure. Es programa amb antelació (look-ahead scheduler).
+// Progressió lenta i melancòlica (La menor: i – VI – III – VII): pad sostingut + un ARPEGI suau
+// que li dóna moviment melòdic (perquè s'entengui com a música, no soroll de fons inaudible).
 
 const midiToHz = (n: number) => 440 * Math.pow(2, (n - 69) / 12)
 const CHORDS: number[][] = [
-  [45, 52, 57, 64], // Am  (A2 E3 A3 E4)
-  [41, 48, 57, 60], // F   (F2 C3 A3 C4)
-  [48, 55, 60, 64], // C   (C3 G3 C4 E4)
-  [43, 50, 59, 62], // G   (G2 D3 B3 D4)
+  [45, 57, 60, 64], // Am
+  [41, 53, 57, 60], // F
+  [48, 55, 60, 64], // C
+  [43, 55, 59, 62], // G
 ]
-const BAR = 5 // segons per acord
+const BAR = 4 // segons per acord
+const ARP_NOTES = 8 // notes d'arpegi per compàs
 
 let musicGain: GainNode | null = null
 let musicTimer: ReturnType<typeof setTimeout> | null = null
 let musicNextTime = 0
 let musicChord = 0
 
-function scheduleChord(c: AudioContext, freqsMidi: number[], start: number) {
+function pad(c: AudioContext, midi: number, start: number, peak: number) {
   if (!musicGain) return
-  freqsMidi.forEach((midi, i) => {
-    const osc = c.createOscillator()
-    const g = c.createGain()
-    osc.type = i === 0 ? 'sine' : 'triangle'
-    osc.frequency.value = midiToHz(midi)
-    const peak = i === 0 ? 0.07 : 0.04 // el baix una mica més present
-    g.gain.setValueAtTime(0.0001, start)
-    g.gain.exponentialRampToValueAtTime(peak, start + 1.4) // atac lent (pad)
-    g.gain.exponentialRampToValueAtTime(0.0001, start + BAR) // s'esvaeix abans del següent acord
-    osc.connect(g).connect(musicGain!)
-    osc.start(start)
-    osc.stop(start + BAR + 0.1)
-  })
+  const osc = c.createOscillator()
+  const g = c.createGain()
+  osc.type = 'triangle'
+  osc.frequency.value = midiToHz(midi)
+  g.gain.setValueAtTime(0.0001, start)
+  g.gain.exponentialRampToValueAtTime(peak, start + 0.4)
+  g.gain.exponentialRampToValueAtTime(0.0001, start + BAR)
+  osc.connect(g).connect(musicGain)
+  osc.start(start)
+  osc.stop(start + BAR + 0.1)
+}
+
+function pluck(c: AudioContext, midi: number, start: number, peak: number) {
+  if (!musicGain) return
+  const osc = c.createOscillator()
+  const g = c.createGain()
+  osc.type = 'sine'
+  osc.frequency.value = midiToHz(midi)
+  g.gain.setValueAtTime(0.0001, start)
+  g.gain.exponentialRampToValueAtTime(peak, start + 0.02)
+  g.gain.exponentialRampToValueAtTime(0.0001, start + 0.5)
+  osc.connect(g).connect(musicGain)
+  osc.start(start)
+  osc.stop(start + 0.55)
+}
+
+function scheduleChord(c: AudioContext, freqs: number[], start: number) {
+  // Pad sostingut (baix + acord).
+  pad(c, freqs[0] - 12, start, 0.14) // baix una octava avall
+  for (let i = 1; i < freqs.length; i++) pad(c, freqs[i], start, 0.07)
+  // Arpegi: recorre les notes altes de l'acord al llarg del compàs (moviment melòdic).
+  const arpPool = [freqs[1], freqs[2], freqs[3], freqs[2] + 12, freqs[3], freqs[2]]
+  for (let i = 0; i < ARP_NOTES; i++) {
+    pluck(c, arpPool[i % arpPool.length], start + (i * BAR) / ARP_NOTES, 0.1)
+  }
 }
 
 function musicLoop() {
@@ -115,7 +139,7 @@ function musicLoop() {
     musicNextTime += BAR
     musicChord++
   }
-  musicTimer = setTimeout(musicLoop, 600)
+  musicTimer = setTimeout(musicLoop, 500)
 }
 
 function startMusic() {
@@ -125,11 +149,11 @@ function startMusic() {
     musicGain = c.createGain()
     musicGain.connect(c.destination)
   }
-  // Puja el volum mestre suaument (evita un clic en començar).
+  // Puja el volum mestre ràpidament (clarament audible, però sense espantar).
   musicGain.gain.cancelScheduledValues(c.currentTime)
   musicGain.gain.setValueAtTime(0.0001, c.currentTime)
-  musicGain.gain.exponentialRampToValueAtTime(0.6, c.currentTime + 1.5)
-  musicNextTime = c.currentTime + 0.15
+  musicGain.gain.exponentialRampToValueAtTime(0.9, c.currentTime + 0.8)
+  musicNextTime = c.currentTime + 0.1
   musicChord = 0
   musicLoop()
 }
@@ -140,10 +164,9 @@ function stopMusic() {
     musicTimer = null
   }
   if (musicGain && ctx) {
-    // Fade out del màster: silencia també els acords ja programats.
     musicGain.gain.cancelScheduledValues(ctx.currentTime)
     musicGain.gain.setValueAtTime(Math.max(0.0001, musicGain.gain.value), ctx.currentTime)
-    musicGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7)
+    musicGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6)
   }
 }
 
@@ -156,7 +179,7 @@ function tone(
   {
     dur = 0.18,
     type = 'sine' as OscillatorType,
-    gain = 0.09,
+    gain = 0.16,
     at = 0,
   }: { dur?: number; type?: OscillatorType; gain?: number; at?: number } = {},
 ) {
@@ -174,39 +197,31 @@ function tone(
 }
 
 const SFX: Record<SfxName, (c: AudioContext) => void> = {
-  // Un any passa: tic curt i discret.
-  tick: (c) => tone(c, 320, { dur: 0.11, type: 'triangle', gain: 0.09 }),
-  // Decisió presa: clic net.
-  select: (c) => tone(c, 540, { dur: 0.09, type: 'sine', gain: 0.09 }),
-  // Fita d'edat: dues notes ascendents.
+  tick: (c) => tone(c, 330, { dur: 0.12, type: 'triangle', gain: 0.16 }),
+  select: (c) => tone(c, 560, { dur: 0.1, type: 'sine', gain: 0.16 }),
   milestone: (c) => {
-    tone(c, 660, { dur: 0.18, type: 'sine', gain: 0.1 })
-    tone(c, 880, { dur: 0.26, type: 'sine', gain: 0.1, at: 0.15 })
+    tone(c, 660, { dur: 0.18, type: 'sine', gain: 0.18 })
+    tone(c, 880, { dur: 0.28, type: 'sine', gain: 0.18, at: 0.15 })
   },
-  // Bon final: petit arpegi major (digne, no festiu).
   triomf: (c) => {
-    tone(c, 523, { dur: 0.2, gain: 0.1 })
-    tone(c, 659, { dur: 0.2, gain: 0.1, at: 0.17 })
-    tone(c, 784, { dur: 0.4, gain: 0.1, at: 0.34 })
+    tone(c, 523, { dur: 0.2, gain: 0.18 })
+    tone(c, 659, { dur: 0.2, gain: 0.18, at: 0.17 })
+    tone(c, 784, { dur: 0.42, gain: 0.18, at: 0.34 })
   },
-  // Mort: nota greu llarga, ombrívola.
   death: (c) => {
-    tone(c, 150, { dur: 1, type: 'sine', gain: 0.11 })
-    tone(c, 98, { dur: 1.2, type: 'sine', gain: 0.1, at: 0.12 })
+    tone(c, 160, { dur: 1, type: 'sine', gain: 0.2 })
+    tone(c, 98, { dur: 1.3, type: 'sine', gain: 0.18, at: 0.14 })
   },
-  // Xoc (crac de mercat, despesa greu): dues freqüències properes = dissonància curta.
   shock: (c) => {
-    tone(c, 220, { dur: 0.3, type: 'sawtooth', gain: 0.08 })
-    tone(c, 233, { dur: 0.3, type: 'sawtooth', gain: 0.08 })
+    tone(c, 220, { dur: 0.32, type: 'sawtooth', gain: 0.13 })
+    tone(c, 233, { dur: 0.32, type: 'sawtooth', gain: 0.13 })
   },
-  // Ingrés: blip ascendent ràpid.
   coin: (c) => {
-    tone(c, 880, { dur: 0.07, type: 'square', gain: 0.07 })
-    tone(c, 1320, { dur: 0.1, type: 'square', gain: 0.07, at: 0.05 })
+    tone(c, 880, { dur: 0.08, type: 'square', gain: 0.12 })
+    tone(c, 1320, { dur: 0.11, type: 'square', gain: 0.12, at: 0.05 })
   },
 }
 
-// Patrons de vibració (ms) per a cada efecte. La mort vibra més.
 const HAPTICS: Record<SfxName, number | number[]> = {
   tick: 8,
   select: 12,
@@ -236,12 +251,15 @@ export function playSfx(name: SfxName): void {
   }
 }
 
-// Si el so ja estava activat de sessions anteriors, l'àudio no pot sonar fins que hi ha un gest:
-// engega la música a la PRIMERA interacció de l'usuari.
-if (enabled && typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  const kick = () => {
-    window.removeEventListener('pointerdown', kick)
-    if (enabled) startMusic()
+// Robustesa: a CADA interacció de l'usuari, si el so és actiu, assegura que l'AudioContext està en
+// marxa (els navegadors el suspenen quan la pestanya passa a segon pla o sense gest previ) i, si la
+// música s'havia aturat, la torna a engegar. Així el so "es desbloqueja" sol a la primera acció.
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  const onGesture = () => {
+    if (!enabled) return
+    getCtx() // crea/reprèn el context
+    if (!musicTimer) startMusic()
   }
-  window.addEventListener('pointerdown', kick, { once: true })
+  window.addEventListener('pointerdown', onGesture)
+  window.addEventListener('keydown', onGesture)
 }
