@@ -688,7 +688,10 @@ describe('universitat i carrera', () => {
     )
     const uni = applyMilestoneChoice(fork, 'universitat_publica')
     const after = advanceTurn(uni)
-    expect(after.historial.some((e) => e.eventId === 'matricula_uni')).toBe(true)
+    const matricula = after.historial.find((e) => e.eventId === 'matricula_uni')
+    expect(matricula).toBeDefined()
+    // El cost s'ha de veure a l'historial (badge de despesa), no només el títol.
+    expect(matricula!.effect.efectiu).toBeLessThan(0)
   })
 
   it('un any de carrera avança 1 any, inverteix i deixa els comptes no negatius', () => {
